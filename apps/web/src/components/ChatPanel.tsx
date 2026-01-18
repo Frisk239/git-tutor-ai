@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageContent } from './MessageContent';
 import type { Message, ServerMessage } from '../types/chat';
@@ -13,13 +13,19 @@ export function ChatPanel({ initialSessionId }: ChatPanelProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState('');
 
+  // ✅ 添加：跟踪已处理消息数量
+  const processedCount = useRef(0);
+
   const { connected, sendMessage, messages: wsMessages } = useWebSocket(
     'ws://localhost:3000/ws'
   );
 
-  // 处理 WebSocket 消息
+  // ✅ 修复后的代码：只处理新消息
   useEffect(() => {
-    for (const msg of wsMessages) {
+    // 只处理新消息（从 processedCount 之后的消息）
+    const newMessages = wsMessages.slice(processedCount.current);
+
+    for (const msg of newMessages) {
       if (msg.type === 'chat.delta') {
         setStreamingContent((prev) => prev + msg.content);
       } else if (msg.type === 'chat.complete') {
@@ -34,6 +40,9 @@ export function ChatPanel({ initialSessionId }: ChatPanelProps) {
         alert('Error: ' + msg.error);
       }
     }
+
+    // 更新已处理计数
+    processedCount.current = wsMessages.length;
   }, [wsMessages]);
 
   // 创建会话
