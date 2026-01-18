@@ -2,6 +2,33 @@
 
 > AI 驱动的开发助手平台 - 集成 Git/GitHub/代码分析的全栈开发工具
 
+## 🎯 项目进度
+
+### Phase 1: MVP Chat Foundation ✅
+- [x] Fastify server with WebSocket
+- [x] Session management API
+- [x] AI Agent integration
+- [x] React chat UI with streaming
+- [x] Database integration
+- [x] Markdown support
+
+**Demo:**
+```bash
+# Start Backend
+cd services/api && pnpm dev
+
+# Start Frontend
+cd apps/web && pnpm dev
+```
+Visit http://localhost:5173
+
+### Phase 2: Tools System (Next)
+- [ ] File operation tools
+- [ ] Git tools
+- [ ] Tool execution display
+
+📖 查看 [Phase 1 完成报告](./docs/phase1-completion-report.md)
+
 ## 🚀 快速开始
 
 ### 环境要求

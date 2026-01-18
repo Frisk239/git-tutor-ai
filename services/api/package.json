@@ -1,35 +1,27 @@
 {
   "name": "@git-tutor/api",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
-    "clean": "rm -rf dist",
-    "lint": "biome check src",
-    "format": "biome format --write src"
+    "start": "node dist/server.js",
+    "test": "vitest"
   },
   "dependencies": {
-    "@fastify/cors": "^9.0.1",
-    "@fastify/jwt": "^8.0.1",
-    "@fastify/swagger": "^8.15.0",
-    "@fastify/swagger-ui": "^2.1.0",
-    "@fastify/websocket": "^11.2.0",
+    "@fastify/cors": "^8.5.0",
+    "@fastify/helmet": "^11.0.0",
+    "@fastify/websocket": "^10.0.0",
     "@git-tutor/core": "workspace:*",
     "@git-tutor/db": "workspace:*",
     "@git-tutor/shared": "workspace:*",
-    "fastify": "^5.2.0",
-    "simple-git": "^3.27.0",
-    "ws": "^8.18.0",
-    "zod": "^3.24.1"
+    "fastify": "^4.25.0",
+    "zod": "^3.22.0"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
-    "@types/node": "^22.10.2",
-    "@types/ws": "^8.5.13",
-    "tsx": "^4.19.2",
-    "typescript": "^5.7.2"
+    "@types/node": "^22.19.3",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3",
+    "vitest": "^2.0.0"
   }
 }

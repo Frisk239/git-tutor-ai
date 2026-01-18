@@ -1,31 +1,29 @@
-// 数据库客户端导出
-export { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client'
 
-import { PrismaClient } from '@prisma/client';
-
-// 全局 Prisma 实例
+// PrismaClient 单例模式
+// 避免在开发环境中因为热重载创建多个连接
 const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClient | undefined;
-};
+  prisma: PrismaClient | undefined
+}
 
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
     log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-  });
+  })
 
 if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
+  globalForPrisma.prisma = prisma
 }
 
 // 优雅关闭连接
 export async function disconnectPrisma() {
-  await prisma.$disconnect();
+  await prisma.$disconnect()
 }
 
 // 优雅关闭
 if (process.env.NODE_ENV === 'production') {
   process.on('beforeExit', async () => {
-    await disconnectPrisma();
-  });
+    await disconnectPrisma()
+  })
 }
