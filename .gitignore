@@ -1,0 +1,11 @@
+node_modules
+dist
+build
+.next
+coverage
+.turbo
+*.log
+.DS_Store
+.env.local
+.env.*.local
+.worktrees
