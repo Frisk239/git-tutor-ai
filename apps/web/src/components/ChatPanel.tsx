@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
+import { MessageContent } from './MessageContent';
 import type { Message, ServerMessage } from '../types/chat';
 
 export function ChatPanel() {
@@ -106,7 +107,9 @@ export function ChatPanel() {
               <div className="text-sm font-semibold mb-1">
                 {msg.role === 'user' ? 'You' : 'AI'}
               </div>
-              <div className="whitespace-pre-wrap">{msg.content}</div>
+              <div className="prose prose-sm max-w-none">
+                <MessageContent content={msg.content} />
+              </div>
             </div>
           </div>
         ))}
@@ -114,7 +117,9 @@ export function ChatPanel() {
           <div className="flex justify-start">
             <div className="max-w-[80%] rounded-lg p-3 bg-gray-100">
               <div className="text-sm font-semibold mb-1">AI</div>
-              <div className="whitespace-pre-wrap">{streamingContent}</div>
+              <div className="prose prose-sm max-w-none">
+                <MessageContent content={streamingContent} />
+              </div>
               <span className="inline-block w-2 h-4 bg-gray-400 animate-pulse ml-1" />
             </div>
           </div>
