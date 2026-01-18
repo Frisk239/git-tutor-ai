@@ -1,6 +1,3 @@
-// Prisma Schema
-// 文档: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,153 +7,80 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ============= 用户模型 =============
+// 用户表（单用户模式）
 model User {
   id            String    @id @default(cuid())
-  email         String    @unique
+  email         String?   @unique
   name          String?
-  avatar        String?
-  passwordHash   String?
-  githubToken   String?   @encrypted
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  projects      Project[]
-  conversations Conversation[]
+  // 关系
+  sessions      Session[]
   settings      UserSettings?
 
   @@map("users")
 }
 
-// ============= 用户设置 =============
+// 用户设置
 model UserSettings {
-  id            String   @id @default(cuid())
-  userId        String   @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id])
 
-  theme         String   @default("system") // system, light, dark
-  language      String   @default("zh-CN")
+  // AI 配置（加密存储）
+  aiProvider    String    @default("anthropic")
+  aiApiKey      String?
+  aiModel       String    @default("claude-sonnet-4-5-20250929")
+  aiTemperature Float?    @default(0.7)
+  aiMaxTokens   Int?      @default(8192)
 
-  // AI 设置
-  defaultProvider String  @default("anthropic")
-  defaultModel    String  @default("claude-3-5-sonnet-20241022")
-  temperature    Float?  @default(0)
+  // GitHub 配置（加密存储）
+  githubToken   String?
+  githubUsername String?
 
-  // Git 设置
-  gitUserName    String?
-  gitUserEmail   String?
+  // 系统设置
+  theme         String    @default("light")
+  language      String    @default("zh-CN")
 
-  // 通知设置
-  enableNotifications Boolean @default(true)
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@map("user_settings")
 }
 
-// ============= 项目模型 =============
-model Project {
-  id            String         @id @default(cuid())
-  name          String
-  description   String?
-  path          String         @unique  // 本地路径或远程 URL
-  type          ProjectType
-
-  isPublic      Boolean        @default(false)
-
-  ownerId       String
-  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-
-  analyses      Analysis[]
-  conversations Conversation[]
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@index([ownerId])
-  @@index([type])
-  @@map("projects")
-}
-
-// ============= 分析结果 =============
-model Analysis {
-  id            String         @id @default(cuid())
-  projectId     String
-  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  type          AnalysisType
-  status        AnalysisStatus
-
-  result        Json?          // 分析结果 (灵活存储)
-  summary       String?        // 结果摘要
-
-  startedAt     DateTime       @default(now())
-  completedAt   DateTime?
-
-  @@index([projectId])
-  @@index([status])
-  @@map("analyses")
-}
-
-// ============= 对话模型 =============
-model Conversation {
-  id            String         @id @default(cuid())
-  title         String
-
+// 聊天会话
+model Session {
+  id            String    @id @default(cuid())
   userId        String
-  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id])
 
-  projectId     String?
-  project       Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title         String
+  model         String
+  status        String    @default("active") // active, completed, error
 
-  aiProvider    String         // 'openai', 'anthropic', 'gemini'
-  model         String         // 'gpt-4', 'claude-3-opus', etc.
-  systemPrompt  String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
+  // 关系
   messages      Message[]
 
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@index([userId])
-  @@index([projectId])
-  @@map("conversations")
+  @@map("sessions")
 }
 
-// ============= 消息模型 =============
+// 消息
 model Message {
-  id            String         @id @default(cuid())
+  id            String    @id @default(cuid())
+  sessionId     String
+  session       Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
-  conversationId String
-  conversation  Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role          String    // user, assistant, system, tool
+  content       String    @db.Text
+  toolCalls     Json?     // 工具调用信息（JSON 数组）
+  toolCallId    String?   // 工具调用 ID（role=tool 时）
 
-  role          MessageRole
-  content       String         @db.Text
-  toolCalls     Json?          // 工具调用记录
+  createdAt     DateTime  @default(now())
 
-  tokens        Int?           // Token 计数
-
-  createdAt     DateTime       @default(now())
-
-  @@index([conversationId])
+  @@index([sessionId])
   @@map("messages")
-}
-
-// ============= MCP 服务器配置 =============
-model McpServer {
-  id            String         @id @default(cuid())
-  name          String         @unique
-  type          McpTransport   // STDIO, HTTP, WEBSOCKET
-  command       String?        // STDIO 命令
-  url           String?        // HTTP/WebSocket URL
-  enabled       Boolean        @default(true)
-
-  tools         Json           // 可用工具列表
-  resources     Json           // 可用资源列表
-
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-
-  @@map("mcp_servers")
 }
