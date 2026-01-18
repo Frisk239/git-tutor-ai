@@ -4,6 +4,8 @@ import helmet from '@fastify/helmet';
 import websocket from '@fastify/websocket';
 import { config } from './config.js';
 import { errorHandler } from './middleware/error.js';
+import { chatRoutes } from './routes/chat.js';
+import { prisma } from '@git-tutor/db';
 
 export async function buildServer() {
   const server = Fastify({
@@ -32,13 +34,16 @@ export async function buildServer() {
   // 注册错误处理
   server.setErrorHandler(errorHandler);
 
+  // 添加 prisma 到 fastify 实例
+  server.decorate('prisma', prisma);
+
   // 健康检查
   server.get('/health', async () => {
     return { status: 'ok', timestamp: Date.now() };
   });
 
-  // 注册路由（后续任务添加）
-  // await server.register(chatRoutes, { prefix: '/api/chat' })
+  // 注册路由
+  await server.register(chatRoutes, { prefix: '/api/chat' });
 
   return server;
 }
