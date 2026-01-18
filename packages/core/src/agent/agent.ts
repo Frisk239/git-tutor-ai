@@ -274,6 +274,119 @@ export class AIAgent {
   }
 
   /**
+   * 流式运行 Agent（支持工具调用）
+   */
+  async *stream(
+    userMessage: string,
+    history: Array<{ role: string; content: string }> = []
+  ): AsyncGenerator<
+    | { type: 'delta'; content: string }
+    | { type: 'tool_call'; tool: string; args: any }
+    | { type: 'tool_result'; tool: string; result: any }
+  > {
+    // 清空当前消息（保留系统消息）
+    this.messages = this.messages.filter((m) => m.role === MessageRole.System);
+
+    // 加载历史消息
+    for (const msg of history) {
+      this.messages.push({
+        role: msg.role as any,
+        content: msg.content,
+      });
+    }
+
+    // 添加用户消息
+    this.addUserMessage(userMessage);
+
+    // 添加工具提示词到系统消息
+    if (this.config.systemPrompt) {
+      const toolsPrompt = this.generateToolsPrompt();
+      const updatedSystemPrompt = this.config.systemPrompt + toolsPrompt;
+
+      // 更新第一条系统消息
+      if (this.messages[0]?.role === MessageRole.System) {
+        this.messages[0]!.content = updatedSystemPrompt;
+      }
+    }
+
+    const maxTurns = this.config.maxTurns || 10;
+    let turns = 0;
+
+    this.logger.info(`开始流式运行 Agent，最大轮次: ${maxTurns}`);
+
+    while (turns < maxTurns) {
+      turns++;
+      this.logger.info(`第 ${turns} 轮`);
+
+      // 调用 AI（流式）
+      const { options, messages } = this.buildRequestOptions();
+
+      try {
+        let fullContent = '';
+        for await (const chunk of aiManager.chatStream(this.config.provider, options, messages)) {
+          fullContent += chunk;
+          yield { type: 'delta', content: chunk };
+        }
+
+        // 将完整响应添加到消息历史
+        this.messages.push({
+          role: MessageRole.Assistant,
+          content: fullContent,
+        });
+
+        // 检查响应中是否包含工具调用（简化版本：正则匹配）
+        const toolCallPattern = /<tool_call>\s*{\s*"tool":\s*"([^"]+)"\s*,\s*"args":\s*({[^}]+})\s*}\s*<\/tool_call>/g;
+        const toolCalls: Array<{ id: string; tool: string; args: any }> = [];
+
+        let match;
+        while ((match = toolCallPattern.exec(fullContent)) !== null) {
+          const tool = match[1];
+          const args = JSON.parse(match[2]);
+          const id = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+          toolCalls.push({ id, tool, args });
+        }
+
+        if (toolCalls.length > 0) {
+          // 执行工具调用
+          for (const toolCall of toolCalls) {
+            yield { type: 'tool_call', tool: toolCall.tool, args: toolCall.args };
+
+            // 执行工具
+            const result = await toolExecutor.execute(
+              toolCall.tool,
+              toolCall.args,
+              {
+                workingDirectory: this.config.workingDirectory || process.cwd(),
+                sessionId: this.config.sessionId,
+                userId: this.config.userId,
+              }
+            );
+
+            yield { type: 'tool_result', tool: toolCall.tool, result };
+
+            // 添加工具结果到历史
+            this.addToolResult(toolCall.id, toolCall.tool, result);
+          }
+        } else {
+          // 没有工具调用，结束对话
+          this.logger.info('没有工具调用，结束对话');
+          break;
+        }
+      } catch (error) {
+        this.logger.error(`AI 调用失败: ${error}`);
+        const errorMsg = `错误: ${error instanceof Error ? error.message : String(error)}`;
+        yield { type: 'delta', content: errorMsg };
+        break;
+      }
+    }
+
+    if (turns >= maxTurns) {
+      this.logger.warn('达到最大轮次');
+    }
+  }
+
+  /**
    * 运行 Agent
    */
   async run(userMessage: string): Promise<AgentResult> {
