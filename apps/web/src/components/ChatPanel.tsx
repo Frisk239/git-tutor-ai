@@ -3,9 +3,13 @@ import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageContent } from './MessageContent';
 import type { Message, ServerMessage } from '../types/chat';
 
-export function ChatPanel() {
+interface ChatPanelProps {
+  initialSessionId?: string | null;
+}
+
+export function ChatPanel({ initialSessionId }: ChatPanelProps) {
   const [input, setInput] = useState('');
-  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(initialSessionId || null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState('');
 
