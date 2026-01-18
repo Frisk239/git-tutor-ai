@@ -2,4 +2,4 @@
  * 完成工具模块导出
  */
 
-export * from "./attempt-completion.js";
+export * from './attempt-completion.js';

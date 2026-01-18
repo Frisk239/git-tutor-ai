@@ -15,7 +15,7 @@
  * - act_mode_respond: 非阻塞式,单向信息传递
  */
 
-import { ToolDefinition, ToolHandler, ToolContext } from "../../types.js";
+import { ToolDefinition, ToolHandler, ToolContext } from '../../types.js';
 
 // ============================================================================
 // 常量定义
@@ -104,15 +104,18 @@ class ActModeRespondToolHandler implements ToolHandler {
     this.callbacks = callbacks || createDefaultProgressCallbacks();
   }
 
-  async execute(_context: ToolContext, params: Record<string, any>): Promise<{ success: boolean; data?: any; error?: string }> {
+  async execute(
+    _context: ToolContext,
+    params: Record<string, any>
+  ): Promise<{ success: boolean; data?: any; error?: string }> {
     try {
       // 1. 参数验证
       const { response, task_progress } = params as ActModeRespondParams;
 
-      if (!response || typeof response !== "string" || response.trim().length === 0) {
+      if (!response || typeof response !== 'string' || response.trim().length === 0) {
         return {
           success: false,
-          error: "缺少必需参数: response (必须是非空字符串)",
+          error: '缺少必需参数: response (必须是非空字符串)',
         };
       }
 
@@ -162,45 +165,45 @@ class ActModeRespondToolHandler implements ToolHandler {
 // ============================================================================
 
 export const actModeRespondTool: ToolDefinition = {
-  name: "act_mode_respond",
-  displayName: "执行模式响应",
+  name: 'act_mode_respond',
+  displayName: '执行模式响应',
   description:
-    "在任务执行过程中向用户提供进度更新。" +
-    "\n\n**核心特性**:" +
-    "\n- **非阻塞**: 显示消息后立即返回,不需要等待用户响应" +
-    "\n- **进度更新**: 向用户展示当前正在做什么,接下来要做什么" +
-    "\n- **任务跟踪**: 可选地更新任务进度清单" +
-    "\n\n**使用场景**:" +
-    "\n- 读取文件后、进行编辑前 - 解释分析结果和计划进行的更改" +
-    "\n- 开始新的工作阶段时 - 说明即将进行的工作 (例如: 从后端切换到前端)" +
-    "\n- 长时间操作过程中 - 提供进度更新,让用户知道正在进行的工作" +
-    "\n- 方法或策略改变时 - 解释为什么选择新的方法" +
-    "\n- 执行复杂或可能有风险的操作前 - 说明将要进行的操作" +
-    "\n- 解释为什么选择某种方法而不是另一种" +
-    "\n\n**不要用于**:" +
-    "\n- 完成所有任务并准备展示最终结果时 (这种情况应该使用其他完成工具)" +
-    "\n- 需要用户输入或决策时 (应该使用 ask 工具)" +
-    "\n\n**重要约束**:" +
-    "\n- **不能连续调用**: 两次调用之间至少间隔 1 秒" +
-    "\n- **必须是真正的进度更新**: 不应滥用此工具发送无关信息" +
-    "\n\n**参数**:" +
-    "\n- response: 要向用户展示的消息 (必需,应该简洁明了)" +
-    "\n- task_progress: 任务进度清单 (可选,markdown 格式的清单)",
-  category: "interaction" as any,
+    '在任务执行过程中向用户提供进度更新。' +
+    '\n\n**核心特性**:' +
+    '\n- **非阻塞**: 显示消息后立即返回,不需要等待用户响应' +
+    '\n- **进度更新**: 向用户展示当前正在做什么,接下来要做什么' +
+    '\n- **任务跟踪**: 可选地更新任务进度清单' +
+    '\n\n**使用场景**:' +
+    '\n- 读取文件后、进行编辑前 - 解释分析结果和计划进行的更改' +
+    '\n- 开始新的工作阶段时 - 说明即将进行的工作 (例如: 从后端切换到前端)' +
+    '\n- 长时间操作过程中 - 提供进度更新,让用户知道正在进行的工作' +
+    '\n- 方法或策略改变时 - 解释为什么选择新的方法' +
+    '\n- 执行复杂或可能有风险的操作前 - 说明将要进行的操作' +
+    '\n- 解释为什么选择某种方法而不是另一种' +
+    '\n\n**不要用于**:' +
+    '\n- 完成所有任务并准备展示最终结果时 (这种情况应该使用其他完成工具)' +
+    '\n- 需要用户输入或决策时 (应该使用 ask 工具)' +
+    '\n\n**重要约束**:' +
+    '\n- **不能连续调用**: 两次调用之间至少间隔 1 秒' +
+    '\n- **必须是真正的进度更新**: 不应滥用此工具发送无关信息' +
+    '\n\n**参数**:' +
+    '\n- response: 要向用户展示的消息 (必需,应该简洁明了)' +
+    '\n- task_progress: 任务进度清单 (可选,markdown 格式的清单)',
+  category: 'interaction' as any,
   parameters: [
     {
-      name: "response",
-      type: "string",
+      name: 'response',
+      type: 'string',
       required: true,
       description:
-        "要向用户展示的消息。应该解释你即将做什么、当前进度或你的推理。消息应该简洁明了,语气友好,让用户了解情况而不会压倒他们。",
+        '要向用户展示的消息。应该解释你即将做什么、当前进度或你的推理。消息应该简洁明了,语气友好,让用户了解情况而不会压倒他们。',
     },
     {
-      name: "task_progress",
-      type: "string",
+      name: 'task_progress',
+      type: 'string',
       required: false,
       description:
-        "任务进度清单,显示此工具使用完成后的最新状态。应该是 markdown 格式的清单,例如:\n- [x] 已完成任务1\n- [ ] 进行中任务2\n- [ ] 待办任务3",
+        '任务进度清单,显示此工具使用完成后的最新状态。应该是 markdown 格式的清单,例如:\n- [x] 已完成任务1\n- [ ] 进行中任务2\n- [ ] 待办任务3',
     },
   ],
   permissions: [],

@@ -11,7 +11,7 @@
  * 3. 状态管理: 内置 TaskState vs 外部会话管理
  */
 
-import { ToolDefinition, ToolHandler, ToolContext } from "../../types.js";
+import { ToolDefinition, ToolHandler, ToolContext } from '../../types.js';
 
 /**
  * ASK 工具参数
@@ -73,26 +73,26 @@ export function createDefaultInteractionCallbacks(): UserInteractionCallbacks {
   return {
     askUser: async (question: string, options?: string[]): Promise<string> => {
       // 在非交互式环境下的默认行为
-      if (process.env.CI || process.env.NODE_ENV === "test") {
+      if (process.env.CI || process.env.NODE_ENV === 'test') {
         if (options && options.length > 0) {
           // 测试环境返回第一个选项
-          return options[0] ?? "";
+          return options[0] ?? '';
         }
         // 测试环境返回默认响应
-        return "[测试响应]";
+        return '[测试响应]';
       }
 
       // 非交互式环境（CLI、批处理等）
       console.log(`\n❓ 问题: ${question}`);
       if (options && options.length > 0) {
-        console.log("选项:");
+        console.log('选项:');
         options.forEach((opt, idx) => console.log(`  ${idx + 1}. ${opt}`));
-        console.log("\n在非交互式环境下，默认选择第一个选项。");
-        return options[0] ?? "";
+        console.log('\n在非交互式环境下，默认选择第一个选项。');
+        return options[0] ?? '';
       }
 
-      console.log("在非交互式环境下，无法获取用户输入。");
-      throw new Error("无法在非交互式环境下向用户提问");
+      console.log('在非交互式环境下，无法获取用户输入。');
+      throw new Error('无法在非交互式环境下向用户提问');
     },
 
     showNotification: (title: string, message: string) => {
@@ -114,7 +114,10 @@ class AskToolHandler implements ToolHandler {
   async execute(
     _context: ToolContext,
     params: Record<string, any>
-  ): Promise<{ success: boolean; data?: any; error?: string } | { success: boolean; data?: any; error?: string }> {
+  ): Promise<
+    | { success: boolean; data?: any; error?: string }
+    | { success: boolean; data?: any; error?: string }
+  > {
     const startTime = Date.now();
 
     try {
@@ -124,7 +127,7 @@ class AskToolHandler implements ToolHandler {
       if (!question || question.trim().length === 0) {
         return {
           success: false,
-          error: "问题文本不能为空",
+          error: '问题文本不能为空',
         };
       }
 
@@ -133,23 +136,23 @@ class AskToolHandler implements ToolHandler {
         if (!Array.isArray(options)) {
           return {
             success: false,
-            error: "选项必须是数组",
+            error: '选项必须是数组',
           };
         }
 
         if (options.length < 2 || options.length > 5) {
           return {
             success: false,
-            error: "选项数量必须在 2-5 个之间",
+            error: '选项数量必须在 2-5 个之间',
           };
         }
 
         // 检查选项是否都是字符串
         for (const option of options) {
-          if (typeof option !== "string") {
+          if (typeof option !== 'string') {
             return {
               success: false,
-              error: "每个选项都必须是字符串",
+              error: '每个选项都必须是字符串',
             };
           }
         }
@@ -158,8 +161,8 @@ class AskToolHandler implements ToolHandler {
       // 3. 显示通知（如果配置了）
       if (this.callbacks.showNotification) {
         this.callbacks.showNotification(
-          "Git Tutor AI 需要您的输入",
-          question.substring(0, 100) + (question.length > 100 ? "..." : "")
+          'Git Tutor AI 需要您的输入',
+          question.substring(0, 100) + (question.length > 100 ? '...' : '')
         );
       }
 
@@ -173,15 +176,14 @@ class AskToolHandler implements ToolHandler {
           response = await Promise.race([
             userResponsePromise,
             new Promise<string>((_, reject) =>
-              setTimeout(() => reject(new Error("用户响应超时")), timeout)
+              setTimeout(() => reject(new Error('用户响应超时')), timeout)
             ),
           ]);
         } else {
           response = await userResponsePromise;
         }
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
 
         // 如果是必需的提问，返回错误
         if (required) {
@@ -195,7 +197,7 @@ class AskToolHandler implements ToolHandler {
         return {
           success: true,
           data: {
-            response: "",
+            response: '',
             hasResponse: false,
             responseTime: Date.now() - startTime,
           },
@@ -211,7 +213,7 @@ class AskToolHandler implements ToolHandler {
         success: true,
         data: {
           response,
-          selectedOption: selectedOption ?? "",
+          selectedOption: selectedOption ?? '',
           hasResponse: response.trim().length > 0,
           responseTime,
         },
@@ -229,41 +231,41 @@ class AskToolHandler implements ToolHandler {
  * ASK 工具定义
  */
 export const askTool: ToolDefinition = {
-  name: "ask",
-  displayName: "向用户提问",
+  name: 'ask',
+  displayName: '向用户提问',
   description:
-    "向用户提问以收集完成任务所需的额外信息。当遇到歧义、需要澄清或需要更多细节才能有效进行时，应使用此工具。它通过启用与用户的直接通信来实现交互式问题解决。" +
-    "\n\n使用场景:" +
-    "\n- 需要澄清模糊的需求" +
-    "\n- 需要在多个实现方案中做出选择" +
-    "\n- 需要确认某些关键决策" +
-    "\n- 需要用户提供缺失的信息",
-  category: "interaction" as any,
+    '向用户提问以收集完成任务所需的额外信息。当遇到歧义、需要澄清或需要更多细节才能有效进行时，应使用此工具。它通过启用与用户的直接通信来实现交互式问题解决。' +
+    '\n\n使用场景:' +
+    '\n- 需要澄清模糊的需求' +
+    '\n- 需要在多个实现方案中做出选择' +
+    '\n- 需要确认某些关键决策' +
+    '\n- 需要用户提供缺失的信息',
+  category: 'interaction' as any,
   parameters: [
     {
-      name: "question",
-      type: "string",
+      name: 'question',
+      type: 'string',
       required: true,
-      description: "要问用户的问题。应该是一个清晰、具体的问题，针对您需要的信息。",
+      description: '要问用户的问题。应该是一个清晰、具体的问题，针对您需要的信息。',
     },
     {
-      name: "options",
-      type: "array",
+      name: 'options',
+      type: 'array',
       required: false,
       description:
-        "供用户选择的选项数组（2-5个）。每个选项应该是一个描述可能答案的字符串。虽然不是总是需要提供选项，但在很多情况下这很有帮助，可以节省用户手动输入的时间。",
+        '供用户选择的选项数组（2-5个）。每个选项应该是一个描述可能答案的字符串。虽然不是总是需要提供选项，但在很多情况下这很有帮助，可以节省用户手动输入的时间。',
     },
     {
-      name: "required",
-      type: "boolean",
+      name: 'required',
+      type: 'boolean',
       required: false,
-      description: "是否必需用户响应（默认 true）。如果为 false，用户可以跳过问题。",
+      description: '是否必需用户响应（默认 true）。如果为 false，用户可以跳过问题。',
     },
     {
-      name: "timeout",
-      type: "number",
+      name: 'timeout',
+      type: 'number',
       required: false,
-      description: "超时时间（毫秒）。如果指定，用户在此时间内未响应将返回超时错误。",
+      description: '超时时间（毫秒）。如果指定，用户在此时间内未响应将返回超时错误。',
     },
   ],
   permissions: [],

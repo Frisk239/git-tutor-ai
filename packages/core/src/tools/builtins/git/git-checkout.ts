@@ -4,9 +4,9 @@
  * 封装常用的 git checkout 操作,提供更友好的接口
  */
 
-import { ToolDefinition, ToolHandler, ToolContext, ToolResult } from "../../types.js";
-import * as fs from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { ToolDefinition, ToolHandler, ToolContext, ToolResult } from '../../types.js';
+import * as fs from 'node:fs/promises';
+import { spawn } from 'node:child_process';
 
 // ============================================================================
 // 常量定义
@@ -14,16 +14,16 @@ import { spawn } from "node:child_process";
 
 // 临时定义 ToolPermission 枚举(避免依赖 @git-tutor/shared)
 enum ToolPermission {
-  READ = "read",
-  WRITE = "write",
-  EXECUTE = "execute",
+  READ = 'read',
+  WRITE = 'write',
+  EXECUTE = 'execute',
 }
 
 export enum CheckoutType {
-  BRANCH = "branch",      // 切换分支
-  CREATE_BRANCH = "create_branch", // 创建并切换到新分支
-  FILE = "file",          // 恢复文件
-  COMMIT = "commit",      // 切换到指定 commit
+  BRANCH = 'branch', // 切换分支
+  CREATE_BRANCH = 'create_branch', // 创建并切换到新分支
+  FILE = 'file', // 恢复文件
+  COMMIT = 'commit', // 切换到指定 commit
 }
 
 // ============================================================================
@@ -71,7 +71,11 @@ export interface GitCheckoutResult {
 // ============================================================================
 
 class GitCommandExecutor {
-  async execute(command: string, args: string[], cwd: string): Promise<{
+  async execute(
+    command: string,
+    args: string[],
+    cwd: string
+  ): Promise<{
     stdout: string;
     stderr: string;
     exitCode: number | null;
@@ -79,39 +83,39 @@ class GitCommandExecutor {
     return new Promise((resolve, reject) => {
       const child = spawn(command, args, {
         cwd,
-        stdio: ["pipe", "pipe", "pipe"],
+        stdio: ['pipe', 'pipe', 'pipe'],
         shell: true,
       });
 
-      let stdout = "";
-      let stderr = "";
+      let stdout = '';
+      let stderr = '';
 
-      child.stdout?.on("data", (data) => {
+      child.stdout?.on('data', (data) => {
         stdout += data.toString();
       });
 
-      child.stderr?.on("data", (data) => {
+      child.stderr?.on('data', (data) => {
         stderr += data.toString();
       });
 
-      child.on("close", (exitCode) => {
+      child.on('close', (exitCode) => {
         resolve({ stdout, stderr, exitCode });
       });
 
-      child.on("error", (error) => {
+      child.on('error', (error) => {
         reject(error);
       });
     });
   }
 
   async getCurrentBranch(cwd: string): Promise<string> {
-    const result = await this.execute("git", ["rev-parse", "--abbrev-ref", "HEAD"], cwd);
+    const result = await this.execute('git', ['rev-parse', '--abbrev-ref', 'HEAD'], cwd);
     return result.stdout.trim();
   }
 
   async branchExists(branch: string, cwd: string): Promise<boolean> {
     try {
-      const result = await this.execute("git", ["rev-parse", "--verify", branch], cwd);
+      const result = await this.execute('git', ['rev-parse', '--verify', branch], cwd);
       return result.exitCode === 0;
     } catch {
       return false;
@@ -126,10 +130,7 @@ class GitCommandExecutor {
 class GitCheckoutToolHandler implements ToolHandler {
   private executor = new GitCommandExecutor();
 
-  async execute(
-    context: ToolContext,
-    params: Record<string, any>
-  ): Promise<ToolResult> {
+  async execute(context: ToolContext, params: Record<string, any>): Promise<ToolResult> {
     try {
       const { cwd, type, force = false } = params as GitCheckoutParams;
 
@@ -141,7 +142,7 @@ class GitCheckoutToolHandler implements ToolHandler {
           success: false,
           error: `工作目录不存在: ${cwd}`,
         };
-      };
+      }
 
       // 检查是否是 Git 仓库
       const gitDir = `${cwd}/.git`;
@@ -188,7 +189,7 @@ class GitCheckoutToolHandler implements ToolHandler {
     if (!branch) {
       return {
         success: false,
-        error: "缺少必需参数: branch",
+        error: '缺少必需参数: branch',
       };
     }
 
@@ -198,16 +199,16 @@ class GitCheckoutToolHandler implements ToolHandler {
     }
 
     // 构建命令
-    const args = ["checkout"];
+    const args = ['checkout'];
     if (force) {
-      args.push("--force");
+      args.push('--force');
     }
     args.push(branch);
 
-    const command = `git ${args.join(" ")}`;
+    const command = `git ${args.join(' ')}`;
 
     // 执行命令
-    const result = await this.executor.execute("git", args, cwd);
+    const result = await this.executor.execute('git', args, cwd);
 
     if (result.exitCode !== 0) {
       return {
@@ -240,14 +241,14 @@ class GitCheckoutToolHandler implements ToolHandler {
     if (!branch) {
       return {
         success: false,
-        error: "缺少必需参数: branch",
+        error: '缺少必需参数: branch',
       };
     }
 
     // 构建命令
-    const args = ["checkout", "-b"];
+    const args = ['checkout', '-b'];
     if (force) {
-      args.push("--force");
+      args.push('--force');
     }
     args.push(branch);
 
@@ -255,10 +256,10 @@ class GitCheckoutToolHandler implements ToolHandler {
       args.push(startPoint);
     }
 
-    const command = `git ${args.join(" ")}`;
+    const command = `git ${args.join(' ')}`;
 
     // 执行命令
-    const result = await this.executor.execute("git", args, cwd);
+    const result = await this.executor.execute('git', args, cwd);
 
     if (result.exitCode !== 0) {
       return {
@@ -289,21 +290,21 @@ class GitCheckoutToolHandler implements ToolHandler {
     if (!filePath) {
       return {
         success: false,
-        error: "缺少必需参数: filePath",
+        error: '缺少必需参数: filePath',
       };
     }
 
     // 构建命令
-    const args = ["checkout"];
+    const args = ['checkout'];
     if (force) {
-      args.push("--force");
+      args.push('--force');
     }
-    args.push("--", filePath);
+    args.push('--', filePath);
 
-    const command = `git ${args.join(" ")}`;
+    const command = `git ${args.join(' ')}`;
 
     // 执行命令
-    const result = await this.executor.execute("git", args, cwd);
+    const result = await this.executor.execute('git', args, cwd);
 
     if (result.exitCode !== 0) {
       return {
@@ -333,21 +334,21 @@ class GitCheckoutToolHandler implements ToolHandler {
     if (!commit) {
       return {
         success: false,
-        error: "缺少必需参数: commit",
+        error: '缺少必需参数: commit',
       };
     }
 
     // 构建命令
-    const args = ["checkout"];
+    const args = ['checkout'];
     if (force) {
-      args.push("--force");
+      args.push('--force');
     }
     args.push(commit);
 
-    const command = `git ${args.join(" ")}`;
+    const command = `git ${args.join(' ')}`;
 
     // 执行命令
-    const result = await this.executor.execute("git", args, cwd);
+    const result = await this.executor.execute('git', args, cwd);
 
     if (result.exitCode !== 0) {
       return {
@@ -377,71 +378,71 @@ class GitCheckoutToolHandler implements ToolHandler {
 // ============================================================================
 
 export const gitCheckoutTool: ToolDefinition = {
-  name: "git_checkout",
-  displayName: "Git 分支切换",
+  name: 'git_checkout',
+  displayName: 'Git 分支切换',
   description:
-    "执行 Git checkout 操作,支持切换分支、创建新分支、恢复文件和切换到指定 commit。" +
-    "\n\n**支持的操作类型**:" +
-    "\n- **branch**: 切换到已存在的分支" +
-    "\n- **create_branch**: 创建并切换到新分支" +
-    "\n- **file**: 恢复文件到上次提交的状态" +
-    "\n- **commit**: 切换到指定的 commit(进入 detached HEAD 状态)" +
-    "\n\n**常用场景**:" +
+    '执行 Git checkout 操作,支持切换分支、创建新分支、恢复文件和切换到指定 commit。' +
+    '\n\n**支持的操作类型**:' +
+    '\n- **branch**: 切换到已存在的分支' +
+    '\n- **create_branch**: 创建并切换到新分支' +
+    '\n- **file**: 恢复文件到上次提交的状态' +
+    '\n- **commit**: 切换到指定的 commit(进入 detached HEAD 状态)' +
+    '\n\n**常用场景**:' +
     "\n- 切换到功能分支: type=branch, branch='feature/new-feature'" +
     "\n- 创建并切换到新分支: type=create_branch, branch='feature/new-feature', startPoint='main'" +
     "\n- 恢复已修改的文件: type=file, filePath='src/app.js'" +
     "\n- 切换到指定 commit: type=commit, commit='a1b2c3d'" +
-    "\n- 强制切换(丢弃本地更改): force=true",
-  category: "git",
+    '\n- 强制切换(丢弃本地更改): force=true',
+  category: 'git',
   parameters: [
     {
-      name: "cwd",
-      type: "string",
+      name: 'cwd',
+      type: 'string',
       required: true,
-      description: "工作目录(Git 仓库根目录)",
+      description: '工作目录(Git 仓库根目录)',
     },
     {
-      name: "type",
-      type: "string",
+      name: 'type',
+      type: 'string',
       required: true,
-      description: "Checkout 类型: branch, create_branch, file, commit",
-      enum: ["branch", "create_branch", "file", "commit"],
+      description: 'Checkout 类型: branch, create_branch, file, commit',
+      enum: ['branch', 'create_branch', 'file', 'commit'],
     },
     {
-      name: "branch",
-      type: "string",
+      name: 'branch',
+      type: 'string',
       required: false,
-      description: "分支名 (type=branch 或 create_branch 时必需)",
+      description: '分支名 (type=branch 或 create_branch 时必需)',
     },
     {
-      name: "startPoint",
-      type: "string",
+      name: 'startPoint',
+      type: 'string',
       required: false,
-      description: "起始分支或 commit (type=create_branch 时可选,默认为当前 HEAD)",
+      description: '起始分支或 commit (type=create_branch 时可选,默认为当前 HEAD)',
     },
     {
-      name: "filePath",
-      type: "string",
+      name: 'filePath',
+      type: 'string',
       required: false,
-      description: "文件路径 (type=file 时必需)",
+      description: '文件路径 (type=file 时必需)',
     },
     {
-      name: "commit",
-      type: "string",
+      name: 'commit',
+      type: 'string',
       required: false,
-      description: "Commit hash (type=commit 时必需)",
+      description: 'Commit hash (type=commit 时必需)',
     },
     {
-      name: "createNew",
-      type: "boolean",
+      name: 'createNew',
+      type: 'boolean',
       required: false,
-      description: "是否创建新分支 (type=branch 时可选,等价于 type=create_branch)",
+      description: '是否创建新分支 (type=branch 时可选,等价于 type=create_branch)',
     },
     {
-      name: "force",
-      type: "boolean",
+      name: 'force',
+      type: 'boolean',
       required: false,
-      description: "是否强制操作(丢弃本地更改)",
+      description: '是否强制操作(丢弃本地更改)',
     },
   ],
   permissions: [ToolPermission.READ, ToolPermission.WRITE],

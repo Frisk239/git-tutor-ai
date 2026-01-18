@@ -1,41 +1,41 @@
 // GitHub 工具集
-import type { ToolDefinition, ToolContext, ToolResult } from "../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../registry.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../registry.js';
 
 /**
  * GitHub 搜索仓库工具
  */
 const githubSearchReposTool: ToolDefinition = {
-  name: "github_search_repos",
-  displayName: "搜索 GitHub 仓库",
-  description: "搜索 GitHub 上的仓库",
-  category: "github",
+  name: 'github_search_repos',
+  displayName: '搜索 GitHub 仓库',
+  description: '搜索 GitHub 上的仓库',
+  category: 'github',
   parameters: [
     {
-      name: "query",
-      type: "string",
+      name: 'query',
+      type: 'string',
       description: "搜索查询，例如: 'react typescript stars:>1000'",
       required: true,
     },
     {
-      name: "sort",
-      type: "string",
-      description: "排序方式: stars, forks, help-wanted-issues, updated",
+      name: 'sort',
+      type: 'string',
+      description: '排序方式: stars, forks, help-wanted-issues, updated',
       required: false,
-      enum: ["stars", "forks", "help-wanted-issues", "updated"],
+      enum: ['stars', 'forks', 'help-wanted-issues', 'updated'],
     },
     {
-      name: "order",
-      type: "string",
-      description: "排序顺序: asc, desc",
+      name: 'order',
+      type: 'string',
+      description: '排序顺序: asc, desc',
       required: false,
-      enum: ["asc", "desc"],
+      enum: ['asc', 'desc'],
     },
     {
-      name: "limit",
-      type: "number",
-      description: "返回结果数量（默认 10）",
+      name: 'limit',
+      type: 'number',
+      description: '返回结果数量（默认 10）',
       required: false,
       default: 10,
     },
@@ -48,7 +48,7 @@ const githubSearchReposTool: ToolDefinition = {
     if (!github) {
       return {
         success: false,
-        error: "GitHub service not available in context",
+        error: 'GitHub service not available in context',
       };
     }
 
@@ -81,45 +81,45 @@ const githubSearchReposTool: ToolDefinition = {
  * GitHub 创建 Issue 工具
  */
 const githubCreateIssueTool: ToolDefinition = {
-  name: "github_create_issue",
-  displayName: "创建 GitHub Issue",
-  description: "在指定的仓库创建一个新 Issue",
-  category: "github",
+  name: 'github_create_issue',
+  displayName: '创建 GitHub Issue',
+  description: '在指定的仓库创建一个新 Issue',
+  category: 'github',
   parameters: [
     {
-      name: "owner",
-      type: "string",
-      description: "仓库所有者",
+      name: 'owner',
+      type: 'string',
+      description: '仓库所有者',
       required: true,
     },
     {
-      name: "repo",
-      type: "string",
-      description: "仓库名称",
+      name: 'repo',
+      type: 'string',
+      description: '仓库名称',
       required: true,
     },
     {
-      name: "title",
-      type: "string",
-      description: "Issue 标题",
+      name: 'title',
+      type: 'string',
+      description: 'Issue 标题',
       required: true,
     },
     {
-      name: "body",
-      type: "string",
-      description: "Issue 内容（可选，支持 Markdown）",
+      name: 'body',
+      type: 'string',
+      description: 'Issue 内容（可选，支持 Markdown）',
       required: false,
     },
     {
-      name: "labels",
-      type: "array",
-      description: "Issue 标签列表（可选）",
+      name: 'labels',
+      type: 'array',
+      description: 'Issue 标签列表（可选）',
       required: false,
     },
     {
-      name: "assignees",
-      type: "array",
-      description: "指派给的用户列表（可选）",
+      name: 'assignees',
+      type: 'array',
+      description: '指派给的用户列表（可选）',
       required: false,
     },
   ],
@@ -131,7 +131,7 @@ const githubCreateIssueTool: ToolDefinition = {
     if (!github) {
       return {
         success: false,
-        error: "GitHub service not available in context",
+        error: 'GitHub service not available in context',
       };
     }
 
@@ -164,51 +164,51 @@ const githubCreateIssueTool: ToolDefinition = {
  * GitHub 创建 PR 工具
  */
 const githubCreatePRTool: ToolDefinition = {
-  name: "github_create_pr",
-  displayName: "创建 Pull Request",
-  description: "创建一个新的 Pull Request",
-  category: "github",
+  name: 'github_create_pr',
+  displayName: '创建 Pull Request',
+  description: '创建一个新的 Pull Request',
+  category: 'github',
   parameters: [
     {
-      name: "owner",
-      type: "string",
-      description: "仓库所有者",
+      name: 'owner',
+      type: 'string',
+      description: '仓库所有者',
       required: true,
     },
     {
-      name: "repo",
-      type: "string",
-      description: "仓库名称",
+      name: 'repo',
+      type: 'string',
+      description: '仓库名称',
       required: true,
     },
     {
-      name: "title",
-      type: "string",
-      description: "PR 标题",
+      name: 'title',
+      type: 'string',
+      description: 'PR 标题',
       required: true,
     },
     {
-      name: "head",
-      type: "string",
-      description: "源分支（例如: feature-branch）",
+      name: 'head',
+      type: 'string',
+      description: '源分支（例如: feature-branch）',
       required: true,
     },
     {
-      name: "base",
-      type: "string",
-      description: "目标分支（例如: main）",
+      name: 'base',
+      type: 'string',
+      description: '目标分支（例如: main）',
       required: true,
     },
     {
-      name: "body",
-      type: "string",
-      description: "PR 描述（可选，支持 Markdown）",
+      name: 'body',
+      type: 'string',
+      description: 'PR 描述（可选，支持 Markdown）',
       required: false,
     },
     {
-      name: "draft",
-      type: "boolean",
-      description: "是否创建为草稿 PR",
+      name: 'draft',
+      type: 'boolean',
+      description: '是否创建为草稿 PR',
       required: false,
     },
   ],
@@ -220,7 +220,7 @@ const githubCreatePRTool: ToolDefinition = {
     if (!github) {
       return {
         success: false,
-        error: "GitHub service not available in context",
+        error: 'GitHub service not available in context',
       };
     }
 
@@ -238,7 +238,9 @@ const githubCreatePRTool: ToolDefinition = {
         data: {
           pullRequest: pr,
           url: pr.url,
-          htmlUrl: pr.url.replace("api.github.com/repos", "github.com").replace("/pulls/", "/pull/"),
+          htmlUrl: pr.url
+            .replace('api.github.com/repos', 'github.com')
+            .replace('/pulls/', '/pull/'),
           summary: `已创建 PR #${pr.number}: ${pr.title}`,
         },
       };
@@ -255,43 +257,43 @@ const githubCreatePRTool: ToolDefinition = {
  * GitHub AI 审查 PR 工具
  */
 const githubReviewPRTool: ToolDefinition = {
-  name: "github_review_pr",
-  displayName: "AI 审查 Pull Request",
-  description: "使用 AI 审查 Pull Request 并生成报告",
-  category: "github",
+  name: 'github_review_pr',
+  displayName: 'AI 审查 Pull Request',
+  description: '使用 AI 审查 Pull Request 并生成报告',
+  category: 'github',
   parameters: [
     {
-      name: "owner",
-      type: "string",
-      description: "仓库所有者",
+      name: 'owner',
+      type: 'string',
+      description: '仓库所有者',
       required: true,
     },
     {
-      name: "repo",
-      type: "string",
-      description: "仓库名称",
+      name: 'repo',
+      type: 'string',
+      description: '仓库名称',
       required: true,
     },
     {
-      name: "prNumber",
-      type: "number",
-      description: "PR 编号",
+      name: 'prNumber',
+      type: 'number',
+      description: 'PR 编号',
       required: true,
     },
     {
-      name: "autoComment",
-      type: "boolean",
-      description: "是否自动发布审查评论",
+      name: 'autoComment',
+      type: 'boolean',
+      description: '是否自动发布审查评论',
       required: false,
       default: false,
     },
     {
-      name: "focus",
-      type: "string",
-      description: "审查焦点: security, performance, style, all",
+      name: 'focus',
+      type: 'string',
+      description: '审查焦点: security, performance, style, all',
       required: false,
-      enum: ["security", "performance", "style", "all"],
-      default: "all",
+      enum: ['security', 'performance', 'style', 'all'],
+      default: 'all',
     },
   ],
   permissions: [ToolPermission.READ],
@@ -302,13 +304,13 @@ const githubReviewPRTool: ToolDefinition = {
     if (!github) {
       return {
         success: false,
-        error: "GitHub service not available in context",
+        error: 'GitHub service not available in context',
       };
     }
 
     try {
-      const { createGitHubAIReviewService } = await import("../../github/ai-review");
-      const { AIProvider } = await import("@git-tutor/shared");
+      const { createGitHubAIReviewService } = await import('../../github/ai-review');
+      const { AIProvider } = await import('@git-tutor/shared');
 
       const reviewService = createGitHubAIReviewService(github, AIProvider.ANTHROPIC);
 
@@ -322,12 +324,9 @@ const githubReviewPRTool: ToolDefinition = {
         );
         review = result.review;
       } else {
-        review = await reviewService.reviewPullRequest(
-          params.owner,
-          params.repo,
-          params.prNumber,
-          { focus: params.focus }
-        );
+        review = await reviewService.reviewPullRequest(params.owner, params.repo, params.prNumber, {
+          focus: params.focus,
+        });
       }
 
       return {
@@ -352,30 +351,30 @@ const githubReviewPRTool: ToolDefinition = {
  * GitHub 获取 Issue 列表工具
  */
 const githubListIssuesTool: ToolDefinition = {
-  name: "github_list_issues",
-  displayName: "获取 Issue 列表",
-  description: "获取仓库的 Issue 列表",
-  category: "github",
+  name: 'github_list_issues',
+  displayName: '获取 Issue 列表',
+  description: '获取仓库的 Issue 列表',
+  category: 'github',
   parameters: [
     {
-      name: "owner",
-      type: "string",
-      description: "仓库所有者",
+      name: 'owner',
+      type: 'string',
+      description: '仓库所有者',
       required: true,
     },
     {
-      name: "repo",
-      type: "string",
-      description: "仓库名称",
+      name: 'repo',
+      type: 'string',
+      description: '仓库名称',
       required: true,
     },
     {
-      name: "state",
-      type: "string",
-      description: "Issue 状态: open, closed, all",
+      name: 'state',
+      type: 'string',
+      description: 'Issue 状态: open, closed, all',
       required: false,
-      enum: ["open", "closed", "all"],
-      default: "open",
+      enum: ['open', 'closed', 'all'],
+      default: 'open',
     },
   ],
   permissions: [ToolPermission.READ],
@@ -386,16 +385,12 @@ const githubListIssuesTool: ToolDefinition = {
     if (!github) {
       return {
         success: false,
-        error: "GitHub service not available in context",
+        error: 'GitHub service not available in context',
       };
     }
 
     try {
-      const issues = await github.getIssues(
-        params.owner,
-        params.repo,
-        params.state
-      );
+      const issues = await github.getIssues(params.owner, params.repo, params.state);
 
       return {
         success: true,

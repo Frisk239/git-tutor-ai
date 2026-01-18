@@ -5,9 +5,9 @@
  * 补丁操作类型
  */
 export enum PatchActionType {
-  ADD = "add",
-  DELETE = "delete",
-  UPDATE = "update",
+  ADD = 'add',
+  DELETE = 'delete',
+  UPDATE = 'update',
 }
 
 /**
@@ -76,23 +76,26 @@ export interface Commit {
  * 补丁标记
  */
 export const PATCH_MARKERS = {
-  BEGIN: "*** Begin Patch",
-  END: "*** End Patch",
-  ADD: "*** Add File: ",
-  UPDATE: "*** Update File: ",
-  DELETE: "*** Delete File: ",
-  MOVE: "*** Move to: ",
-  SECTION: "@@",
-  END_FILE: "*** End of File",
+  BEGIN: '*** Begin Patch',
+  END: '*** End Patch',
+  ADD: '*** Add File: ',
+  UPDATE: '*** Update File: ',
+  DELETE: '*** Delete File: ',
+  MOVE: '*** Move to: ',
+  SECTION: '@@',
+  END_FILE: '*** End of File',
 } as const;
 
 /**
  * 补丁错误
  */
 export class PatchError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
     super(message);
-    this.name = "PatchError";
+    this.name = 'PatchError';
   }
 }
 

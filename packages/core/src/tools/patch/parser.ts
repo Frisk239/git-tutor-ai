@@ -1,15 +1,9 @@
 // 补丁解析器
 // 参考 Cline 的 PatchParser 实现
 
-import { Logger } from "../../logging/logger.js";
-import {
-  Patch,
-  PatchAction,
-  PatchActionType,
-  PATCH_MARKERS,
-  PatchError,
-} from "./types.js";
-import { peek, normalizeNewlines, splitLines } from "./utils.js";
+import { Logger } from '../../logging/logger.js';
+import { Patch, PatchAction, PatchActionType, PATCH_MARKERS, PatchError } from './types.js';
+import { peek, normalizeNewlines, splitLines } from './utils.js';
 
 /**
  * 补丁解析器
@@ -24,7 +18,7 @@ export class PatchParser {
   private fuzz: number = 0;
 
   constructor(text: string, existingFiles: Record<string, boolean> = {}) {
-    this.logger = new Logger("PatchParser");
+    this.logger = new Logger('PatchParser');
     // 预处理：规范化换行符，分割为行
     const normalized = normalizeNewlines(text);
     this.lines = splitLines(normalized);
@@ -98,11 +92,11 @@ export class PatchParser {
     this.logger.debug(`Parsing ADD for: ${path}`);
 
     // 检查重复
-    this.checkDuplicate(path, "add");
+    this.checkDuplicate(path, 'add');
 
     // 检查文件是否已存在
     if (path in this.currentFiles) {
-      throw new PatchError(`Add File Error: File already exists: ${path}`, "FILE_EXISTS");
+      throw new PatchError(`Add File Error: File already exists: ${path}`, 'FILE_EXISTS');
     }
 
     this.index++;
@@ -118,9 +112,9 @@ export class PatchParser {
     ) {
       const line = this.lines[this.index]!;
       // 移除 + 前缀
-      if (line.startsWith("+")) {
+      if (line.startsWith('+')) {
         newLines.push(line.substring(1));
-      } else if (line.startsWith(" ")) {
+      } else if (line.startsWith(' ')) {
         newLines.push(line.substring(1));
       } else {
         // 没有前缀的行，直接添加
@@ -132,7 +126,7 @@ export class PatchParser {
     // 创建 ADD 操作
     this.patch.actions[path] = {
       type: PatchActionType.ADD,
-      newFile: newLines.join("\n"),
+      newFile: newLines.join('\n'),
       chunks: [],
     };
 
@@ -146,11 +140,11 @@ export class PatchParser {
     this.logger.debug(`Parsing DELETE for: ${path}`);
 
     // 检查重复
-    this.checkDuplicate(path, "delete");
+    this.checkDuplicate(path, 'delete');
 
     // 检查文件是否存在
     if (!(path in this.currentFiles)) {
-      throw new PatchError(`Delete File Error: Missing File: ${path}`, "FILE_NOT_FOUND");
+      throw new PatchError(`Delete File Error: Missing File: ${path}`, 'FILE_NOT_FOUND');
     }
 
     this.index++;
@@ -180,11 +174,11 @@ export class PatchParser {
     this.logger.debug(`Parsing UPDATE for: ${path}`);
 
     // 检查重复
-    this.checkDuplicate(path, "update");
+    this.checkDuplicate(path, 'update');
 
     // 检查文件是否存在
     if (!(path in this.currentFiles)) {
-      throw new PatchError(`Update File Error: Missing File: ${path}`, "FILE_NOT_FOUND");
+      throw new PatchError(`Update File Error: Missing File: ${path}`, 'FILE_NOT_FOUND');
     }
 
     this.index++;
@@ -243,7 +237,7 @@ export class PatchParser {
    */
   private checkDuplicate(path: string, operation: string): void {
     if (path in this.patch.actions) {
-      throw new PatchError(`Duplicate ${operation} for file: ${path}`, "DUPLICATE_OPERATION");
+      throw new PatchError(`Duplicate ${operation} for file: ${path}`, 'DUPLICATE_OPERATION');
     }
   }
 }

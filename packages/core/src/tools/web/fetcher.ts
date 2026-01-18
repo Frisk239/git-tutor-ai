@@ -1,17 +1,12 @@
 // Web 获取器 - 抓取和清理网页内容
 // 参考 Cline 的 web_fetch 工具实现
 
-import axios, { AxiosInstance } from "axios";
-import { Logger } from "../../logging/logger.js";
-import { load, CheerioAPI } from "cheerio";
-import { Readability } from "@mozilla/readability";
-import * as TurndownService from "turndown";
-import {
-  WebFetchOptions,
-  WebPageContent,
-  WebFetchError,
-  CleanupOptions,
-} from "./fetch-types.js";
+import axios, { AxiosInstance } from 'axios';
+import { Logger } from '../../logging/logger.js';
+import { load, CheerioAPI } from 'cheerio';
+import { Readability } from '@mozilla/readability';
+import * as TurndownService from 'turndown';
+import { WebFetchOptions, WebPageContent, WebFetchError, CleanupOptions } from './fetch-types.js';
 
 /**
  * Web 获取器
@@ -22,20 +17,20 @@ export class WebFetcher {
   private turndown: any;
 
   constructor(timeout: number = 30000) {
-    this.logger = new Logger("WebFetcher");
+    this.logger = new Logger('WebFetcher');
     this.turndown = new TurndownService({
-      headingStyle: "atx",
-      codeBlockStyle: "fenced",
+      headingStyle: 'atx',
+      codeBlockStyle: 'fenced',
     });
 
     this.client = axios.create({
       timeout,
       maxRedirects: 5,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
       },
     });
   }
@@ -49,7 +44,7 @@ export class WebFetcher {
     try {
       this.validateOptions(options);
 
-      this.logger.info("Fetching webpage", { url: options.url });
+      this.logger.info('Fetching webpage', { url: options.url });
 
       // 1. 获取 HTML
       const html = await this.fetchHtml(options.url, options.timeout);
@@ -66,14 +61,14 @@ export class WebFetcher {
 
       // 5. 转换为指定格式
       let content: string;
-      switch (options.returnFormat || "markdown") {
-        case "markdown":
+      switch (options.returnFormat || 'markdown') {
+        case 'markdown':
           content = this.convertToMarkdown(cleanedHtml);
           break;
-        case "text":
+        case 'text':
           content = this.convertToText(cleanedHtml);
           break;
-        case "html":
+        case 'html':
           content = cleanedHtml;
           break;
         default:
@@ -82,9 +77,7 @@ export class WebFetcher {
 
       // 6. 截断内容
       if (options.maxContentLength && content.length > options.maxContentLength) {
-        content =
-          content.substring(0, options.maxContentLength) +
-          "\n\n[内容已截断,因为内容过大]";
+        content = content.substring(0, options.maxContentLength) + '\n\n[内容已截断,因为内容过大]';
       }
 
       // 7. 提取链接
@@ -111,7 +104,7 @@ export class WebFetcher {
 
       const fetchTime = Date.now() - startTime;
 
-      this.logger.info("Webpage fetched successfully", {
+      this.logger.info('Webpage fetched successfully', {
         url: finalUrl,
         contentLength: content.length,
         fetchTime,
@@ -129,7 +122,7 @@ export class WebFetcher {
         fetchTime,
       };
     } catch (error: any) {
-      this.logger.error("Failed to fetch webpage", { error });
+      this.logger.error('Failed to fetch webpage', { error });
       throw this.handleError(error, options.url);
     }
   }
@@ -139,20 +132,17 @@ export class WebFetcher {
    */
   private validateOptions(options: WebFetchOptions): void {
     if (!options.url) {
-      throw new WebFetchError("URL is required", "MISSING_URL");
+      throw new WebFetchError('URL is required', 'MISSING_URL');
     }
 
     try {
       new URL(options.url);
     } catch {
-      throw new WebFetchError(`Invalid URL: ${options.url}`, "INVALID_URL");
+      throw new WebFetchError(`Invalid URL: ${options.url}`, 'INVALID_URL');
     }
 
     if (options.maxContentLength && options.maxContentLength < 100) {
-      throw new WebFetchError(
-        "maxContentLength must be at least 100 characters",
-        "INVALID_LENGTH"
-      );
+      throw new WebFetchError('maxContentLength must be at least 100 characters', 'INVALID_LENGTH');
     }
   }
 
@@ -162,7 +152,7 @@ export class WebFetcher {
   private async fetchHtml(url: string, timeout?: number): Promise<string> {
     try {
       const response = await this.client.get(url, {
-        responseType: "text",
+        responseType: 'text',
         timeout: timeout || 30000,
       });
 
@@ -171,7 +161,7 @@ export class WebFetcher {
       if (error.response) {
         throw new WebFetchError(
           `HTTP ${error.response.status}: ${error.response.statusText}`,
-          "HTTP_ERROR",
+          'HTTP_ERROR',
           error.response.status,
           url
         );
@@ -186,10 +176,10 @@ export class WebFetcher {
   private extractTitle($: CheerioAPI): string | undefined {
     // 尝试多种方式提取标题
     const title =
-      $("title").text() ||
-      $("h1").first().text() ||
-      $("meta[property='og:title']").attr("content") ||
-      $("meta[name='twitter:title']").attr("content");
+      $('title').text() ||
+      $('h1').first().text() ||
+      $("meta[property='og:title']").attr('content') ||
+      $("meta[name='twitter:title']").attr('content');
 
     return title?.trim() || undefined;
   }
@@ -199,14 +189,14 @@ export class WebFetcher {
    */
   private cleanupHtml($: CheerioAPI, html: string): string {
     // 移除不需要的元素
-    $("script, style, link, meta").remove();
-    $("nav, .nav, .navigation, .navbar").remove();
-    $("footer, .footer, .page-footer").remove();
-    $(".ad, .advertisement, .ads, .sidebar, .comments").remove();
+    $('script, style, link, meta').remove();
+    $('nav, .nav, .navigation, .navbar').remove();
+    $('footer, .footer, .page-footer').remove();
+    $('.ad, .advertisement, .ads, .sidebar, .comments').remove();
 
     // 移除隐藏元素
     $('[style*="display:none"]').remove();
-    $(".hidden, .hide").remove();
+    $('.hidden, .hide').remove();
 
     return $.html();
   }
@@ -218,7 +208,7 @@ export class WebFetcher {
     try {
       return this.turndown.turndown(html);
     } catch (error) {
-      this.logger.warn("Failed to convert to markdown", { error });
+      this.logger.warn('Failed to convert to markdown', { error });
       return html;
     }
   }
@@ -237,12 +227,12 @@ export class WebFetcher {
   private extractLinks($: CheerioAPI): string[] {
     const links = new Set<string>();
 
-    $("a[href]").each((_, element) => {
+    $('a[href]').each((_, element) => {
       try {
-        const href = $(element).attr("href");
+        const href = $(element).attr('href');
         if (href) {
           // 转换为绝对 URL
-          const url = new URL(href, $.baseURL || "https://example.com").href;
+          const url = new URL(href, $.baseURL || 'https://example.com').href;
           links.add(url);
         }
       } catch {
@@ -259,12 +249,12 @@ export class WebFetcher {
   private extractImages($: CheerioAPI): string[] {
     const images = new Set<string>();
 
-    $("img[src]").each((_, element) => {
+    $('img[src]').each((_, element) => {
       try {
-        const src = $(element).attr("src");
+        const src = $(element).attr('src');
         if (src) {
           // 转换为绝对 URL
-          const url = new URL(src, $.baseURL || "https://example.com").href;
+          const url = new URL(src, $.baseURL || 'https://example.com').href;
           images.add(url);
         }
       } catch {
@@ -280,7 +270,7 @@ export class WebFetcher {
    */
   private generateLinksSummary(links: string[]): string {
     if (links.length === 0) {
-      return "未找到链接";
+      return '未找到链接';
     }
 
     const uniqueDomains = new Set<string>();
@@ -301,7 +291,7 @@ export class WebFetcher {
    */
   private generateImagesSummary(images: string[]): string {
     if (images.length === 0) {
-      return "未找到图片";
+      return '未找到图片';
     }
 
     return `找到 ${images.length} 个图片`;
@@ -315,36 +305,21 @@ export class WebFetcher {
       return error;
     }
 
-    if (error.code === "ENOTFOUND") {
-      return new WebFetchError(
-        `Cannot resolve hostname: ${url}`,
-        "DNS_ERROR",
-        undefined,
-        url
-      );
+    if (error.code === 'ENOTFOUND') {
+      return new WebFetchError(`Cannot resolve hostname: ${url}`, 'DNS_ERROR', undefined, url);
     }
 
-    if (error.code === "ECONNREFUSED") {
-      return new WebFetchError(
-        `Connection refused: ${url}`,
-        "CONNECTION_REFUSED",
-        undefined,
-        url
-      );
+    if (error.code === 'ECONNREFUSED') {
+      return new WebFetchError(`Connection refused: ${url}`, 'CONNECTION_REFUSED', undefined, url);
     }
 
-    if (error.code === "ETIMEDOUT" || error.code === "ECONNABORTED") {
-      return new WebFetchError(
-        `Request timeout: ${url}`,
-        "TIMEOUT",
-        undefined,
-        url
-      );
+    if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED') {
+      return new WebFetchError(`Request timeout: ${url}`, 'TIMEOUT', undefined, url);
     }
 
     return new WebFetchError(
       error.message || `Failed to fetch ${url}`,
-      "UNKNOWN_ERROR",
+      'UNKNOWN_ERROR',
       undefined,
       url
     );

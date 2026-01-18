@@ -1,4 +1,4 @@
-import { AIProvider, ProjectType, McpTransport } from "./enums.js";
+import { AIProvider, ProjectType, McpTransport } from './enums.js';
 
 // ============= AI 提供商配置 =============
 export interface AIProviderConfig {

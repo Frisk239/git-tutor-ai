@@ -5,7 +5,7 @@
  * 处理来自 AI API 的流式数据，支持实时更新和工具调用检测
  */
 
-import type { MessageContent, StreamChunk, ToolUseDelta } from "../types.js";
+import type { MessageContent, StreamChunk, ToolUseDelta } from '../types.js';
 
 // ============================================================================
 // 工具调用相关类型
@@ -164,7 +164,7 @@ export class StreamHandler {
    */
   private processToolUseDelta(delta: ToolUseDelta): void {
     // 只有 type 为 tool_use 且有 id 的才处理
-    if (delta.type !== "tool_use" || !delta.id) {
+    if (delta.type !== 'tool_use' || !delta.id) {
       return;
     }
 
@@ -173,7 +173,7 @@ export class StreamHandler {
     // 如果不存在，创建新的待处理工具调用
     if (!pending) {
       if (!delta.name) {
-        console.warn("Tool use delta missing name for id:", delta.id);
+        console.warn('Tool use delta missing name for id:', delta.id);
         return;
       }
 
@@ -200,7 +200,7 @@ export class StreamHandler {
     return {
       id,
       name,
-      input: "",
+      input: '',
       complete: false,
     };
   }
@@ -238,7 +238,7 @@ export class ToolUseHandler {
    * 处理工具使用增量
    */
   processToolUseDelta(delta: ToolUseDelta): void {
-    if (delta.type !== "tool_use" || !delta.id) {
+    if (delta.type !== 'tool_use' || !delta.id) {
       return;
     }
 
@@ -246,14 +246,14 @@ export class ToolUseHandler {
 
     if (!pending) {
       if (!delta.name) {
-        console.warn("Tool use delta missing name for id:", delta.id);
+        console.warn('Tool use delta missing name for id:', delta.id);
         return;
       }
 
       pending = {
         id: delta.id,
         name: delta.name,
-        input: "",
+        input: '',
         complete: false,
       };
       this.pendingToolUses.set(delta.id, pending);
@@ -319,13 +319,13 @@ export class ToolUseHandler {
  * ReasoningHandler - 处理 AI 推理内容
  */
 export class ReasoningHandler {
-  private reasoningContent = "";
+  private reasoningContent = '';
 
   /**
    * 处理推理增量
    */
-  processReasoningDelta(delta: { type: "thinking"; content?: string }): void {
-    if (delta.type === "thinking" && delta.content) {
+  processReasoningDelta(delta: { type: 'thinking'; content?: string }): void {
+    if (delta.type === 'thinking' && delta.content) {
       this.reasoningContent += delta.content;
     }
   }
@@ -341,7 +341,7 @@ export class ReasoningHandler {
    * 清空推理内容
    */
   clear(): void {
-    this.reasoningContent = "";
+    this.reasoningContent = '';
   }
 
   /**

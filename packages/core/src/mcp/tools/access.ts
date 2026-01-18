@@ -3,8 +3,8 @@
  * 访问 MCP 服务器提供的资源
  */
 
-import { McpHub } from "../hub.js";
-import type { ToolExecutor, ToolExecutionContext } from "../../tools/index.js";
+import { McpHub } from '../hub.js';
+import type { ToolExecutor, ToolExecutionContext } from '../../tools/index.js';
 
 /**
  * MCP_ACCESS 工具参数
@@ -25,17 +25,14 @@ export class AccessMcpResourceExecutor implements ToolExecutor {
   /**
    * 执行资源访问
    */
-  async execute(
-    params: AccessMcpResourceParams,
-    context: ToolExecutionContext,
-  ): Promise<string> {
+  async execute(params: AccessMcpResourceParams, context: ToolExecutionContext): Promise<string> {
     const { server_name, uri } = params;
 
     // 验证参数
     if (!server_name || !uri) {
       return JSON.stringify({
         success: false,
-        error: "Missing required parameters: server_name and uri are required",
+        error: 'Missing required parameters: server_name and uri are required',
       });
     }
 
@@ -46,9 +43,9 @@ export class AccessMcpResourceExecutor implements ToolExecutor {
       // 处理结果
       const resourceText =
         resourceResult.contents
-          ?.map((item: any) => item.text || "")
+          ?.map((item: any) => item.text || '')
           .filter(Boolean)
-          .join("\n\n") || "(Empty response)";
+          .join('\n\n') || '(Empty response)';
 
       return JSON.stringify({
         success: true,
@@ -89,12 +86,12 @@ export class AccessMcpResourceExecutor implements ToolExecutor {
    * 验证参数
    */
   validateParams(params: any): { valid: boolean; error?: string } {
-    if (!params.server_name || typeof params.server_name !== "string") {
-      return { valid: false, error: "server_name must be a non-empty string" };
+    if (!params.server_name || typeof params.server_name !== 'string') {
+      return { valid: false, error: 'server_name must be a non-empty string' };
     }
 
-    if (!params.uri || typeof params.uri !== "string") {
-      return { valid: false, error: "uri must be a non-empty string" };
+    if (!params.uri || typeof params.uri !== 'string') {
+      return { valid: false, error: 'uri must be a non-empty string' };
     }
 
     return { valid: true };

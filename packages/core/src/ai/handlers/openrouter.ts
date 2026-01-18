@@ -1,7 +1,7 @@
 // OpenRouter 处理器 (聚合平台)
-import OpenAI from "openai";
-import { BaseAIHandler } from "./base.js";
-import type { AIRequestOptions, AIResponse } from "../providers.js";
+import OpenAI from 'openai';
+import { BaseAIHandler } from './base.js';
+import type { AIRequestOptions, AIResponse } from '../providers.js';
 
 export class OpenRouterHandler extends BaseAIHandler {
   private client: OpenAI | null = null;
@@ -12,10 +12,10 @@ export class OpenRouterHandler extends BaseAIHandler {
     if (apiKey) {
       this.client = new OpenAI({
         apiKey,
-        baseURL: "https://openrouter.ai/api/v1",
+        baseURL: 'https://openrouter.ai/api/v1',
         defaultHeaders: {
-          "HTTP-Referer": process.env.OPENROUTER_APP_URL || "http://localhost:3000",
-          "X-Title": process.env.OPENROUTER_APP_TITLE || "Git Tutor AI",
+          'HTTP-Referer': process.env.OPENROUTER_APP_URL || 'http://localhost:3000',
+          'X-Title': process.env.OPENROUTER_APP_TITLE || 'Git Tutor AI',
         },
       });
     }
@@ -30,7 +30,7 @@ export class OpenRouterHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): Promise<AIResponse> {
     if (!this.client) {
-      throw new Error("OpenRouter client is not initialized");
+      throw new Error('OpenRouter client is not initialized');
     }
 
     const response = await this.client.chat.completions.create({
@@ -42,8 +42,8 @@ export class OpenRouterHandler extends BaseAIHandler {
 
     const choice = response.choices[0];
     return {
-      content: choice.message.content || "",
-      role: "assistant",
+      content: choice.message.content || '',
+      role: 'assistant',
       toolCalls: choice.message.tool_calls,
       usage: {
         promptTokens: response.usage?.prompt_tokens || 0,
@@ -58,7 +58,7 @@ export class OpenRouterHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): AsyncGenerator<string> {
     if (!this.client) {
-      throw new Error("OpenRouter client is not initialized");
+      throw new Error('OpenRouter client is not initialized');
     }
 
     const stream = await this.client.chat.completions.create({

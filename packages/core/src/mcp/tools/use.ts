@@ -3,8 +3,8 @@
  * 使用 MCP 服务器提供的工具
  */
 
-import { McpHub } from "../hub.js";
-import type { ToolExecutor, ToolExecutionContext } from "../../tools/index.js";
+import { McpHub } from '../hub.js';
+import type { ToolExecutor, ToolExecutionContext } from '../../tools/index.js';
 
 /**
  * MCP_USE 工具参数
@@ -27,17 +27,14 @@ export class UseMcpToolExecutor implements ToolExecutor {
   /**
    * 执行 MCP 工具
    */
-  async execute(
-    params: UseMcpToolParams,
-    context: ToolExecutionContext,
-  ): Promise<string> {
+  async execute(params: UseMcpToolParams, context: ToolExecutionContext): Promise<string> {
     const { server_name, tool_name, arguments: argsString } = params;
 
     // 验证参数
     if (!server_name || !tool_name) {
       return JSON.stringify({
         success: false,
-        error: "Missing required parameters: server_name and tool_name are required",
+        error: 'Missing required parameters: server_name and tool_name are required',
       });
     }
 
@@ -62,20 +59,20 @@ export class UseMcpToolExecutor implements ToolExecutor {
       const toolResultText =
         toolResult.content
           ?.map((item) => {
-            if (item.type === "text") {
+            if (item.type === 'text') {
               return item.text;
             }
-            if (item.type === "resource") {
+            if (item.type === 'resource') {
               const { blob, ...rest } = item.resource;
               return JSON.stringify(rest, null, 2);
             }
-            if (item.type === "image") {
+            if (item.type === 'image') {
               return `[Image: ${item.data}]`;
             }
-            return "";
+            return '';
           })
           .filter(Boolean)
-          .join("\n\n") || "(No response)";
+          .join('\n\n') || '(No response)';
 
       return JSON.stringify({
         success: true,
@@ -116,19 +113,19 @@ export class UseMcpToolExecutor implements ToolExecutor {
    * 验证参数
    */
   validateParams(params: any): { valid: boolean; error?: string } {
-    if (!params.server_name || typeof params.server_name !== "string") {
-      return { valid: false, error: "server_name must be a non-empty string" };
+    if (!params.server_name || typeof params.server_name !== 'string') {
+      return { valid: false, error: 'server_name must be a non-empty string' };
     }
 
-    if (!params.tool_name || typeof params.tool_name !== "string") {
-      return { valid: false, error: "tool_name must be a non-empty string" };
+    if (!params.tool_name || typeof params.tool_name !== 'string') {
+      return { valid: false, error: 'tool_name must be a non-empty string' };
     }
 
     if (params.arguments !== undefined) {
       try {
         JSON.parse(params.arguments);
       } catch (error) {
-        return { valid: false, error: "arguments must be valid JSON string" };
+        return { valid: false, error: 'arguments must be valid JSON string' };
       }
     }
 

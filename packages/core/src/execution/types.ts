@@ -4,7 +4,7 @@
  * 基于 Cline 的任务执行架构
  */
 
-import type { Message } from "../../ai/types.js";
+import type { Message } from '../../ai/types.js';
 
 // ============================================================================
 // 任务标识类型
@@ -30,17 +30,17 @@ export type ULID = string;
  */
 export enum TaskStatus {
   /** 任务已创建但未开始 */
-  CREATED = "created",
+  CREATED = 'created',
   /** 任务正在执行 */
-  RUNNING = "running",
+  RUNNING = 'running',
   /** 任务已暂停 */
-  PAUSED = "paused",
+  PAUSED = 'paused',
   /** 任务已完成 */
-  COMPLETED = "completed",
+  COMPLETED = 'completed',
   /** 任务已失败 */
-  FAILED = "failed",
+  FAILED = 'failed',
   /** 任务已取消 */
-  CANCELLED = "cancelled",
+  CANCELLED = 'cancelled',
 }
 
 /**
@@ -48,15 +48,15 @@ export enum TaskStatus {
  */
 export enum TaskPhase {
   /** 初始化阶段 */
-  INITIALIZING = "initializing",
+  INITIALIZING = 'initializing',
   /** 执行阶段 */
-  EXECUTING = "executing",
+  EXECUTING = 'executing',
   /** 流式响应阶段 */
-  STREAMING = "streaming",
+  STREAMING = 'streaming',
   /** 工具执行阶段 */
-  TOOL_EXECUTING = "tool_executing",
+  TOOL_EXECUTING = 'tool_executing',
   /** 清理阶段 */
-  CLEANUP = "cleanup",
+  CLEANUP = 'cleanup',
 }
 
 // ============================================================================
@@ -67,7 +67,7 @@ export enum TaskPhase {
  * 用户消息内容
  */
 export interface UserContent {
-  type: "text" | "image" | "file";
+  type: 'text' | 'image' | 'file';
   text?: string;
   image?: string;
   file?: {
@@ -80,7 +80,7 @@ export interface UserContent {
  * 助手消息内容
  */
 export interface AssistantContent {
-  type: "text" | "tool_use";
+  type: 'text' | 'tool_use';
   text?: string;
   toolUse?: {
     id: string;
@@ -103,7 +103,7 @@ export type MessageContent = UserContent | AssistantContent;
  */
 export interface APIMessage {
   /** 消息角色 */
-  role: "user" | "assistant" | "system";
+  role: 'user' | 'assistant' | 'system';
   /** 消息内容 */
   content: string | MessageContent[];
 }
@@ -130,7 +130,7 @@ export interface StreamChunk {
  * 工具使用增量块
  */
 export interface ToolUseDelta {
-  type: "tool_use";
+  type: 'tool_use';
   id?: string;
   name?: string;
   input?: string;
@@ -151,7 +151,7 @@ export interface TaskConfig {
   /** 工作目录 */
   cwd: string;
   /** 终端执行模式 */
-  terminalExecutionMode: "background" | "integrated";
+  terminalExecutionMode: 'background' | 'integrated';
   /** 终端输出行数限制 */
   terminalOutputLineLimit: number;
   /** 是否启用终端重用 */
@@ -229,7 +229,7 @@ export class TaskError extends Error {
     public readonly details?: any
   ) {
     super(message);
-    this.name = "TaskError";
+    this.name = 'TaskError';
   }
 }
 
@@ -237,9 +237,9 @@ export class TaskError extends Error {
  * 任务取消错误
  */
 export class TaskCancelledError extends TaskError {
-  constructor(message = "Task was cancelled") {
-    super(message, "TASK_CANCELLED");
-    this.name = "TaskCancelledError";
+  constructor(message = 'Task was cancelled') {
+    super(message, 'TASK_CANCELLED');
+    this.name = 'TaskCancelledError';
   }
 }
 
@@ -247,9 +247,9 @@ export class TaskCancelledError extends TaskError {
  * 任务超时错误
  */
 export class TaskTimeoutError extends TaskError {
-  constructor(message = "Task timed out") {
-    super(message, "TASK_TIMEOUT");
-    this.name = "TaskTimeoutError";
+  constructor(message = 'Task timed out') {
+    super(message, 'TASK_TIMEOUT');
+    this.name = 'TaskTimeoutError';
   }
 }
 
@@ -292,13 +292,13 @@ export interface ToolExecutionResult {
  */
 export enum ContextCompressionStrategy {
   /** 不压缩 */
-  NONE = "none",
+  NONE = 'none',
   /** 保留最后两个消息 */
-  LAST_TWO = "last_two",
+  LAST_TWO = 'last_two',
   /** 保留一半 */
-  HALF = "half",
+  HALF = 'half',
   /** 保留四分之一 */
-  QUARTER = "quarter",
+  QUARTER = 'quarter',
 }
 
 /**

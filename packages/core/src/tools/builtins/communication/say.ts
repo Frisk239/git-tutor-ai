@@ -9,7 +9,7 @@
  * - Git Tutor AI: Web 应用,通过回调函数与前端通信,简化版本
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
 
 // ============================================================================
 // 类型定义
@@ -19,7 +19,7 @@ export interface SayParams {
   /** 要展示给用户的信息 */
   message: string;
   /** 消息类型(可选) */
-  type?: "info" | "success" | "warning" | "error" | "progress";
+  type?: 'info' | 'success' | 'warning' | 'error' | 'progress';
 }
 
 export interface SayResult {
@@ -57,25 +57,25 @@ class SayToolHandler {
       if (message === undefined || message === null) {
         return {
           success: false,
-          error: "缺少必需参数: message",
+          error: '缺少必需参数: message',
         };
       }
 
       // 验证参数类型和内容
-      if (typeof message !== "string" || message.trim().length === 0) {
+      if (typeof message !== 'string' || message.trim().length === 0) {
         return {
           success: false,
-          error: "message 参数不能为空",
+          error: 'message 参数不能为空',
         };
       }
 
       // 验证 type 参数
       if (type !== undefined) {
-        const validTypes = ["info", "success", "warning", "error", "progress"];
+        const validTypes = ['info', 'success', 'warning', 'error', 'progress'];
         if (!validTypes.includes(type)) {
           return {
             success: false,
-            error: `type 参数必须是以下值之一: ${validTypes.join(", ")}`,
+            error: `type 参数必须是以下值之一: ${validTypes.join(', ')}`,
           };
         }
       }
@@ -117,39 +117,39 @@ class SayToolHandler {
 // ============================================================================
 
 export const sayTool: ToolDefinition = {
-  name: "say",
-  displayName: "展示信息",
+  name: 'say',
+  displayName: '展示信息',
   description:
-    "向用户展示信息、进度更新或重要通知。使用此工具可以在任务执行过程中向用户传达重要信息。" +
-    "\n\n**使用场景**:" +
-    "\n- 展示任务进度更新" +
-    "\n- 提供操作反馈" +
-    "\n- 显示重要通知" +
-    "\n- 告知用户下一步操作" +
-    "\n\n**参数说明**:" +
-    "\n- `message` (必需): 要展示给用户的信息" +
-    "\n- `type` (可选): 消息类型,用于不同的视觉呈现" +
-    "\n  - `info`: 一般信息(默认)" +
-    "\n  - `success`: 成功消息" +
-    "\n  - `warning`: 警告消息" +
-    "\n  - `error`: 错误消息" +
-    "\n  - `progress`: 进度更新" +
-    "\n\n**注意事项**:" +
-    "\n- 信息应该简洁明了,避免冗长" +
-    "\n- 使用适当的 type 来增强用户体验" +
-    "\n- 进度更新应该使用 `progress` 类型" +
-    "\n- 错误信息应该使用 `error` 类型",
-  category: "communication",
+    '向用户展示信息、进度更新或重要通知。使用此工具可以在任务执行过程中向用户传达重要信息。' +
+    '\n\n**使用场景**:' +
+    '\n- 展示任务进度更新' +
+    '\n- 提供操作反馈' +
+    '\n- 显示重要通知' +
+    '\n- 告知用户下一步操作' +
+    '\n\n**参数说明**:' +
+    '\n- `message` (必需): 要展示给用户的信息' +
+    '\n- `type` (可选): 消息类型,用于不同的视觉呈现' +
+    '\n  - `info`: 一般信息(默认)' +
+    '\n  - `success`: 成功消息' +
+    '\n  - `warning`: 警告消息' +
+    '\n  - `error`: 错误消息' +
+    '\n  - `progress`: 进度更新' +
+    '\n\n**注意事项**:' +
+    '\n- 信息应该简洁明了,避免冗长' +
+    '\n- 使用适当的 type 来增强用户体验' +
+    '\n- 进度更新应该使用 `progress` 类型' +
+    '\n- 错误信息应该使用 `error` 类型',
+  category: 'communication',
   parameters: [
     {
-      name: "message",
-      type: "string",
+      name: 'message',
+      type: 'string',
       required: true,
-      description: "要展示给用户的信息。应该简洁明了,避免冗长。",
+      description: '要展示给用户的信息。应该简洁明了,避免冗长。',
     },
     {
-      name: "type",
-      type: "string",
+      name: 'type',
+      type: 'string',
       required: false,
       description:
         "消息类型,用于不同的视觉呈现。可选值: 'info'(默认), 'success', 'warning', 'error', 'progress'",

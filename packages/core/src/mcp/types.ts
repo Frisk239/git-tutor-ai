@@ -3,12 +3,12 @@
  * 参考 Cline 项目的 MCP 实现
  */
 
-import type { OAuthClientProvider } from "@modelcontextprotocol/sdk/client/auth.js";
-import type { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import type { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import type { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
-import type { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import type { Tool } from "@modelcontextprotocol/sdk/types.js";
+import type { OAuthClientProvider } from '@modelcontextprotocol/sdk/client/auth.js';
+import type { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import type { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import type { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import type { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import type { Tool } from '@modelcontextprotocol/sdk/types.js';
 
 /**
  * MCP 传输层类型联合
@@ -22,19 +22,19 @@ export type McpTransport =
  * MCP 服务器状态
  */
 export enum McpServerStatus {
-  Connecting = "connecting",
-  Connected = "connected",
-  Disconnected = "disconnected",
-  Error = "error",
+  Connecting = 'connecting',
+  Connected = 'connected',
+  Disconnected = 'disconnected',
+  Error = 'error',
 }
 
 /**
  * MCP OAuth 认证状态
  */
 export enum McpOAuthStatus {
-  Authenticated = "authenticated",
-  Unauthenticated = "unauthenticated",
-  Pending = "pending",
+  Authenticated = 'authenticated',
+  Unauthenticated = 'unauthenticated',
+  Pending = 'pending',
 }
 
 /**
@@ -44,7 +44,7 @@ export interface McpServerConfig {
   /** 服务器唯一名称 */
   name: string;
   /** 传输类型 */
-  type: "stdio" | "sse" | "streamableHttp";
+  type: 'stdio' | 'sse' | 'streamableHttp';
   /** 是否禁用 */
   disabled?: boolean;
   /** 自动批准的工具列表 */
@@ -156,7 +156,7 @@ export interface McpToolResult {
   /** 内容项 */
   content: Array<{
     /** 内容类型 */
-    type: "text" | "image" | "resource";
+    type: 'text' | 'image' | 'resource';
     /** 文本内容 */
     text?: string;
     /** 图片数据 */
@@ -190,7 +190,7 @@ export interface McpNotification {
   /** 服务器名称 */
   serverName: string;
   /** 级别 */
-  level: "debug" | "info" | "warning" | "error";
+  level: 'debug' | 'info' | 'warning' | 'error';
   /** 消息内容 */
   message: string;
   /** 时间戳 */

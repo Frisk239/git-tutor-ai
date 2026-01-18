@@ -5,22 +5,22 @@
  * 实现一个能够使用工具、管理对话上下文的 AI Agent
  */
 
-import { AIProvider } from "@git-tutor/shared";
-import type { AIRequestOptions, AIResponse } from "../ai/providers.js";
-import { aiManager } from "../ai/manager.js";
-import { toolRegistry } from "../tools/registry.js";
-import { toolExecutor } from "../tools/executor.js";
-import type { ToolContext, ToolResult } from "../tools/types.js";
-import { Logger } from "../logging/logger.js";
+import { AIProvider } from '@git-tutor/shared';
+import type { AIRequestOptions, AIResponse } from '../ai/providers.js';
+import { aiManager } from '../ai/manager.js';
+import { toolRegistry } from '../tools/registry.js';
+import { toolExecutor } from '../tools/executor.js';
+import type { ToolContext, ToolResult } from '../tools/types.js';
+import { Logger } from '../logging/logger.js';
 
 /**
  * 消息角色
  */
 export enum MessageRole {
-  System = "system",
-  User = "user",
-  Assistant = "assistant",
-  Tool = "tool",
+  System = 'system',
+  User = 'user',
+  Assistant = 'assistant',
+  Tool = 'tool',
 }
 
 /**
@@ -29,7 +29,7 @@ export enum MessageRole {
 export type MessageContent =
   | string
   | Array<{
-      type: "text" | "image";
+      type: 'text' | 'image';
       text?: string;
       source?: { type: string; media_type: string; data: string };
     }>;
@@ -108,7 +108,7 @@ export class AIAgent {
   private config: AgentConfig;
   private messages: Message[] = [];
   private toolCalls: ToolCall[] = [];
-  private logger = new Logger("AIAgent");
+  private logger = new Logger('AIAgent');
 
   constructor(config: AgentConfig) {
     this.config = config;
@@ -144,7 +144,7 @@ export class AIAgent {
       toolCallId,
     });
 
-    this.logger.debug(`添加工具结果: ${toolName} => ${result.success ? "成功" : "失败"}`);
+    this.logger.debug(`添加工具结果: ${toolName} => ${result.success ? '成功' : '失败'}`);
   }
 
   /**
@@ -153,7 +153,7 @@ export class AIAgent {
   private generateToolsPrompt(): string {
     const allTools = toolRegistry.getAll();
 
-    let prompt = "\n# 可用工具\n\n";
+    let prompt = '\n# 可用工具\n\n';
 
     for (const tool of allTools) {
       // 跳过禁用的工具
@@ -170,12 +170,12 @@ export class AIAgent {
       prompt += `${tool.description}\n\n`;
 
       if (tool.parameters.length > 0) {
-        prompt += "**参数:**\n";
+        prompt += '**参数:**\n';
         for (const param of tool.parameters) {
-          const required = param.required ? "（必需）" : "（可选）";
+          const required = param.required ? '（必需）' : '（可选）';
           prompt += `- \`${param.name}\` (${param.type})${required}: ${param.description}\n`;
         }
-        prompt += "\n";
+        prompt += '\n';
       }
     }
 
@@ -185,11 +185,14 @@ export class AIAgent {
   /**
    * 构建 AI 请求选项
    */
-  private buildRequestOptions(): { options: AIRequestOptions; messages: Array<{ role: string; content: string }> } {
+  private buildRequestOptions(): {
+    options: AIRequestOptions;
+    messages: Array<{ role: string; content: string }>;
+  } {
     // 将消息转换为 AI 格式
     const messages = this.messages.map((msg) => ({
       role: msg.role,
-      content: typeof msg.content === "string" ? msg.content : JSON.stringify(msg.content),
+      content: typeof msg.content === 'string' ? msg.content : JSON.stringify(msg.content),
     }));
 
     return {
@@ -218,19 +221,22 @@ export class AIAgent {
       }
 
       definitions.push({
-        type: "function",
+        type: 'function',
         function: {
           name: tool.name,
           description: tool.description,
           parameters: {
-            type: "object",
-            properties: tool.parameters.reduce((acc, param) => {
-              acc[param.name] = {
-                type: param.type,
-                description: param.description,
-              };
-              return acc;
-            }, {} as Record<string, any>),
+            type: 'object',
+            properties: tool.parameters.reduce(
+              (acc, param) => {
+                acc[param.name] = {
+                  type: param.type,
+                  description: param.description,
+                };
+                return acc;
+              },
+              {} as Record<string, any>
+            ),
             required: tool.parameters.filter((p) => p.required).map((p) => p.name),
           },
         },
@@ -252,7 +258,7 @@ export class AIAgent {
 
     // 构建 ToolContext
     const context: ToolContext = {
-      conversationId: this.config.sessionId || "default",
+      conversationId: this.config.sessionId || 'default',
       projectPath: this.config.workingDirectory || process.cwd(),
       services: {}, // 工具执行时可以注入需要的服务
     };
@@ -300,11 +306,7 @@ export class AIAgent {
 
       let response: AIResponse;
       try {
-        response = await aiManager.chat(
-          this.config.provider,
-          options,
-          messages
-        );
+        response = await aiManager.chat(this.config.provider, options, messages);
       } catch (error) {
         this.logger.error(`AI 调用失败: ${error}`);
 
@@ -326,7 +328,7 @@ export class AIAgent {
 
       // 检查是否有工具调用
       if (!assistantMessage.toolCalls || assistantMessage.toolCalls.length === 0) {
-        this.logger.info("没有工具调用，结束对话");
+        this.logger.info('没有工具调用，结束对话');
         break;
       }
 
@@ -337,11 +339,7 @@ export class AIAgent {
 
       // 添加工具结果到消息历史
       for (const toolResult of toolResults) {
-        this.addToolResult(
-          toolResult.toolCallId,
-          toolResult.toolName,
-          toolResult.result
-        );
+        this.addToolResult(toolResult.toolCallId, toolResult.toolName, toolResult.result);
       }
 
       // 记录工具调用
@@ -356,7 +354,7 @@ export class AIAgent {
 
     if (turns >= maxTurns) {
       maxTurnsReached = true;
-      this.logger.warn("达到最大轮次");
+      this.logger.warn('达到最大轮次');
     }
 
     // 获取最后一条助手消息
@@ -365,7 +363,7 @@ export class AIAgent {
     return {
       message: lastMessage || {
         role: MessageRole.Assistant,
-        content: "没有生成回复",
+        content: '没有生成回复',
       },
       toolCalls: this.toolCalls,
       maxTurnsReached,
@@ -381,7 +379,7 @@ export class AIAgent {
     // 暂时返回一个基本的消息结构
     const message: Message = {
       role: MessageRole.Assistant,
-      content: response.content || "",
+      content: response.content || '',
     };
 
     // TODO: 从响应中提取工具调用

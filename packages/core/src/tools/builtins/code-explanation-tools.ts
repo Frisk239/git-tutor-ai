@@ -1,12 +1,12 @@
 // 代码解释生成工具
 // 基于 Git diff 生成 AI 驱动的代码变更解释
 
-import { ToolDefinition, ToolResult, ToolContext } from "../types.js";
-import { toolRegistry } from "../registry.js";
-import { Logger } from "../../logging/logger.js";
-import { aiManager } from "../../ai/manager.js";
-import { AIProvider } from "@git-tutor/shared";
-import { GitManager } from "../../git/manager.js";
+import { ToolDefinition, ToolResult, ToolContext } from '../types.js';
+import { toolRegistry } from '../registry.js';
+import { Logger } from '../../logging/logger.js';
+import { aiManager } from '../../ai/manager.js';
+import { AIProvider } from '@git-tutor/shared';
+import { GitManager } from '../../git/manager.js';
 
 /**
  * 代码解释生成选项
@@ -14,7 +14,7 @@ import { GitManager } from "../../git/manager.js";
 export interface GenerateExplanationOptions {
   filePath?: string; // 文件路径(可选,默认为所有更改)
   language?: string; // 编程语言(可选,自动检测)
-  style?: "summary" | "detailed" | "inline"; // 解释风格
+  style?: 'summary' | 'detailed' | 'inline'; // 解释风格
   includeDiff?: boolean; // 是否在解释中包含 diff
   maxLength?: number; // 最大解释长度
 }
@@ -40,18 +40,18 @@ export async function generateExplanationTool(
   _context: ToolContext,
   params: GenerateExplanationOptions
 ): Promise<ToolResult> {
-  const logger = new Logger("generate_explanation");
+  const logger = new Logger('generate_explanation');
 
   try {
     const {
       filePath,
       language,
-      style = "detailed",
+      style = 'detailed',
       includeDiff = false,
       maxLength = 2000,
     } = params;
 
-    logger.info("Generating code explanation", {
+    logger.info('Generating code explanation', {
       filePath,
       style,
       maxLength,
@@ -65,7 +65,7 @@ export async function generateExplanationTool(
     if (status.files.length === 0) {
       return {
         success: false,
-        error: "没有需要解释的代码变更",
+        error: '没有需要解释的代码变更',
       };
     }
 
@@ -74,7 +74,7 @@ export async function generateExplanationTool(
     if (!diff || diff.length === 0) {
       return {
         success: false,
-        error: "无法获取代码差异",
+        error: '无法获取代码差异',
       };
     }
 
@@ -104,18 +104,18 @@ export async function generateExplanationTool(
     const response = await aiManager.chat(
       AIProvider.ANTHROPIC,
       {
-        model: "claude-sonnet-4-5-20250929",
+        model: 'claude-sonnet-4-5-20250929',
         temperature: 0.3,
         maxTokens: Math.min(maxLength, 4000),
         systemPrompt: getSystemPrompt(detectedLanguage),
       },
-      [{ role: "user", content: prompt }]
+      [{ role: 'user', content: prompt }]
     );
 
     // 8. 解析 AI 响应
     const explanation = parseExplanation(response.content, filteredDiff);
 
-    logger.info("Code explanation generated", {
+    logger.info('Code explanation generated', {
       filesCount: explanation.changes.length,
       language: explanation.language,
     });
@@ -128,11 +128,11 @@ export async function generateExplanationTool(
       },
     };
   } catch (error: any) {
-    logger.error("Failed to generate explanation", { error });
+    logger.error('Failed to generate explanation', { error });
 
     return {
       success: false,
-      error: error.message || "Failed to generate code explanation",
+      error: error.message || 'Failed to generate code explanation',
     };
   }
 }
@@ -141,35 +141,35 @@ export async function generateExplanationTool(
  * 检测编程语言
  */
 function detectLanguage(diff: any[]): string {
-  const filePath = diff[0]?.file || "";
+  const filePath = diff[0]?.file || '';
 
   // 基于文件扩展名检测
   const extMap: Record<string, string> = {
-    ".ts": "TypeScript",
-    ".tsx": "TypeScript",
-    ".js": "JavaScript",
-    ".jsx": "JavaScript",
-    ".py": "Python",
-    ".java": "Java",
-    ".cpp": "C++",
-    ".c": "C",
-    ".cs": "C#",
-    ".go": "Go",
-    ".rs": "Rust",
-    ".rb": "Ruby",
-    ".php": "PHP",
-    ".swift": "Swift",
-    ".kt": "Kotlin",
-    ".scala": "Scala",
-    ".sh": "Shell",
-    ".json": "JSON",
-    ".yaml": "YAML",
-    ".yml": "YAML",
-    ".xml": "XML",
-    ".html": "HTML",
-    ".css": "CSS",
-    ".scss": "SCSS",
-    ".md": "Markdown",
+    '.ts': 'TypeScript',
+    '.tsx': 'TypeScript',
+    '.js': 'JavaScript',
+    '.jsx': 'JavaScript',
+    '.py': 'Python',
+    '.java': 'Java',
+    '.cpp': 'C++',
+    '.c': 'C',
+    '.cs': 'C#',
+    '.go': 'Go',
+    '.rs': 'Rust',
+    '.rb': 'Ruby',
+    '.php': 'PHP',
+    '.swift': 'Swift',
+    '.kt': 'Kotlin',
+    '.scala': 'Scala',
+    '.sh': 'Shell',
+    '.json': 'JSON',
+    '.yaml': 'YAML',
+    '.yml': 'YAML',
+    '.xml': 'XML',
+    '.html': 'HTML',
+    '.css': 'CSS',
+    '.scss': 'SCSS',
+    '.md': 'Markdown',
   };
 
   for (const [ext, lang] of Object.entries(extMap)) {
@@ -179,7 +179,7 @@ function detectLanguage(diff: any[]): string {
   }
 
   // 默认返回未知
-  return "Unknown";
+  return 'Unknown';
 }
 
 /**
@@ -204,26 +204,26 @@ function buildExplanationPrompt(
       }
       return text;
     })
-    .join("\n\n");
+    .join('\n\n');
 
   const styleInstructions: Record<string, string> = {
-    summary: "请提供一个简洁的摘要(2-3句话),说明这些变更的主要目的。",
-    detailed: "请提供详细的解释,包括:\n- 变更的目的\n- 主要修改点\n- 技术细节\n- 潜在影响",
-    inline: "请为每个代码块添加行内注释,解释变更的逻辑。",
+    summary: '请提供一个简洁的摘要(2-3句话),说明这些变更的主要目的。',
+    detailed: '请提供详细的解释,包括:\n- 变更的目的\n- 主要修改点\n- 技术细节\n- 潜在影响',
+    inline: '请为每个代码块添加行内注释,解释变更的逻辑。',
   };
 
-  const languageHint = language ? `\n编程语言: ${language}` : "";
+  const languageHint = language ? `\n编程语言: ${language}` : '';
 
   return `
 请分析以下代码变更,并生成清晰的解释。
 
-${styleInstructions[style || "detailed"]}${languageHint}
+${styleInstructions[style || 'detailed']}${languageHint}
 
 ## 代码差异
 
 ${diffText}
 
-${includeDiff ? "" : "\n请基于以上差异生成解释。"}
+${includeDiff ? '' : '\n请基于以上差异生成解释。'}
 `;
 }
 
@@ -243,7 +243,7 @@ function getSystemPrompt(language?: string): string {
 - 说明"为什么"而不只是"是什么"
 - 使用一致的格式和术语`;
 
-  if (language && language !== "Unknown") {
+  if (language && language !== 'Unknown') {
     return `${basePrompt}\n\n你正在分析 ${language} 代码,请使用该语言的最佳实践和术语。`;
   }
 
@@ -255,24 +255,24 @@ function getSystemPrompt(language?: string): string {
  */
 function parseExplanation(content: string, diff: any[]): CodeExplanation {
   // 尝试解析结构化响应
-  const lines = content.split("\n").filter((l) => l.trim());
+  const lines = content.split('\n').filter((l) => l.trim());
 
   // 提取摘要(第一段或前几行)
-  let summary = "";
+  let summary = '';
   let summaryEnd = false;
 
   for (const line of lines) {
-    if (line.startsWith("#") || line.startsWith("##")) {
+    if (line.startsWith('#') || line.startsWith('##')) {
       continue; // 跳过标题
     }
-    if (line.trim() === "") {
+    if (line.trim() === '') {
       if (summary) {
         summaryEnd = true;
       }
       continue;
     }
     if (!summaryEnd) {
-      summary += (summary ? " " : "") + line.trim();
+      summary += (summary ? ' ' : '') + line.trim();
     }
     if (summary.length > 200) {
       break; // 限制摘要长度
@@ -294,7 +294,7 @@ function parseExplanation(content: string, diff: any[]): CodeExplanation {
   const language = detectLanguage(diff);
 
   return {
-    summary: summary || "代码变更已生成",
+    summary: summary || '代码变更已生成',
     changes,
     language,
   };
@@ -307,7 +307,7 @@ function formatExplanation(explanation: CodeExplanation): string {
   const lines: string[] = [];
 
   // 标题和摘要
-  lines.push("# 代码变更解释\n");
+  lines.push('# 代码变更解释\n');
   lines.push(`**摘要**: ${explanation.summary}\n`);
 
   // 编程语言
@@ -315,7 +315,7 @@ function formatExplanation(explanation: CodeExplanation): string {
     lines.push(`**编程语言**: ${explanation.language}\n`);
   }
 
-  lines.push("---\n");
+  lines.push('---\n');
 
   // 每个文件的解释
   explanation.changes.forEach((change, index) => {
@@ -326,10 +326,10 @@ function formatExplanation(explanation: CodeExplanation): string {
       lines.push(`**变更行数**: ${change.linesChanged}\n`);
     }
 
-    lines.push("---\n");
+    lines.push('---\n');
   });
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -337,8 +337,8 @@ function formatExplanation(explanation: CodeExplanation): string {
  */
 export function registerCodeExplanationTools(): void {
   const generateExplanationDefinition: ToolDefinition = {
-    name: "generate_explanation",
-    displayName: "代码解释生成",
+    name: 'generate_explanation',
+    displayName: '代码解释生成',
     description: `基于 Git diff 生成 AI 驱动的代码变更解释
 
 功能特点:
@@ -392,37 +392,37 @@ generate_explanation({
 - 需要有暂存或未暂存的变更
 - 使用 AI 生成,需要配置 AI Provider`,
 
-    category: "ai",
+    category: 'ai',
     parameters: [
       {
-        name: "filePath",
-        type: "string",
-        description: "要解释的文件路径(可选,默认解释所有变更)",
+        name: 'filePath',
+        type: 'string',
+        description: '要解释的文件路径(可选,默认解释所有变更)',
         required: false,
       },
       {
-        name: "language",
-        type: "string",
-        description: "编程语言(可选,自动检测)",
+        name: 'language',
+        type: 'string',
+        description: '编程语言(可选,自动检测)',
         required: false,
       },
       {
-        name: "style",
-        type: "string",
-        enum: ["summary", "detailed", "inline"],
-        description: "解释风格 (默认: detailed)",
+        name: 'style',
+        type: 'string',
+        enum: ['summary', 'detailed', 'inline'],
+        description: '解释风格 (默认: detailed)',
         required: false,
       },
       {
-        name: "includeDiff",
-        type: "boolean",
-        description: "是否在解释中包含 diff",
+        name: 'includeDiff',
+        type: 'boolean',
+        description: '是否在解释中包含 diff',
         required: false,
       },
       {
-        name: "maxLength",
-        type: "number",
-        description: "最大解释长度(字符,默认 2000,最小 100,最大 10000)",
+        name: 'maxLength',
+        type: 'number',
+        description: '最大解释长度(字符,默认 2000,最小 100,最大 10000)',
         required: false,
       },
     ],

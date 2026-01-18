@@ -1,20 +1,20 @@
 // 工具生命周期管理和错误恢复
 // 参考 Cline 的工具生命周期实现
 
-import { Logger } from "../logging/logger.js";
-import { ToolValidator } from "./validation.js";
-import { getErrorHandler } from "../utils/errors.js";
-import type { ToolDefinition, ToolContext, ToolResult } from "./types.js";
+import { Logger } from '../logging/logger.js';
+import { ToolValidator } from './validation.js';
+import { getErrorHandler } from '../utils/errors.js';
+import type { ToolDefinition, ToolContext, ToolResult } from './types.js';
 
 /**
  * 工具生命周期事件
  */
 export enum ToolLifecycleEvent {
-  BEFORE_EXECUTE = "before_execute",
-  AFTER_EXECUTE = "after_execute",
-  ON_ERROR = "on_error",
-  ON_SUCCESS = "on_success",
-  BEFORE_RETRY = "before_retry",
+  BEFORE_EXECUTE = 'before_execute',
+  AFTER_EXECUTE = 'after_execute',
+  ON_ERROR = 'on_error',
+  ON_SUCCESS = 'on_success',
+  BEFORE_RETRY = 'before_retry',
 }
 
 /**
@@ -33,7 +33,7 @@ export class ToolLifecycleManager {
   private errorHandler = getErrorHandler();
 
   constructor() {
-    this.logger = new Logger("ToolLifecycleManager");
+    this.logger = new Logger('ToolLifecycleManager');
     this.initializeHooks();
   }
 
@@ -50,10 +50,7 @@ export class ToolLifecycleManager {
   /**
    * 注册钩子
    */
-  registerHook(
-    event: ToolLifecycleEvent,
-    hook: ToolLifecycleHook
-  ): void {
+  registerHook(event: ToolLifecycleEvent, hook: ToolLifecycleHook): void {
     const hooks = this.hooks.get(event);
     if (hooks) {
       hooks.add(hook);
@@ -64,10 +61,7 @@ export class ToolLifecycleManager {
   /**
    * 注销钩子
    */
-  unregisterHook(
-    event: ToolLifecycleEvent,
-    hook: ToolLifecycleHook
-  ): void {
+  unregisterHook(event: ToolLifecycleEvent, hook: ToolLifecycleHook): void {
     const hooks = this.hooks.get(event);
     if (hooks) {
       hooks.delete(hook);
@@ -121,12 +115,7 @@ export class ToolLifecycleManager {
         try {
           if (attempt > 0) {
             // 重试前钩子
-            await this.executeHooks(
-              ToolLifecycleEvent.BEFORE_RETRY,
-              context,
-              tool,
-              params
-            );
+            await this.executeHooks(ToolLifecycleEvent.BEFORE_RETRY, context, tool, params);
           }
 
           // 执行工具
@@ -170,7 +159,7 @@ export class ToolLifecycleManager {
       }
 
       // 理论上不会到达这里
-      throw lastError || new Error("Tool execution failed");
+      throw lastError || new Error('Tool execution failed');
     } catch (error) {
       // 错误钩子
       await this.executeHooks(ToolLifecycleEvent.ON_ERROR, context, tool, params);
@@ -201,15 +190,14 @@ export class ToolLifecycleManager {
     maxRetries: number
   ): Promise<ToolResult | null> {
     // 1. 检查错误是否可恢复
-    const appError = this.errorHandler instanceof any ?
-      (this.errorHandler as any).fromError?.(error) :
-      null;
+    const appError =
+      this.errorHandler instanceof any ? (this.errorHandler as any).fromError?.(error) : null;
 
     if (!appError || !appError.retryable) {
       return null;
     }
 
-    this.logger.info("Attempting error recovery", {
+    this.logger.info('Attempting error recovery', {
       toolName: tool.name,
       attempt,
       maxRetries,
@@ -227,7 +215,7 @@ export class ToolLifecycleManager {
         return await tool.handler(context, params);
       });
     } catch (recoveryError) {
-      this.logger.warn("Recovery attempt failed", {
+      this.logger.warn('Recovery attempt failed', {
         originalError: error.message,
         recoveryError: (recoveryError as Error).message,
       });
@@ -245,8 +233,8 @@ export class ToolLifecycleManager {
     params: any
   ): Promise<ToolResult | null> {
     // 文件系统工具 - 检查路径是否被 .clineignore 阻止
-    if (tool.category === "filesystem" && error.message.includes("Access denied")) {
-      this.logger.info("File access denied by .clineignore", {
+    if (tool.category === 'filesystem' && error.message.includes('Access denied')) {
+      this.logger.info('File access denied by .clineignore', {
         path: params.path,
       });
       return {
@@ -256,30 +244,30 @@ export class ToolLifecycleManager {
     }
 
     // Git 工具 - 检查是否在 Git 仓库中
-    if (tool.category === "git" && error.message.includes("not a git repository")) {
-      this.logger.info("Not in a git repository", {
+    if (tool.category === 'git' && error.message.includes('not a git repository')) {
+      this.logger.info('Not in a git repository', {
         toolName: tool.name,
       });
       return {
         success: false,
-        error: "Not in a git repository. Please initialize git first.",
+        error: 'Not in a git repository. Please initialize git first.',
       };
     }
 
     // GitHub 工具 - 检查认证
-    if (tool.category === "github" && error.message.includes("authentication")) {
-      this.logger.info("GitHub authentication failed", {
+    if (tool.category === 'github' && error.message.includes('authentication')) {
+      this.logger.info('GitHub authentication failed', {
         toolName: tool.name,
       });
       return {
         success: false,
-        error: "GitHub authentication failed. Please check your token.",
+        error: 'GitHub authentication failed. Please check your token.',
       };
     }
 
     // 浏览器工具 - 清理资源
-    if (tool.category === "browser") {
-      this.logger.info("Browser tool error, cleaning up resources");
+    if (tool.category === 'browser') {
+      this.logger.info('Browser tool error, cleaning up resources');
       // TODO: 清理浏览器资源
     }
 
@@ -291,7 +279,7 @@ export class ToolLifecycleManager {
    * 清理资源
    */
   async cleanup(tool: ToolDefinition, context: ToolContext): Promise<void> {
-    this.logger.debug("Cleaning up resources for tool", {
+    this.logger.debug('Cleaning up resources for tool', {
       toolName: tool.name,
     });
 
@@ -312,7 +300,7 @@ export class EnhancedToolExecutor {
   private validator: ToolValidator;
 
   constructor() {
-    this.logger = new Logger("EnhancedToolExecutor");
+    this.logger = new Logger('EnhancedToolExecutor');
     this.lifecycleManager = new ToolLifecycleManager();
     this.validator = new ToolValidator();
     this.setupDefaultHooks();
@@ -326,7 +314,7 @@ export class EnhancedToolExecutor {
     this.lifecycleManager.registerHook(
       ToolLifecycleEvent.BEFORE_EXECUTE,
       async (context, tool, params) => {
-        this.logger.debug("Validating tool parameters", {
+        this.logger.debug('Validating tool parameters', {
           toolName: tool.name,
         });
         // 参数验证
@@ -337,7 +325,7 @@ export class EnhancedToolExecutor {
     this.lifecycleManager.registerHook(
       ToolLifecycleEvent.AFTER_EXECUTE,
       async (context, tool, params) => {
-        this.logger.debug("Tool execution completed", {
+        this.logger.debug('Tool execution completed', {
           toolName: tool.name,
         });
         // TODO: 记录统计信息
@@ -348,7 +336,7 @@ export class EnhancedToolExecutor {
     this.lifecycleManager.registerHook(
       ToolLifecycleEvent.ON_ERROR,
       async (context, tool, params) => {
-        this.logger.warn("Tool execution failed", {
+        this.logger.warn('Tool execution failed', {
           toolName: tool.name,
         });
         // TODO: 增加错误计数
@@ -359,12 +347,8 @@ export class EnhancedToolExecutor {
   /**
    * 执行工具(带完整的生命周期管理)
    */
-  async execute(
-    tool: ToolDefinition,
-    params: any,
-    context: ToolContext
-  ): Promise<ToolResult> {
-    this.logger.info("Executing tool", {
+  async execute(tool: ToolDefinition, params: any, context: ToolContext): Promise<ToolResult> {
+    this.logger.info('Executing tool', {
       toolName: tool.name,
       category: tool.category,
     });
@@ -374,27 +358,27 @@ export class EnhancedToolExecutor {
     if (!availability.available) {
       return {
         success: false,
-        error: availability.reason || "Tool not available",
+        error: availability.reason || 'Tool not available',
       };
     }
 
     // 2. 验证参数
     const validation = this.validator.validateParameters(tool, params);
     if (!validation.valid) {
-      this.logger.error("Parameter validation failed", {
+      this.logger.error('Parameter validation failed', {
         toolName: tool.name,
         errors: validation.errors,
       });
 
       return {
         success: false,
-        error: `Invalid parameters: ${validation.errors.join(", ")}`,
+        error: `Invalid parameters: ${validation.errors.join(', ')}`,
       };
     }
 
     // 记录警告
     if (validation.warnings && validation.warnings.length > 0) {
-      this.logger.warn("Parameter validation warnings", {
+      this.logger.warn('Parameter validation warnings', {
         toolName: tool.name,
         warnings: validation.warnings,
       });

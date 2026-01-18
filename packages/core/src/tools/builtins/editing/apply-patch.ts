@@ -5,31 +5,31 @@
  * 支持上下文搜索、文件添加、更新、删除、移动等操作
  */
 
-import { ToolDefinition, ToolPermission, ToolHandler, ToolContext } from "../types.js";
-import * as fs from "node:fs/promises";
-import * as path from "node:path";
+import { ToolDefinition, ToolPermission, ToolHandler, ToolContext } from '../types.js';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 
 // ============================================================================
 // 常量定义
 // ============================================================================
 
 export const PATCH_MARKERS = {
-  BEGIN: "*** Begin Patch",
-  END: "*** End Patch",
-  ADD: "*** Add File: ",
-  UPDATE: "*** Update File: ",
-  DELETE: "*** Delete File: ",
-  MOVE: "*** Move to: ",
-  SECTION: "@@",
-  END_FILE: "*** End of File",
+  BEGIN: '*** Begin Patch',
+  END: '*** End Patch',
+  ADD: '*** Add File: ',
+  UPDATE: '*** Update File: ',
+  DELETE: '*** Delete File: ',
+  MOVE: '*** Move to: ',
+  SECTION: '@@',
+  END_FILE: '*** End of File',
 } as const;
 
-export const BASH_WRAPPERS = ["%%bash", "apply_patch", "EOF", "```"] as const;
+export const BASH_WRAPPERS = ['%%bash', 'apply_patch', 'EOF', '```'] as const;
 
 export enum PatchActionType {
-  ADD = "add",
-  DELETE = "delete",
-  UPDATE = "update",
+  ADD = 'add',
+  DELETE = 'delete',
+  UPDATE = 'update',
 }
 
 export interface PatchChunk {
@@ -52,7 +52,7 @@ export interface Patch {
 export class DiffError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = "DiffError";
+    this.name = 'DiffError';
   }
 }
 
@@ -166,30 +166,30 @@ class PatchParser {
       if (currentFile && currentAction) {
         if (currentAction.type === PatchActionType.ADD) {
           // 添加文件：收集所有 + 开头的行
-          if (line.startsWith("+")) {
+          if (line.startsWith('+')) {
             if (!currentAction.newFile) {
-              currentAction.newFile = "";
+              currentAction.newFile = '';
             }
-            currentAction.newFile += line.substring(1) + "\n";
+            currentAction.newFile += line.substring(1) + '\n';
           }
         } else if (currentAction.type === PatchActionType.UPDATE) {
           // 更新文件：解析 chunks
-          if (line.startsWith("+")) {
+          if (line.startsWith('+')) {
             // 添加行
             if (!inSection || sectionContext.length === 0) {
               // 如果没有 section，创建一个默认的
-              sectionContext = ["", "", ""];
+              sectionContext = ['', '', ''];
             }
             const chunk = this.ensureLastChunk(currentAction);
             chunk.insLines.push(line.substring(1));
-          } else if (line.startsWith("-")) {
+          } else if (line.startsWith('-')) {
             // 删除行
             if (!inSection || sectionContext.length === 0) {
-              sectionContext = ["", "", ""];
+              sectionContext = ['', '', ''];
             }
             const chunk = this.ensureLastChunk(currentAction);
             chunk.delLines.push(line.substring(1));
-          } else if (line.startsWith(" ")) {
+          } else if (line.startsWith(' ')) {
             // 上下文行
             const chunk = this.ensureLastChunk(currentAction);
             // 上下文行既不是删除也不是添加，只是定位
@@ -276,7 +276,7 @@ class PatchApplier {
 
     switch (action.type) {
       case PatchActionType.ADD:
-        await this.addFile(fullPath, action.newFile || "");
+        await this.addFile(fullPath, action.newFile || '');
         break;
 
       case PatchActionType.DELETE:
@@ -303,7 +303,7 @@ class PatchApplier {
     await fs.mkdir(dir, { recursive: true });
 
     if (!this.dryRun) {
-      await fs.writeFile(filePath, content, "utf8");
+      await fs.writeFile(filePath, content, 'utf8');
     }
   }
 
@@ -330,7 +330,7 @@ class PatchApplier {
     // 读取原文件
     let originalContent: string;
     try {
-      originalContent = await fs.readFile(filePath, "utf8");
+      originalContent = await fs.readFile(filePath, 'utf8');
     } catch {
       throw new DiffError(`无法读取文件: ${filePath}`);
     }
@@ -350,12 +350,12 @@ class PatchApplier {
         const targetPath = path.resolve(this.cwd, action.movePath);
         const targetDir = path.dirname(targetPath);
         await fs.mkdir(targetDir, { recursive: true });
-        await fs.writeFile(targetPath, newContent, "utf8");
+        await fs.writeFile(targetPath, newContent, 'utf8');
         await fs.unlink(filePath);
       }
     } else {
       if (!this.dryRun) {
-        await fs.writeFile(filePath, newContent, "utf8");
+        await fs.writeFile(filePath, newContent, 'utf8');
       }
     }
   }
@@ -365,16 +365,20 @@ class PatchApplier {
       return content;
     }
 
-    const lines = content.split("\n");
+    const lines = content.split('\n');
     const result: string[] = [];
     let currentIndex = 0;
 
     for (const chunk of chunks) {
       if (chunk.origIndex > lines.length) {
-        throw new DiffError(`${filePath}: chunk.origIndex ${chunk.origIndex} > lines.length ${lines.length}`);
+        throw new DiffError(
+          `${filePath}: chunk.origIndex ${chunk.origIndex} > lines.length ${lines.length}`
+        );
       }
       if (currentIndex > chunk.origIndex) {
-        throw new DiffError(`${filePath}: currentIndex ${currentIndex} > chunk.origIndex ${chunk.origIndex}`);
+        throw new DiffError(
+          `${filePath}: currentIndex ${currentIndex} > chunk.origIndex ${chunk.origIndex}`
+        );
       }
 
       // 复制 chunk 之前的行
@@ -390,28 +394,32 @@ class PatchApplier {
     // 复制剩余的行
     result.push(...lines.slice(currentIndex));
 
-    return result.join("\n");
+    return result.join('\n');
   }
 
   private async createBackup(filePath: string): Promise<string> {
-    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
     const backupPath = `${filePath}.backup-${timestamp}`;
     await fs.copyFile(filePath, backupPath);
     return backupPath;
   }
 
-  private generateSummary(applied: string[], failed: Array<{ path: string; error: string }>, dryRun: boolean): string {
+  private generateSummary(
+    applied: string[],
+    failed: Array<{ path: string; error: string }>,
+    dryRun: boolean
+  ): string {
     const lines: string[] = [];
 
-    lines.push(`补丁应用结果 ${dryRun ? "(干运行)" : ""}:`);
-    lines.push("");
+    lines.push(`补丁应用结果 ${dryRun ? '(干运行)' : ''}:`);
+    lines.push('');
 
     if (applied.length > 0) {
       lines.push(`✅ 成功应用 (${applied.length}):`);
       for (const path of applied) {
         lines.push(`   ✓ ${path}`);
       }
-      lines.push("");
+      lines.push('');
     }
 
     if (failed.length > 0) {
@@ -420,14 +428,14 @@ class PatchApplier {
         lines.push(`   ✗ ${path}`);
         lines.push(`      错误: ${error}`);
       }
-      lines.push("");
+      lines.push('');
     }
 
     const total = applied.length + failed.length;
     const successRate = total > 0 ? (applied.length / total) * 100 : 0;
     lines.push(`成功率: ${successRate.toFixed(1)}% (${applied.length}/${total})`);
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 }
 
@@ -441,13 +449,18 @@ class ApplyPatchToolHandler implements ToolHandler<ApplyPatchParams, ApplyPatchR
     params: ApplyPatchParams
   ): Promise<{ success: boolean; data?: ApplyPatchResult; error?: string }> {
     try {
-      const { input, cwd: workingDir = process.cwd(), createBackup = false, dryRun = false } = params;
+      const {
+        input,
+        cwd: workingDir = process.cwd(),
+        createBackup = false,
+        dryRun = false,
+      } = params;
 
       // 验证参数
       if (!input || input.trim().length === 0) {
         return {
           success: false,
-          error: "补丁内容不能为空",
+          error: '补丁内容不能为空',
         };
       }
 
@@ -455,14 +468,17 @@ class ApplyPatchToolHandler implements ToolHandler<ApplyPatchParams, ApplyPatchR
       const lines = this.preprocessInput(input);
 
       // 加载需要更新的文件
-      const filesToLoad = this.extractFilesForOperations(input, [PATCH_MARKERS.UPDATE, PATCH_MARKERS.DELETE]);
+      const filesToLoad = this.extractFilesForOperations(input, [
+        PATCH_MARKERS.UPDATE,
+        PATCH_MARKERS.DELETE,
+      ]);
       const originalFiles: Record<string, string> = {};
 
       for (const filePath of filesToLoad) {
         const fullPath = path.resolve(workingDir, filePath);
         try {
-          const content = await fs.readFile(fullPath, "utf8");
-          originalFiles[filePath] = content.replace(/\r\n/g, "\n");
+          const content = await fs.readFile(fullPath, 'utf8');
+          originalFiles[filePath] = content.replace(/\r\n/g, '\n');
         } catch {
           throw new DiffError(`文件不存在: ${filePath}`);
         }
@@ -489,7 +505,7 @@ class ApplyPatchToolHandler implements ToolHandler<ApplyPatchParams, ApplyPatchR
   }
 
   private preprocessInput(input: string): string[] {
-    let lines = input.split("\n").map((line) => line.replace(/\r$/, ""));
+    let lines = input.split('\n').map((line) => line.replace(/\r$/, ''));
     lines = this.stripBashWrappers(lines);
 
     const hasBegin = lines.length > 0 && lines[0].startsWith(PATCH_MARKERS.BEGIN);
@@ -532,7 +548,7 @@ class ApplyPatchToolHandler implements ToolHandler<ApplyPatchParams, ApplyPatchR
         foundContent = true;
       }
 
-      if (insidePatch || (!foundBegin && isPatchContent) || (line === "" && foundContent)) {
+      if (insidePatch || (!foundBegin && isPatchContent) || (line === '' && foundContent)) {
         result.push(line);
       }
     }
@@ -547,15 +563,15 @@ class ApplyPatchToolHandler implements ToolHandler<ApplyPatchParams, ApplyPatchR
       line.startsWith(PATCH_MARKERS.DELETE) ||
       line.startsWith(PATCH_MARKERS.MOVE) ||
       line.startsWith(PATCH_MARKERS.SECTION) ||
-      line.startsWith("+") ||
-      line.startsWith("-") ||
-      line.startsWith(" ") ||
-      line === "***"
+      line.startsWith('+') ||
+      line.startsWith('-') ||
+      line.startsWith(' ') ||
+      line === '***'
     );
   }
 
   private extractFilesForOperations(text: string, markers: readonly string[]): string[] {
-    const lines = text.split("\n");
+    const lines = text.split('\n');
     const files: string[] = [];
 
     for (const line of lines) {
@@ -579,64 +595,64 @@ class ApplyPatchToolHandler implements ToolHandler<ApplyPatchParams, ApplyPatchR
 // ============================================================================
 
 export const applyPatchTool: ToolDefinition = {
-  name: "apply_patch",
-  displayName: "应用补丁",
+  name: 'apply_patch',
+  displayName: '应用补丁',
   description:
-    "对文件应用 V4A 格式的补丁，支持添加、更新、删除、移动文件。" +
-    "\n\n**V4A 格式说明**:" +
-    "\n```" +
-    "\n*** Begin Patch" +
-    "\n*** Add File: path/to/new-file.js" +
-    "\n+ 新文件的第一行" +
-    "\n+ 新文件的第二行" +
-    "\n*** Update File: path/to/existing-file.js" +
-    "\n@@ class MyClass" +
-    "\n  context line 1" +
-    "\n  context line 2" +
-    "\n- old line to delete" +
-    "\n+ new line to insert" +
-    "\n  context line 3" +
-    "\n*** Delete File: path/to/old-file.js" +
-    "\n*** End Patch" +
-    "\n```" +
-    "\n\n**操作说明**:" +
-    "\n- **Add File**: 创建新文件，所有行必须以 + 开头" +
-    "\n- **Update File**: 更新现有文件" +
-    "\n  - 使用 @@ 标记上下文（可选）" +
-    "\n  - 以 - 开头表示要删除的行" +
-    "\n  - 以 + 开头表示要添加的行" +
-    "\n  - 以空格开头的行是上下文，用于定位" +
-    "\n- **Delete File**: 删除文件" +
-    "\n- **Move to**: 移动文件（在 Update File 后使用）" +
-    "\n\n**注意事项**:" +
-    "\n- 上下文行用于唯一标识要修改的代码位置" +
-    "\n- 默认使用 3 行上下文" +
-    "\n- 如果代码重复，可以使用多个 @@ 标记",
-  category: "editing",
+    '对文件应用 V4A 格式的补丁，支持添加、更新、删除、移动文件。' +
+    '\n\n**V4A 格式说明**:' +
+    '\n```' +
+    '\n*** Begin Patch' +
+    '\n*** Add File: path/to/new-file.js' +
+    '\n+ 新文件的第一行' +
+    '\n+ 新文件的第二行' +
+    '\n*** Update File: path/to/existing-file.js' +
+    '\n@@ class MyClass' +
+    '\n  context line 1' +
+    '\n  context line 2' +
+    '\n- old line to delete' +
+    '\n+ new line to insert' +
+    '\n  context line 3' +
+    '\n*** Delete File: path/to/old-file.js' +
+    '\n*** End Patch' +
+    '\n```' +
+    '\n\n**操作说明**:' +
+    '\n- **Add File**: 创建新文件，所有行必须以 + 开头' +
+    '\n- **Update File**: 更新现有文件' +
+    '\n  - 使用 @@ 标记上下文（可选）' +
+    '\n  - 以 - 开头表示要删除的行' +
+    '\n  - 以 + 开头表示要添加的行' +
+    '\n  - 以空格开头的行是上下文，用于定位' +
+    '\n- **Delete File**: 删除文件' +
+    '\n- **Move to**: 移动文件（在 Update File 后使用）' +
+    '\n\n**注意事项**:' +
+    '\n- 上下文行用于唯一标识要修改的代码位置' +
+    '\n- 默认使用 3 行上下文' +
+    '\n- 如果代码重复，可以使用多个 @@ 标记',
+  category: 'editing',
   parameters: [
     {
-      name: "input",
-      type: "string",
+      name: 'input',
+      type: 'string',
       required: true,
-      description: "V4A 格式的补丁内容",
+      description: 'V4A 格式的补丁内容',
     },
     {
-      name: "cwd",
-      type: "string",
+      name: 'cwd',
+      type: 'string',
       required: false,
-      description: "工作目录（可选，默认为当前目录）",
+      description: '工作目录（可选，默认为当前目录）',
     },
     {
-      name: "createBackup",
-      type: "boolean",
+      name: 'createBackup',
+      type: 'boolean',
       required: false,
-      description: "是否创建备份（默认 false）",
+      description: '是否创建备份（默认 false）',
     },
     {
-      name: "dryRun",
-      type: "boolean",
+      name: 'dryRun',
+      type: 'boolean',
       required: false,
-      description: "是否为干运行（默认 false，设为 true 时只显示将要执行的操作而不实际执行）",
+      description: '是否为干运行（默认 false，设为 true 时只显示将要执行的操作而不实际执行）',
     },
   ],
   permissions: [ToolPermission.READ, ToolPermission.WRITE],

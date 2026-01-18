@@ -10,16 +10,16 @@
  * - 实时通知处理
  */
 
-import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { SSEClientTransport } from "@modelcontextprotocol/sdk/client/sse.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
-import type { ListToolsResult } from "@modelcontextprotocol/sdk/types.js";
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import chokidar from "chokidar";
-import { nanoid } from "nanoid";
-import { McpOAuthManager } from "./oauth.js";
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import type { ListToolsResult } from '@modelcontextprotocol/sdk/types.js';
+import { promises as fs } from 'node:fs';
+import path from 'node:path';
+import chokidar from 'chokidar';
+import { nanoid } from 'nanoid';
+import { McpOAuthManager } from './oauth.js';
 import type {
   McpConnection,
   McpNotification,
@@ -30,7 +30,7 @@ import type {
   McpServerStatus,
   McpTool,
   McpToolResult,
-} from "./types.js";
+} from './types.js';
 
 /**
  * MCP Hub 类
@@ -45,7 +45,7 @@ export class McpHub {
 
   constructor(
     private mcpServersPath: string,
-    private clientVersion: string = "0.1.0",
+    private clientVersion: string = '0.1.0'
   ) {
     this.oauthManager = new McpOAuthManager();
   }
@@ -71,12 +71,12 @@ export class McpHub {
    * 初始化所有 MCP 服务器
    */
   async initialize(): Promise<void> {
-    console.log("[McpHub] Initializing MCP servers...");
+    console.log('[McpHub] Initializing MCP servers...');
 
     try {
       const settings = await this.readSettingsFile();
       if (!settings || Object.keys(settings.mcpServers || {}).length === 0) {
-        console.log("[McpHub] No MCP servers configured");
+        console.log('[McpHub] No MCP servers configured');
         return;
       }
 
@@ -85,7 +85,7 @@ export class McpHub {
 
       console.log(`[McpHub] Initialized ${this.connections.size} MCP servers`);
     } catch (error) {
-      console.error("[McpHub] Failed to initialize:", error);
+      console.error('[McpHub] Failed to initialize:', error);
     }
   }
 
@@ -95,7 +95,7 @@ export class McpHub {
   async callTool(
     serverName: string,
     toolName: string,
-    arguments_: Record<string, unknown> | undefined,
+    arguments_: Record<string, unknown> | undefined
   ): Promise<McpToolResult> {
     const connection = this.connections.get(serverName);
     if (!connection) {
@@ -109,14 +109,14 @@ export class McpHub {
     try {
       const result = await connection.client.request(
         {
-          method: "tools/call",
+          method: 'tools/call',
           params: {
             name: toolName,
             arguments: arguments_,
           },
         },
         undefined, // schema
-        { timeout: this.getTimeout(connection) },
+        { timeout: this.getTimeout(connection) }
       );
 
       return result as McpToolResult;
@@ -138,10 +138,10 @@ export class McpHub {
     try {
       const result = await connection.client.request(
         {
-          method: "resources/read",
+          method: 'resources/read',
           params: { uri },
         },
-        undefined,
+        undefined
       );
 
       return result;
@@ -157,11 +157,11 @@ export class McpHub {
   async addRemoteServer(
     name: string,
     url: string,
-    transportType: "sse" | "streamableHttp" = "streamableHttp",
+    transportType: 'sse' | 'streamableHttp' = 'streamableHttp'
   ): Promise<void> {
     const settings = await this.readSettingsFile();
     if (!settings) {
-      throw new Error("Failed to read MCP settings");
+      throw new Error('Failed to read MCP settings');
     }
 
     if (settings.mcpServers?.[name]) {
@@ -274,7 +274,7 @@ export class McpHub {
    * 销毁所有连接
    */
   async destroy(): Promise<void> {
-    console.log("[McpHub] Destroying all MCP connections...");
+    console.log('[McpHub] Destroying all MCP connections...');
 
     // 关闭所有文件监听
     for (const watcher of this.fileWatchers.values()) {
@@ -287,12 +287,12 @@ export class McpHub {
       try {
         await connection.client.close();
       } catch (error) {
-        console.error("[McpHub] Error closing connection:", error);
+        console.error('[McpHub] Error closing connection:', error);
       }
     }
     this.connections.clear();
 
-    console.log("[McpHub] All MCP connections destroyed");
+    console.log('[McpHub] All MCP connections destroyed');
   }
 
   // ============================================================================
@@ -304,11 +304,11 @@ export class McpHub {
    */
   private async readSettingsFile(): Promise<any> {
     try {
-      const settingsPath = path.join(this.mcpServersPath, "mcp-settings.json");
-      const content = await fs.readFile(settingsPath, "utf-8");
+      const settingsPath = path.join(this.mcpServersPath, 'mcp-settings.json');
+      const content = await fs.readFile(settingsPath, 'utf-8');
       return JSON.parse(content);
     } catch (error) {
-      console.error("[McpHub] Failed to read settings file:", error);
+      console.error('[McpHub] Failed to read settings file:', error);
       return { mcpServers: {} };
     }
   }
@@ -319,10 +319,10 @@ export class McpHub {
   private async writeSettingsFile(settings: any): Promise<void> {
     try {
       await fs.mkdir(this.mcpServersPath, { recursive: true });
-      const settingsPath = path.join(this.mcpServersPath, "mcp-settings.json");
-      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), "utf-8");
+      const settingsPath = path.join(this.mcpServersPath, 'mcp-settings.json');
+      await fs.writeFile(settingsPath, JSON.stringify(settings, null, 2), 'utf-8');
     } catch (error) {
-      console.error("[McpHub] Failed to write settings file:", error);
+      console.error('[McpHub] Failed to write settings file:', error);
       throw error;
     }
   }
@@ -330,7 +330,9 @@ export class McpHub {
   /**
    * 更新服务器连接
    */
-  private async updateServerConnections(serverConfigs: Record<string, McpServerConfig>): Promise<void> {
+  private async updateServerConnections(
+    serverConfigs: Record<string, McpServerConfig>
+  ): Promise<void> {
     const serverNames = Object.keys(serverConfigs);
 
     // 移除不再配置的连接
@@ -380,7 +382,7 @@ export class McpHub {
         server: {
           name,
           config: JSON.stringify(config),
-          status: "disconnected" as McpServerStatus,
+          status: 'disconnected' as McpServerStatus,
           disabled: true,
           uid: this.getServerKey(name),
         },
@@ -395,24 +397,24 @@ export class McpHub {
       // 创建客户端
       const client = new Client(
         {
-          name: "git-tutor-ai",
+          name: 'git-tutor-ai',
           version: this.clientVersion,
         },
         {
           capabilities: {},
-        },
+        }
       );
 
       // 创建传输层
       let transport: any;
 
-      if (config.type === "stdio") {
+      if (config.type === 'stdio') {
         transport = new StdioClientTransport({
           command: config.command!,
           args: config.args || [],
           cwd: config.cwd,
           env: { ...process.env, ...(config.env || {}) },
-          stderr: "pipe",
+          stderr: 'pipe',
         });
 
         // 设置错误处理
@@ -420,7 +422,7 @@ export class McpHub {
           console.error(`[McpHub] Transport error for "${name}":`, error);
           const connection = this.connections.get(name);
           if (connection) {
-            connection.server.status = "error" as McpServerStatus;
+            connection.server.status = 'error' as McpServerStatus;
             connection.server.error = error.message;
           }
         };
@@ -429,18 +431,18 @@ export class McpHub {
           console.log(`[McpHub] Transport closed for "${name}"`);
           const connection = this.connections.get(name);
           if (connection) {
-            connection.server.status = "disconnected" as McpServerStatus;
+            connection.server.status = 'disconnected' as McpServerStatus;
           }
         };
 
         await transport.start();
-      } else if (config.type === "sse") {
+      } else if (config.type === 'sse') {
         transport = new SSEClientTransport(new URL(config.url!), {
           requestInit: {
             headers: config.headers,
           },
         });
-      } else if (config.type === "streamableHttp") {
+      } else if (config.type === 'streamableHttp') {
         transport = new StreamableHTTPClientTransport(new URL(config.url!), {
           requestInit: {
             headers: config.headers,
@@ -455,7 +457,7 @@ export class McpHub {
         server: {
           name,
           config: JSON.stringify(config),
-          status: "connecting" as McpServerStatus,
+          status: 'connecting' as McpServerStatus,
           disabled: config.disabled,
           uid: this.getServerKey(name),
         },
@@ -469,7 +471,7 @@ export class McpHub {
       await client.connect(transport);
 
       // 连接成功
-      connection.server.status = "connected" as McpServerStatus;
+      connection.server.status = 'connected' as McpServerStatus;
       connection.server.error = undefined;
 
       // 设置通知处理器
@@ -485,7 +487,7 @@ export class McpHub {
       console.log(`[McpHub] - Resources: ${connection.server.resources.length}`);
 
       // 设置文件监听(仅 stdio)
-      if (config.type === "stdio") {
+      if (config.type === 'stdio') {
         this.setupFileWatcher(name, config);
       }
     } catch (error) {
@@ -495,7 +497,7 @@ export class McpHub {
         server: {
           name,
           config: JSON.stringify(config),
-          status: "error" as McpServerStatus,
+          status: 'error' as McpServerStatus,
           error: (error as Error).message,
           uid: this.getServerKey(name),
         },
@@ -517,10 +519,7 @@ export class McpHub {
     }
 
     try {
-      const result = await connection.client.request(
-        { method: "tools/list" },
-        undefined,
-      );
+      const result = await connection.client.request({ method: 'tools/list' }, undefined);
 
       const toolsResult = result as ListToolsResult;
       return (toolsResult.tools || []).map((tool) => ({
@@ -544,10 +543,7 @@ export class McpHub {
     }
 
     try {
-      const result = await connection.client.request(
-        { method: "resources/list" },
-        undefined,
-      );
+      const result = await connection.client.request({ method: 'resources/list' }, undefined);
 
       return (result.resources || []).map((resource: any) => ({
         uri: resource.uri,
@@ -572,8 +568,8 @@ export class McpHub {
 
     try {
       const result = await connection.client.request(
-        { method: "resources/templates/list" },
-        undefined,
+        { method: 'resources/templates/list' },
+        undefined
       );
 
       return (result.resourceTemplates || []).map((template: any) => ({
@@ -593,10 +589,10 @@ export class McpHub {
    */
   private setupNotificationHandlers(connection: McpConnection, serverName: string): void {
     connection.client.setNotificationHandler(
-      { method: "notifications/message" } as any,
+      { method: 'notifications/message' } as any,
       (notification: any) => {
-        const level = notification.params?.level || "info";
-        const message = notification.params?.message || "";
+        const level = notification.params?.level || 'info';
+        const message = notification.params?.message || '';
 
         const mcpNotification: McpNotification = {
           serverName,
@@ -610,7 +606,7 @@ export class McpHub {
         } else {
           this.pendingNotifications.push(mcpNotification);
         }
-      },
+      }
     );
   }
 
@@ -619,7 +615,7 @@ export class McpHub {
    */
   private setupFileWatcher(name: string, config: McpServerConfig): void {
     // 查找构建文件路径
-    const buildFilePath = config.args?.find((arg: string) => arg.includes("build/index.js"));
+    const buildFilePath = config.args?.find((arg: string) => arg.includes('build/index.js'));
 
     if (!buildFilePath) {
       return;
@@ -632,7 +628,7 @@ export class McpHub {
       ignoreInitial: true,
     });
 
-    watcher.on("change", () => {
+    watcher.on('change', () => {
       console.log(`[McpHub] Detected change in ${buildFilePath}. Restarting server ${name}...`);
       this.connectToServer(name, config);
     });

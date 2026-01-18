@@ -9,7 +9,7 @@
  * - Git Tutor AI: 独立工具,可选择性集成到其他工具
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
 
 // ============================================================================
 // 类型定义
@@ -86,7 +86,7 @@ export interface FocusChainResult {
   /** 任务ID */
   taskId: string;
   /** 操作类型 */
-  action: "created" | "updated" | "added" | "deleted";
+  action: 'created' | 'updated' | 'added' | 'deleted';
   /** 当前进度项 */
   items: TaskProgressItem[];
   /** Markdown 格式的清单 */
@@ -142,11 +142,11 @@ function toMarkdown(items: TaskProgressItem[]): string {
   const lines: string[] = [];
 
   function renderItems(itemList: TaskProgressItem[], level: number = 0) {
-    const indent = "  ".repeat(level);
+    const indent = '  '.repeat(level);
 
     for (const item of itemList) {
-      const checkbox = item.completed ? "- [x]" : "- [ ]";
-      const info = item.info ? ` (${item.info})` : "";
+      const checkbox = item.completed ? '- [x]' : '- [ ]';
+      const info = item.info ? ` (${item.info})` : '';
       lines.push(`${indent}${checkbox} ${item.title}${info}`);
 
       if (item.subtasks && item.subtasks.length > 0) {
@@ -156,7 +156,7 @@ function toMarkdown(items: TaskProgressItem[]): string {
   }
 
   renderItems(items);
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -164,7 +164,7 @@ function toMarkdown(items: TaskProgressItem[]): string {
  */
 function parseMarkdown(markdown: string): TaskProgressItem[] {
   const items: TaskProgressItem[] = [];
-  const lines = markdown.split("\n");
+  const lines = markdown.split('\n');
   const stack: TaskProgressItem[][] = [items];
 
   for (const line of lines) {
@@ -176,7 +176,7 @@ function parseMarkdown(markdown: string): TaskProgressItem[] {
     const match = trimmed.match(/^-\s*\[([ x])\]\s*(.+)$/);
 
     if (match) {
-      const completed = match[1] === "x";
+      const completed = match[1] === 'x';
       const title = match[2].trim();
       const infoMatch = title.match(/^(.+?)\s+\(([^)]+)\)$/);
       const finalTitle = infoMatch ? infoMatch[1] : title;
@@ -223,15 +223,15 @@ function parseMarkdown(markdown: string): TaskProgressItem[] {
  * 验证任务进度项
  */
 function validateTaskProgressItem(item: any): boolean {
-  if (!item || typeof item !== "object") {
+  if (!item || typeof item !== 'object') {
     return false;
   }
 
-  if (typeof item.title !== "string" || item.title.trim().length === 0) {
+  if (typeof item.title !== 'string' || item.title.trim().length === 0) {
     return false;
   }
 
-  if (typeof item.completed !== "boolean") {
+  if (typeof item.completed !== 'boolean') {
     return false;
   }
 
@@ -263,12 +263,12 @@ class FocusChainManager {
 
     // 验证所有项
     if (!params.items || !Array.isArray(params.items) || params.items.length === 0) {
-      throw new Error("任务进度项不能为空");
+      throw new Error('任务进度项不能为空');
     }
 
     const validItems = params.items.filter(validateTaskProgressItem);
     if (validItems.length === 0) {
-      throw new Error("没有有效的任务进度项");
+      throw new Error('没有有效的任务进度项');
     }
 
     const state: FocusChainState = {
@@ -281,7 +281,7 @@ class FocusChainManager {
 
     this.chains.set(taskId, state);
 
-    return this.buildResult(taskId, "created", state);
+    return this.buildResult(taskId, 'created', state);
   }
 
   /**
@@ -308,7 +308,7 @@ class FocusChainManager {
 
     state.updatedAt = new Date().toISOString();
 
-    return this.buildResult(params.taskId, "updated", state);
+    return this.buildResult(params.taskId, 'updated', state);
   }
 
   /**
@@ -321,15 +321,12 @@ class FocusChainManager {
     }
 
     if (!validateTaskProgressItem(params.item)) {
-      throw new Error("无效的任务进度项");
+      throw new Error('无效的任务进度项');
     }
 
     if (params.parentIndex !== undefined) {
       // 添加为子任务
-      if (
-        params.parentIndex < 0 ||
-        params.parentIndex >= state.items.length
-      ) {
+      if (params.parentIndex < 0 || params.parentIndex >= state.items.length) {
         throw new Error(`父索引 ${params.parentIndex} 无效`);
       }
 
@@ -345,7 +342,7 @@ class FocusChainManager {
 
     state.updatedAt = new Date().toISOString();
 
-    return this.buildResult(params.taskId, "added", state);
+    return this.buildResult(params.taskId, 'added', state);
   }
 
   /**
@@ -357,7 +354,7 @@ class FocusChainManager {
       return null;
     }
 
-    return this.buildResult(taskId, "updated", state);
+    return this.buildResult(taskId, 'updated', state);
   }
 
   /**
@@ -387,7 +384,7 @@ class FocusChainManager {
     const items = parseMarkdown(markdown);
 
     if (items.length === 0) {
-      throw new Error("无法解析 Markdown 清单");
+      throw new Error('无法解析 Markdown 清单');
     }
 
     return this.create({ taskId, items }, conversationId);
@@ -396,7 +393,11 @@ class FocusChainManager {
   /**
    * 构建结果对象
    */
-  private buildResult(taskId: string, action: FocusChainResult["action"], state: FocusChainState): FocusChainResult {
+  private buildResult(
+    taskId: string,
+    action: FocusChainResult['action'],
+    state: FocusChainState
+  ): FocusChainResult {
     return {
       taskId,
       action,
@@ -427,19 +428,19 @@ async function focusChainHandler(
     const action = params.action;
 
     switch (action) {
-      case "create":
+      case 'create':
         return handleCreate(context, params);
-      case "update":
+      case 'update':
         return handleUpdate(params);
-      case "add":
+      case 'add':
         return handleAdd(params);
-      case "get":
+      case 'get':
         return handleGet(params);
-      case "delete":
+      case 'delete':
         return handleDelete(params);
-      case "list":
+      case 'list':
         return handleList(context, params);
-      case "from_markdown":
+      case 'from_markdown':
         return handleFromMarkdown(context, params);
       default:
         return {
@@ -463,7 +464,7 @@ function handleCreate(context: ToolContext, params: Record<string, any>): ToolRe
 
   const result = globalFocusChainManager.create(
     { items, taskId },
-    context.conversationId || "default"
+    context.conversationId || 'default'
   );
 
   return {
@@ -540,7 +541,7 @@ function handleDelete(params: Record<string, any>): ToolResult {
     success: true,
     data: {
       taskId,
-      message: "任务已删除",
+      message: '任务已删除',
     },
   };
 }
@@ -568,7 +569,7 @@ function handleFromMarkdown(context: ToolContext, params: Record<string, any>): 
 
   const result = globalFocusChainManager.fromMarkdown(
     markdown,
-    context.conversationId || "default",
+    context.conversationId || 'default',
     taskId
   );
 
@@ -583,84 +584,84 @@ function handleFromMarkdown(context: ToolContext, params: Record<string, any>): 
 // ============================================================================
 
 const focusChainTool: ToolDefinition = {
-  name: "focus_chain",
-  displayName: "聚焦链",
+  name: 'focus_chain',
+  displayName: '聚焦链',
   description:
-    "管理任务进度清单(聚焦链)。允许创建、更新和跟踪子任务完成状态。支持嵌套子任务、Markdown 格式导入导出,以及进度百分比计算。适用于需要多步骤完成的复杂任务。" +
-    "\n\n**使用场景**:" +
-    "\n1. **任务分解**: 将大任务分解为可追踪的子任务" +
-    "\n2. **进度可视化**: 实时显示任务完成进度" +
-    "\n3. **状态同步**: 保持 AI、前端和文件系统之间的状态同步" +
-    "\n4. **提醒机制**: 基于消息间隔、模式切换等触发提醒" +
-    "\n\n**Markdown 格式**:" +
-    "\n```" +
-    "\n- [ ] 未完成任务" +
-    "\n- [x] 已完成任务" +
-    "\n- [ ] 带信息的任务 (额外信息)" +
-    "\n  - [ ] 子任务 1" +
-    "\n  - [x] 子任务 2" +
-    "\n```",
-  category: "task",
+    '管理任务进度清单(聚焦链)。允许创建、更新和跟踪子任务完成状态。支持嵌套子任务、Markdown 格式导入导出,以及进度百分比计算。适用于需要多步骤完成的复杂任务。' +
+    '\n\n**使用场景**:' +
+    '\n1. **任务分解**: 将大任务分解为可追踪的子任务' +
+    '\n2. **进度可视化**: 实时显示任务完成进度' +
+    '\n3. **状态同步**: 保持 AI、前端和文件系统之间的状态同步' +
+    '\n4. **提醒机制**: 基于消息间隔、模式切换等触发提醒' +
+    '\n\n**Markdown 格式**:' +
+    '\n```' +
+    '\n- [ ] 未完成任务' +
+    '\n- [x] 已完成任务' +
+    '\n- [ ] 带信息的任务 (额外信息)' +
+    '\n  - [ ] 子任务 1' +
+    '\n  - [x] 子任务 2' +
+    '\n```',
+  category: 'task',
   parameters: [
     {
-      name: "action",
-      type: "string",
+      name: 'action',
+      type: 'string',
       description:
         "要执行的操作。可用选项: 'create'(创建), 'update'(更新完成状态), 'add'(添加新项), 'get'(获取), 'delete'(删除), 'list'(列出所有), 'from_markdown'(从 Markdown 创建)",
       required: true,
-      enum: ["create", "update", "add", "get", "delete", "list", "from_markdown"],
+      enum: ['create', 'update', 'add', 'get', 'delete', 'list', 'from_markdown'],
     },
     {
-      name: "taskId",
-      type: "string",
-      description: "任务ID(创建时可选,其他操作必需)",
+      name: 'taskId',
+      type: 'string',
+      description: '任务ID(创建时可选,其他操作必需)',
       required: false,
     },
     {
-      name: "items",
-      type: "array",
+      name: 'items',
+      type: 'array',
       description: "任务进度项数组(action='create' 时必需)",
       required: false,
       items: {
-        type: "object",
+        type: 'object',
         properties: {
-          title: { type: "string", description: "任务标题" },
-          completed: { type: "boolean", description: "是否已完成" },
-          info: { type: "string", description: "额外信息" },
+          title: { type: 'string', description: '任务标题' },
+          completed: { type: 'boolean', description: '是否已完成' },
+          info: { type: 'string', description: '额外信息' },
           subtasks: {
-            type: "array",
-            description: "子任务列表",
+            type: 'array',
+            description: '子任务列表',
           },
         },
       },
     },
     {
-      name: "index",
-      type: "number",
+      name: 'index',
+      type: 'number',
       description: "要更新的项索引(action='update' 时必需)",
       required: false,
     },
     {
-      name: "completed",
-      type: "boolean",
+      name: 'completed',
+      type: 'boolean',
       description: "新的完成状态(action='update' 时必需)",
       required: false,
     },
     {
-      name: "item",
-      type: "object",
+      name: 'item',
+      type: 'object',
       description: "要添加的进度项(action='add' 时必需)",
       required: false,
     },
     {
-      name: "parentIndex",
-      type: "number",
+      name: 'parentIndex',
+      type: 'number',
       description: "父项索引,如果添加子任务(action='add' 时可选)",
       required: false,
     },
     {
-      name: "markdown",
-      type: "string",
+      name: 'markdown',
+      type: 'string',
       description: "Markdown 格式的清单(action='from_markdown' 时必需)",
       required: false,
     },

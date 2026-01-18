@@ -1,8 +1,8 @@
 // 工具执行统计
 // 参考 Cline 的工具使用统计实现
 
-import { Logger } from "../logging/logger.js";
-import type { ToolDefinition, ToolResult } from "./types.js";
+import { Logger } from '../logging/logger.js';
+import type { ToolDefinition, ToolResult } from './types.js';
 
 /**
  * 工具执行记录
@@ -42,7 +42,7 @@ export class ToolStatsManager {
   private maxRecordsPerTool = 1000;
 
   constructor() {
-    this.logger = new Logger("ToolStatsManager");
+    this.logger = new Logger('ToolStatsManager');
   }
 
   /**
@@ -80,7 +80,7 @@ export class ToolStatsManager {
       records.shift();
     }
 
-    this.logger.debug("Recorded tool execution", {
+    this.logger.debug('Recorded tool execution', {
       toolName: tool.name,
       success: record.success,
       duration,
@@ -128,11 +128,11 @@ export class ToolStatsManager {
     const successRate = (successful.length / records.length) * 100;
 
     // 计算平均持续时间
-    const durations = records.filter((r) => r.duration !== undefined).map((r) => r.duration as number);
+    const durations = records
+      .filter((r) => r.duration !== undefined)
+      .map((r) => r.duration as number);
     const avgDuration =
-      durations.length > 0
-        ? durations.reduce((sum, d) => sum + d, 0) / durations.length
-        : 0;
+      durations.length > 0 ? durations.reduce((sum, d) => sum + d, 0) / durations.length : 0;
 
     // 计算百分位数
     const sortedDurations = [...durations].sort((a, b) => a - b);
@@ -199,9 +199,7 @@ export class ToolStatsManager {
     }
 
     // 按时间倒序排序,取最近的
-    return allErrors
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, limit);
+    return allErrors.sort((a, b) => b.timestamp - a.timestamp).slice(0, limit);
   }
 
   /**
@@ -269,7 +267,7 @@ export class ToolStatsManager {
       this.records.clear();
     }
 
-    this.logger.info("Cleared tool stats", { toolName });
+    this.logger.info('Cleared tool stats', { toolName });
   }
 
   /**
@@ -296,8 +294,7 @@ export class ToolStatsManager {
 
       const record = this.records.get(toolName)?.[0];
       if (record) {
-        toolsByCategory[record.category] =
-          (toolsByCategory[record.category] || 0) + 1;
+        toolsByCategory[record.category] = (toolsByCategory[record.category] || 0) + 1;
       }
     }
 
@@ -310,8 +307,7 @@ export class ToolStatsManager {
       timestamp: Date.now(),
       totalTools: this.records.size,
       totalExecutions,
-      overallSuccessRate:
-        totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0,
+      overallSuccessRate: totalExecutions > 0 ? (successfulExecutions / totalExecutions) * 100 : 0,
       toolsByCategory,
       toolStats,
     };

@@ -1,5 +1,5 @@
 // 工具系统类型定义
-import { ToolPermission } from "@git-tutor/shared";
+import { ToolPermission } from '@git-tutor/shared';
 
 // 重新导出 ToolPermission 以方便使用
 export { ToolPermission };
@@ -23,26 +23,26 @@ export interface ToolDefinition {
  * 工具类别
  */
 export type ToolCategory =
-  | "filesystem"  // 文件系统操作
-  | "git"         // Git 操作
-  | "github"      // GitHub API
-  | "ai"          // AI 相关
-  | "browser"     // 浏览器操作
-  | "terminal"    // 终端命令
-  | "search"      // 搜索
-  | "mcp"         // MCP 协议工具
-  | "planning"    // 计划工具
-  | "completion"  // 完成工具
-  | "interaction" // 交互工具
-  | "task"        // 任务管理工具
-  | "custom";     // 自定义工具
+  | 'filesystem' // 文件系统操作
+  | 'git' // Git 操作
+  | 'github' // GitHub API
+  | 'ai' // AI 相关
+  | 'browser' // 浏览器操作
+  | 'terminal' // 终端命令
+  | 'search' // 搜索
+  | 'mcp' // MCP 协议工具
+  | 'planning' // 计划工具
+  | 'completion' // 完成工具
+  | 'interaction' // 交互工具
+  | 'task' // 任务管理工具
+  | 'custom'; // 自定义工具
 
 /**
  * 工具参数定义
  */
 export interface ToolParameter {
   name: string;
-  type: "string" | "number" | "boolean" | "array" | "object";
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object';
   description: string;
   required: boolean;
   default?: any;
@@ -136,11 +136,7 @@ export interface ToolRegistry {
  */
 export interface ToolExecutor {
   // 执行工具
-  execute(
-    toolName: string,
-    params: Record<string, any>,
-    context: ToolContext
-  ): Promise<ToolResult>;
+  execute(toolName: string, params: Record<string, any>, context: ToolContext): Promise<ToolResult>;
 
   // 批量执行
   executeBatch(
@@ -152,10 +148,7 @@ export interface ToolExecutor {
   ): Promise<ToolResult[]>;
 
   // 检查权限
-  checkPermission(
-    toolName: string,
-    permissions: ToolPermission[]
-  ): boolean;
+  checkPermission(toolName: string, permissions: ToolPermission[]): boolean;
 }
 
 /**
@@ -173,7 +166,7 @@ export interface ToolExecution {
   id: string;
   toolName: string;
   params: Record<string, any>;
-  status: "pending" | "running" | "completed" | "failed";
+  status: 'pending' | 'running' | 'completed' | 'failed';
   result?: ToolResult;
   error?: Error;
   startTime: Date;

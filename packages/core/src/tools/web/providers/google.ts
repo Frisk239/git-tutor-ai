@@ -1,15 +1,15 @@
 // Google Custom Search API 提供商
 // 参考: https://developers.google.com/custom-search/v1/overview
 
-import axios, { AxiosInstance } from "axios";
-import { Logger } from "../../../logging/logger.js";
+import axios, { AxiosInstance } from 'axios';
+import { Logger } from '../../../logging/logger.js';
 import {
   SearchProvider,
   SearchOptions,
   SearchResponse,
   SearchError,
   SearchRecency,
-} from "../types.js";
+} from '../types.js';
 
 /**
  * Google Custom Search API 配置
@@ -31,8 +31,8 @@ interface GoogleApiResponse {
     snippet?: string;
     pagemap?: {
       metatags?: Array<{
-        "article:published_time"?: string;
-        "dateModified"?: string;
+        'article:published_time'?: string;
+        dateModified?: string;
       }>;
     };
   }>;
@@ -46,22 +46,22 @@ interface GoogleApiResponse {
  * Google Search 提供商
  */
 export class GoogleSearchProvider implements SearchProvider {
-  name = "Google";
+  name = 'Google';
   private client: AxiosInstance;
   private logger: Logger;
   private config: Required<GoogleSearchConfig>;
 
   constructor(config: GoogleSearchConfig) {
-    this.logger = new Logger("GoogleSearchProvider");
+    this.logger = new Logger('GoogleSearchProvider');
 
     if (!config.searchEngineId) {
-      throw new Error("Google searchEngineId is required");
+      throw new Error('Google searchEngineId is required');
     }
 
     this.config = {
       apiKey: config.apiKey,
       searchEngineId: config.searchEngineId,
-      endpoint: config.endpoint || "https://www.googleapis.com/customsearch/v1",
+      endpoint: config.endpoint || 'https://www.googleapis.com/customsearch/v1',
       timeout: config.timeout || 10000,
     };
 
@@ -89,14 +89,14 @@ export class GoogleSearchProvider implements SearchProvider {
 
       const params = this.buildQueryParams(options);
 
-      this.logger.debug("Executing Google search", { params });
+      this.logger.debug('Executing Google search', { params });
 
-      const response = await this.client.get<GoogleApiResponse>("", { params });
+      const response = await this.client.get<GoogleApiResponse>('', { params });
 
       const results = this.parseResponse(response.data);
       const searchTime = Date.now() - startTime;
 
-      this.logger.info("Google search completed", {
+      this.logger.info('Google search completed', {
         resultCount: results.length,
         searchTime,
       });
@@ -110,7 +110,7 @@ export class GoogleSearchProvider implements SearchProvider {
         searchTime,
       };
     } catch (error: any) {
-      this.logger.error("Google search failed", { error });
+      this.logger.error('Google search failed', { error });
       throw this.handleError(error);
     }
   }
@@ -120,23 +120,20 @@ export class GoogleSearchProvider implements SearchProvider {
    */
   private validateOptions(options: SearchOptions): void {
     if (!options.query || options.query.trim().length < 2) {
-      throw new SearchError(
-        "Search query must be at least 2 characters",
-        "INVALID_QUERY"
-      );
+      throw new SearchError('Search query must be at least 2 characters', 'INVALID_QUERY');
     }
 
     if (options.allowedDomains && options.blocked_domains) {
       throw new SearchError(
-        "Cannot specify both allowedDomains and blocked_domains",
-        "CONFLICTING_PARAMS"
+        'Cannot specify both allowedDomains and blocked_domains',
+        'CONFLICTING_PARAMS'
       );
     }
 
     if (!this.config.apiKey || !this.config.searchEngineId) {
       throw new SearchError(
-        "Google API key or searchEngineId is not configured",
-        "API_KEY_MISSING"
+        'Google API key or searchEngineId is not configured',
+        'API_KEY_MISSING'
       );
     }
   }
@@ -155,30 +152,30 @@ export class GoogleSearchProvider implements SearchProvider {
 
     // 域名过滤
     if (options.allowedDomains && options.allowedDomains.length > 0) {
-      params.q = `${params.q} site:${options.allowedDomains.join(" OR site:")}`;
+      params.q = `${params.q} site:${options.allowedDomains.join(' OR site:')}`;
     }
 
     if (options.blocked_domains && options.blocked_domains.length > 0) {
-      params.q = `${params.q} -site:${options.blocked_domains.join(" -site:")}`;
+      params.q = `${params.q} -site:${options.blocked_domains.join(' -site:')}`;
     }
 
     // 时间范围 (Google 使用 dateRestrict)
     if (options.recency && options.recency !== SearchRecency.NO_LIMIT) {
       const dateMap: Record<SearchRecency, string> = {
-        [SearchRecency.ONE_DAY]: "d1",
-        [SearchRecency.ONE_WEEK]: "w1",
-        [SearchRecency.ONE_MONTH]: "m1",
-        [SearchRecency.ONE_YEAR]: "y1",
-        [SearchRecency.NO_LIMIT]: "",
+        [SearchRecency.ONE_DAY]: 'd1',
+        [SearchRecency.ONE_WEEK]: 'w1',
+        [SearchRecency.ONE_MONTH]: 'm1',
+        [SearchRecency.ONE_YEAR]: 'y1',
+        [SearchRecency.NO_LIMIT]: '',
       };
       params.dateRestrict = dateMap[options.recency];
     }
 
     // 语言设置
-    if (options.location === "cn") {
-      params.lr = "lang_zh-CN";
-    } else if (options.location === "us") {
-      params.lr = "lang_en";
+    if (options.location === 'cn') {
+      params.lr = 'lang_zh-CN';
+    } else if (options.location === 'us') {
+      params.lr = 'lang_en';
     }
 
     return params;
@@ -210,8 +207,7 @@ export class GoogleSearchProvider implements SearchProvider {
       // 提取发布时间
       if (item.pagemap?.metatags?.[0]) {
         const meta = item.pagemap.metatags[0];
-        result.lastUpdated =
-          meta["article:published_time"] || meta["dateModified"];
+        result.lastUpdated = meta['article:published_time'] || meta['dateModified'];
       }
 
       return result;
@@ -225,37 +221,32 @@ export class GoogleSearchProvider implements SearchProvider {
     if (error.response) {
       const statusCode = error.response.status;
       const message =
-        error.response.data?.error?.message || error.response.data?.error?.errors?.[0]?.message || error.message;
+        error.response.data?.error?.message ||
+        error.response.data?.error?.errors?.[0]?.message ||
+        error.message;
 
       switch (statusCode) {
         case 403:
           return new SearchError(
-            "Invalid Google API key or quota exceeded",
-            "INVALID_API_KEY",
+            'Invalid Google API key or quota exceeded',
+            'INVALID_API_KEY',
             statusCode
           );
         case 400:
-          return new SearchError(
-            `Invalid request: ${message}`,
-            "BAD_REQUEST",
-            statusCode
-          );
+          return new SearchError(`Invalid request: ${message}`, 'BAD_REQUEST', statusCode);
         default:
           return new SearchError(
             `Google API error (${statusCode}): ${message}`,
-            "API_ERROR",
+            'API_ERROR',
             statusCode
           );
       }
     }
 
-    if (error.code === "ECONNABORTED") {
-      return new SearchError("Search request timeout", "TIMEOUT");
+    if (error.code === 'ECONNABORTED') {
+      return new SearchError('Search request timeout', 'TIMEOUT');
     }
 
-    return new SearchError(
-      error.message || "Unknown search error",
-      "UNKNOWN_ERROR"
-    );
+    return new SearchError(error.message || 'Unknown search error', 'UNKNOWN_ERROR');
   }
 }

@@ -1,7 +1,7 @@
 // OpenAI Compatible 处理器 (通用兼容 API)
-import OpenAI from "openai";
-import { BaseAIHandler } from "./base.js";
-import type { AIRequestOptions, AIResponse } from "../providers.js";
+import OpenAI from 'openai';
+import { BaseAIHandler } from './base.js';
+import type { AIRequestOptions, AIResponse } from '../providers.js';
 
 /**
  * OpenAI Compatible 通用处理器
@@ -24,7 +24,7 @@ export class OpenAICompatibleHandler extends BaseAIHandler {
     if (baseURL) {
       this.client = new OpenAI({
         baseURL,
-        apiKey: apiKey || "sk-xxx", // OpenAI SDK 要求必须有 apiKey，很多服务不验证
+        apiKey: apiKey || 'sk-xxx', // OpenAI SDK 要求必须有 apiKey，很多服务不验证
       });
     }
   }
@@ -38,7 +38,9 @@ export class OpenAICompatibleHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): Promise<AIResponse> {
     if (!this.client) {
-      throw new Error("OpenAI Compatible client is not initialized. Please set OPENAI_COMPATIBLE_BASE_URL environment variable.");
+      throw new Error(
+        'OpenAI Compatible client is not initialized. Please set OPENAI_COMPATIBLE_BASE_URL environment variable.'
+      );
     }
 
     // 构建请求参数,过滤掉 undefined 值
@@ -59,14 +61,14 @@ export class OpenAICompatibleHandler extends BaseAIHandler {
 
     const choice = response.choices[0];
     if (!choice) {
-      throw new Error("No choices returned from API");
+      throw new Error('No choices returned from API');
     }
 
     const message = choice.message as any;
 
     // 处理 GLM-4.7 等模型的 reasoning_content 字段
     // 参考 Cline 的实现: 某些模型使用 reasoning_content 而不是 content
-    let content = message.content || "";
+    let content = message.content || '';
 
     // 如果 content 为空但有 reasoning_content,使用 reasoning_content
     if ((!content || content.length === 0) && message.reasoning_content) {
@@ -75,7 +77,7 @@ export class OpenAICompatibleHandler extends BaseAIHandler {
 
     return {
       content,
-      role: "assistant",
+      role: 'assistant',
       toolCalls: message.tool_calls,
       usage: {
         promptTokens: response.usage?.prompt_tokens || 0,
@@ -90,7 +92,9 @@ export class OpenAICompatibleHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): AsyncGenerator<string> {
     if (!this.client) {
-      throw new Error("OpenAI Compatible client is not initialized. Please set OPENAI_COMPATIBLE_BASE_URL environment variable.");
+      throw new Error(
+        'OpenAI Compatible client is not initialized. Please set OPENAI_COMPATIBLE_BASE_URL environment variable.'
+      );
     }
 
     // 构建请求参数,过滤掉 undefined 值

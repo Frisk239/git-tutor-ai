@@ -11,9 +11,9 @@
  * 4. 更新任务进度清单
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../../registry.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../../registry.js';
 
 /**
  * 任务进度项
@@ -51,7 +51,7 @@ async function executeCommand(
     const commandService = context.services.command;
     if (!commandService) {
       // 如果没有服务，尝试使用 execute_command 工具
-      const toolResult = await context.toolExecutor?.execute("execute_command", context, {
+      const toolResult = await context.toolExecutor?.execute('execute_command', context, {
         command,
         timeout: 30,
       });
@@ -65,7 +65,7 @@ async function executeCommand(
 
       return {
         success: false,
-        error: toolResult?.error || "命令执行失败",
+        error: toolResult?.error || '命令执行失败',
       };
     }
 
@@ -83,7 +83,7 @@ async function executeCommand(
   } catch (error: any) {
     return {
       success: false,
-      error: error.message || "命令执行异常",
+      error: error.message || '命令执行异常',
     };
   }
 }
@@ -95,12 +95,7 @@ function isValidDemoCommand(command: string): boolean {
   const trimmed = command.trim().toLowerCase();
 
   // 禁止使用 echo/cat 等简单打印命令
-  const forbiddenPatterns = [
-    /^echo\s+/,
-    /^cat\s+/,
-    /^printf\s+/,
-    /^print\s+/,
-  ];
+  const forbiddenPatterns = [/^echo\s+/, /^cat\s+/, /^printf\s+/, /^print\s+/];
 
   for (const pattern of forbiddenPatterns) {
     if (pattern.test(trimmed)) {
@@ -115,38 +110,37 @@ function isValidDemoCommand(command: string): boolean {
  * ATTEMPT_COMPLETION 工具定义
  */
 const attemptCompletionTool: ToolDefinition = {
-  name: "attempt_completion",
-  displayName: "完成任务",
+  name: 'attempt_completion',
+  displayName: '完成任务',
   description:
-    "在任务成功完成后使用此工具向用户展示结果。可以包含可选的命令来演示结果，以及任务进度清单。注意：只有在确认所有工具使用成功后才能调用此工具。",
-  category: "completion",
+    '在任务成功完成后使用此工具向用户展示结果。可以包含可选的命令来演示结果，以及任务进度清单。注意：只有在确认所有工具使用成功后才能调用此工具。',
+  category: 'completion',
   parameters: [
     {
-      name: "result",
-      type: "string",
-      description:
-        "任务的最终结果描述。应该清晰、具体地说明完成了什么，以及如何验证结果是否成功。",
+      name: 'result',
+      type: 'string',
+      description: '任务的最终结果描述。应该清晰、具体地说明完成了什么，以及如何验证结果是否成功。',
       required: true,
     },
     {
-      name: "command",
-      type: "string",
+      name: 'command',
+      type: 'string',
       description:
         "用于演示结果的可执行 CLI 命令（可选）。例如：'npm test', 'python main.py', 'npm start'。注意：不能使用 echo/cat 等简单的文本打印命令。",
       required: false,
     },
     {
-      name: "task_progress",
-      type: "array",
+      name: 'task_progress',
+      type: 'array',
       description:
-        "任务进度清单（可选）。如果在之前的工具调用中使用了 task_progress，则在此处必须提供最终状态。",
+        '任务进度清单（可选）。如果在之前的工具调用中使用了 task_progress，则在此处必须提供最终状态。',
       required: false,
       items: {
-        type: "object",
+        type: 'object',
         properties: {
-          title: { type: "string", description: "任务标题" },
-          completed: { type: "boolean", description: "是否已完成" },
-          info: { type: "string", description: "额外信息" },
+          title: { type: 'string', description: '任务标题' },
+          completed: { type: 'boolean', description: '是否已完成' },
+          info: { type: 'string', description: '额外信息' },
         },
       },
     },
@@ -159,7 +153,7 @@ const attemptCompletionTool: ToolDefinition = {
       const { result, command, task_progress } = params as AttemptCompletionParams;
 
       // 1. 参数验证
-      if (!result || typeof result !== "string" || result.trim().length === 0) {
+      if (!result || typeof result !== 'string' || result.trim().length === 0) {
         return {
           success: false,
           error: "参数 'result' 必须是非空字符串",
@@ -168,7 +162,7 @@ const attemptCompletionTool: ToolDefinition = {
 
       // 2. 验证命令（如果提供）
       if (command) {
-        if (typeof command !== "string" || command.trim().length === 0) {
+        if (typeof command !== 'string' || command.trim().length === 0) {
           return {
             success: false,
             error: "参数 'command' 必须是非空字符串",
@@ -196,9 +190,9 @@ const attemptCompletionTool: ToolDefinition = {
         // 验证任务进度格式
         const validProgress = task_progress.every(
           (item) =>
-            typeof item === "object" &&
-            typeof item.title === "string" &&
-            typeof item.completed === "boolean"
+            typeof item === 'object' &&
+            typeof item.title === 'string' &&
+            typeof item.completed === 'boolean'
         );
 
         if (!validProgress) {
@@ -226,7 +220,7 @@ const attemptCompletionTool: ToolDefinition = {
           responseData.command = {
             executed: command.trim(),
             error: commandResult.error,
-            note: "命令执行失败，但任务已标记为完成",
+            note: '命令执行失败，但任务已标记为完成',
           };
         }
       }

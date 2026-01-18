@@ -1,18 +1,16 @@
 // 配置管理系统实现
 // 使用 Zod 进行配置验证,基于 Cline 的配置管理
 
-import { z } from "zod";
-import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { z } from 'zod';
+import { readFileSync, existsSync } from 'fs';
+import { join } from 'path';
 
 /**
  * 环境变量验证 Schema
  */
 const EnvSchema = z.object({
   // Node 环境
-  NODE_ENV: z
-    .enum(["development", "production", "test"])
-    .default("development"),
+  NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
 
   // AI 提供商配置 - Anthropic
   ANTHROPIC_API_KEY: z.string().optional(),
@@ -128,25 +126,29 @@ const EnvSchema = z.object({
 
   // 服务器配置
   PORT: z.coerce.number().default(3001),
-  HOST: z.string().default("0.0.0.0"),
+  HOST: z.string().default('0.0.0.0'),
 
   // API 配置
-  API_PREFIX: z.string().default("/api"),
-  API_VERSION: z.string().default("v1"),
+  API_PREFIX: z.string().default('/api'),
+  API_VERSION: z.string().default('v1'),
 
   // CORS 配置
-  CORS_ORIGIN: z.string().default("*"),
-  CORS_CREDENTIALS: z.string().default("true").transform((v) => v === "true"),
+  CORS_ORIGIN: z.string().default('*'),
+  CORS_CREDENTIALS: z
+    .string()
+    .default('true')
+    .transform((v) => v === 'true'),
 
   // 缓存配置
   CACHE_TTL: z.coerce.number().default(300000), // 5 分钟
-  ENABLE_CACHE: z.string().default("true").transform((v) => v === "true"),
+  ENABLE_CACHE: z
+    .string()
+    .default('true')
+    .transform((v) => v === 'true'),
 
   // 日志配置
-  LOG_LEVEL: z
-    .enum(["debug", "info", "warn", "error"])
-    .default("info"),
-  LOG_FORMAT: z.enum(["json", "text"]).default("json"),
+  LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  LOG_FORMAT: z.enum(['json', 'text']).default('json'),
 
   // 安全配置
   JWT_SECRET: z.string().optional(),
@@ -159,15 +161,24 @@ const EnvSchema = z.object({
 
   // 文件上传配置
   MAX_FILE_SIZE: z.coerce.number().default(10485760), // 10MB
-  UPLOAD_DIR: z.string().default("./uploads"),
+  UPLOAD_DIR: z.string().default('./uploads'),
 
   // MCP 配置
-  MCP_SERVERS_PATH: z.string().default("./mcp-servers"),
-  MCP_ENABLED: z.string().default("true").transform((v) => v === "true"),
+  MCP_SERVERS_PATH: z.string().default('./mcp-servers'),
+  MCP_ENABLED: z
+    .string()
+    .default('true')
+    .transform((v) => v === 'true'),
 
   // 功能开关
-  ENABLE_WEBSOCKET: z.string().default("true").transform((v) => v === "true"),
-  ENABLE_ANALYTICS: z.string().default("false").transform((v) => v === "true"),
+  ENABLE_WEBSOCKET: z
+    .string()
+    .default('true')
+    .transform((v) => v === 'true'),
+  ENABLE_ANALYTICS: z
+    .string()
+    .default('false')
+    .transform((v) => v === 'true'),
 });
 
 /**
@@ -194,8 +205,8 @@ const ConfigFileSchema = z.object({
   git: z
     .object({
       defaultBranch: z.string().optional(),
-      commitMessageStyle: z.enum(["conventional", "simple", "detailed"]).optional(),
-      commitMessageLanguage: z.enum(["zh-CN", "en-US"]).optional(),
+      commitMessageStyle: z.enum(['conventional', 'simple', 'detailed']).optional(),
+      commitMessageLanguage: z.enum(['zh-CN', 'en-US']).optional(),
       autoPush: z.boolean().optional(),
     })
     .optional(),
@@ -224,8 +235,8 @@ const ConfigFileSchema = z.object({
   // 日志配置
   logging: z
     .object({
-      level: z.enum(["debug", "info", "warn", "error"]).optional(),
-      format: z.enum(["json", "text"]).optional(),
+      level: z.enum(['debug', 'info', 'warn', 'error']).optional(),
+      format: z.enum(['json', 'text']).optional(),
       file: z.string().optional(),
       maxFiles: z.number().positive().optional(),
     })
@@ -289,8 +300,8 @@ export class ConfigurationManager {
     } catch (error: any) {
       throw new Error(
         `环境变量验证失败:\n${error.errors
-          .map((e: any) => `  - ${e.path.join(".")}: ${e.message}`)
-          .join("\n")}`
+          .map((e: any) => `  - ${e.path.join('.')}: ${e.message}`)
+          .join('\n')}`
       );
     }
 
@@ -306,9 +317,9 @@ export class ConfigurationManager {
    */
   private findConfigFile(): string {
     const possiblePaths = [
-      join(process.cwd(), "config.json"),
-      join(process.cwd(), "config", "config.json"),
-      join(process.cwd(), ".config", "git-tutor", "config.json"),
+      join(process.cwd(), 'config.json'),
+      join(process.cwd(), 'config', 'config.json'),
+      join(process.cwd(), '.config', 'git-tutor', 'config.json'),
     ];
 
     for (const path of possiblePaths) {
@@ -318,7 +329,7 @@ export class ConfigurationManager {
     }
 
     // 默认路径
-    return join(process.cwd(), "config.json");
+    return join(process.cwd(), 'config.json');
   }
 
   /**
@@ -330,7 +341,7 @@ export class ConfigurationManager {
     }
 
     try {
-      const content = readFileSync(this.configPath, "utf-8");
+      const content = readFileSync(this.configPath, 'utf-8');
       const json = JSON.parse(content);
       return ConfigFileSchema.parse(json);
     } catch (error: any) {
@@ -357,23 +368,23 @@ export class ConfigurationManager {
 
     if (!hasAIProvider) {
       errors.push(
-        "至少需要配置一个 AI 提供商的 API Key (ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, DEEPSEEK_API_KEY, QWEN_API_KEY, OLLAMA_BASE_URL, LM_STUDIO_BASE_URL 等)"
+        '至少需要配置一个 AI 提供商的 API Key (ANTHROPIC_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY, DEEPSEEK_API_KEY, QWEN_API_KEY, OLLAMA_BASE_URL, LM_STUDIO_BASE_URL 等)'
       );
     }
 
     // 生产环境必需的配置
-    if (this.env.NODE_ENV === "production") {
+    if (this.env.NODE_ENV === 'production') {
       if (!this.env.DATABASE_URL) {
-        errors.push("生产环境必须配置 DATABASE_URL");
+        errors.push('生产环境必须配置 DATABASE_URL');
       }
 
       if (!this.env.JWT_SECRET && !this.env.SESSION_SECRET) {
-        errors.push("生产环境必须配置 JWT_SECRET 或 SESSION_SECRET");
+        errors.push('生产环境必须配置 JWT_SECRET 或 SESSION_SECRET');
       }
     }
 
     if (errors.length > 0) {
-      throw new Error(`配置错误:\n${errors.join("\n")}`);
+      throw new Error(`配置错误:\n${errors.join('\n')}`);
     }
   }
 
@@ -402,11 +413,11 @@ export class ConfigurationManager {
    * 获取嵌套配置值
    */
   get<T = any>(path: string): T | undefined {
-    const keys = path.split(".");
+    const keys = path.split('.');
     let value: any = this.configFile;
 
     for (const key of keys) {
-      if (value && typeof value === "object" && key in value) {
+      if (value && typeof value === 'object' && key in value) {
         value = value[key];
       } else {
         return undefined;
@@ -420,21 +431,21 @@ export class ConfigurationManager {
    * 检查是否是开发环境
    */
   isDevelopment(): boolean {
-    return this.env.NODE_ENV === "development";
+    return this.env.NODE_ENV === 'development';
   }
 
   /**
    * 检查是否是生产环境
    */
   isProduction(): boolean {
-    return this.env.NODE_ENV === "production";
+    return this.env.NODE_ENV === 'production';
   }
 
   /**
    * 检查是否是测试环境
    */
   isTest(): boolean {
-    return this.env.NODE_ENV === "test";
+    return this.env.NODE_ENV === 'test';
   }
 
   /**
@@ -605,7 +616,7 @@ export class ConfigurationManager {
     try {
       this.validateRequiredConfig();
     } catch (error: any) {
-      errors.push(...error.message.split("\n"));
+      errors.push(...error.message.split('\n'));
     }
 
     return {

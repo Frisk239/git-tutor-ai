@@ -2,10 +2,10 @@
  * AI Agent 工厂函数
  */
 
-import { AIProvider } from "@git-tutor/shared";
-import { AIAgent } from "./agent.js";
-import type { AgentConfig } from "./agent.js";
-import { DEFAULT_SYSTEM_PROMPT, COMPACT_SYSTEM_PROMPT } from "./prompts.js";
+import { AIProvider } from '@git-tutor/shared';
+import { AIAgent } from './agent.js';
+import type { AgentConfig } from './agent.js';
+import { DEFAULT_SYSTEM_PROMPT, COMPACT_SYSTEM_PROMPT } from './prompts.js';
 
 /**
  * 创建 AI Agent
@@ -28,11 +28,12 @@ export function createDefaultAgent(options: {
 }): AIAgent {
   const config: AgentConfig = {
     provider: options.provider || AIProvider.ANTHROPIC,
-    model: options.model || "claude-sonnet-4-5-20250929",
+    model: options.model || 'claude-sonnet-4-5-20250929',
     workingDirectory: options.workingDirectory || process.cwd(),
-    sessionId: options.sessionId || "default",
-    userId: options.userId || "anonymous",
-    systemPrompt: options.systemPrompt ||
+    sessionId: options.sessionId || 'default',
+    userId: options.userId || 'anonymous',
+    systemPrompt:
+      options.systemPrompt ||
       (options.useCompactPrompt ? COMPACT_SYSTEM_PROMPT : DEFAULT_SYSTEM_PROMPT),
     maxTurns: 10,
   };

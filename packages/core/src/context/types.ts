@@ -19,7 +19,7 @@ export interface ToolExecutionContext {
  */
 export interface ContextUpdate {
   /** 更新类型 */
-  type: "add" | "remove" | "modify";
+  type: 'add' | 'remove' | 'modify';
   /** 更新的内容 */
   content: string;
   /** 元数据 */
@@ -33,7 +33,7 @@ export interface MessageContext {
   /** 消息 ID */
   id: string;
   /** 角色 */
-  role: "user" | "assistant" | "system";
+  role: 'user' | 'assistant' | 'system';
   /** 内容 */
   content: string;
   /** 时间戳 */

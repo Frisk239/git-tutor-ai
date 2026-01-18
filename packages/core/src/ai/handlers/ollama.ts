@@ -1,18 +1,18 @@
 // Ollama 处理器 (本地模型)
-import OpenAI from "openai";
-import { BaseAIHandler } from "./base.js";
-import type { AIRequestOptions, AIResponse } from "../providers.js";
+import OpenAI from 'openai';
+import { BaseAIHandler } from './base.js';
+import type { AIRequestOptions, AIResponse } from '../providers.js';
 
 export class OllamaHandler extends BaseAIHandler {
   private client: OpenAI | null = null;
 
   constructor() {
     super();
-    const baseURL = process.env.OLLAMA_BASE_URL || "http://localhost:11434";
+    const baseURL = process.env.OLLAMA_BASE_URL || 'http://localhost:11434';
     // Ollama 兼容 OpenAI API
     this.client = new OpenAI({
       baseURL: `${baseURL}/v1`,
-      apiKey: "ollama", // Ollama 不需要真实的 API key
+      apiKey: 'ollama', // Ollama 不需要真实的 API key
     });
   }
 
@@ -26,7 +26,7 @@ export class OllamaHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): Promise<AIResponse> {
     if (!this.client) {
-      throw new Error("Ollama client is not initialized");
+      throw new Error('Ollama client is not initialized');
     }
 
     const response = await this.client.chat.completions.create({
@@ -38,8 +38,8 @@ export class OllamaHandler extends BaseAIHandler {
 
     const choice = response.choices[0];
     return {
-      content: choice.message.content || "",
-      role: "assistant",
+      content: choice.message.content || '',
+      role: 'assistant',
       toolCalls: choice.message.tool_calls,
       usage: {
         promptTokens: response.usage?.prompt_tokens || 0,
@@ -54,7 +54,7 @@ export class OllamaHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): AsyncGenerator<string> {
     if (!this.client) {
-      throw new Error("Ollama client is not initialized");
+      throw new Error('Ollama client is not initialized');
     }
 
     const stream = await this.client.chat.completions.create({

@@ -1,0 +1,162 @@
+// Prisma Schema
+// 文档: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============= 用户模型 =============
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatar        String?
+  passwordHash   String?
+  githubToken   String?   @encrypted
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  projects      Project[]
+  conversations Conversation[]
+  settings      UserSettings?
+
+  @@map("users")
+}
+
+// ============= 用户设置 =============
+model UserSettings {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  theme         String   @default("system") // system, light, dark
+  language      String   @default("zh-CN")
+
+  // AI 设置
+  defaultProvider String  @default("anthropic")
+  defaultModel    String  @default("claude-3-5-sonnet-20241022")
+  temperature    Float?  @default(0)
+
+  // Git 设置
+  gitUserName    String?
+  gitUserEmail   String?
+
+  // 通知设置
+  enableNotifications Boolean @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("user_settings")
+}
+
+// ============= 项目模型 =============
+model Project {
+  id            String         @id @default(cuid())
+  name          String
+  description   String?
+  path          String         @unique  // 本地路径或远程 URL
+  type          ProjectType
+
+  isPublic      Boolean        @default(false)
+
+  ownerId       String
+  owner         User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+
+  analyses      Analysis[]
+  conversations Conversation[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([ownerId])
+  @@index([type])
+  @@map("projects")
+}
+
+// ============= 分析结果 =============
+model Analysis {
+  id            String         @id @default(cuid())
+  projectId     String
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  type          AnalysisType
+  status        AnalysisStatus
+
+  result        Json?          // 分析结果 (灵活存储)
+  summary       String?        // 结果摘要
+
+  startedAt     DateTime       @default(now())
+  completedAt   DateTime?
+
+  @@index([projectId])
+  @@index([status])
+  @@map("analyses")
+}
+
+// ============= 对话模型 =============
+model Conversation {
+  id            String         @id @default(cuid())
+  title         String
+
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  projectId     String?
+  project       Project?       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  aiProvider    String         // 'openai', 'anthropic', 'gemini'
+  model         String         // 'gpt-4', 'claude-3-opus', etc.
+  systemPrompt  String?
+
+  messages      Message[]
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("conversations")
+}
+
+// ============= 消息模型 =============
+model Message {
+  id            String         @id @default(cuid())
+
+  conversationId String
+  conversation  Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  role          MessageRole
+  content       String         @db.Text
+  toolCalls     Json?          // 工具调用记录
+
+  tokens        Int?           // Token 计数
+
+  createdAt     DateTime       @default(now())
+
+  @@index([conversationId])
+  @@map("messages")
+}
+
+// ============= MCP 服务器配置 =============
+model McpServer {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  type          McpTransport   // STDIO, HTTP, WEBSOCKET
+  command       String?        // STDIO 命令
+  url           String?        // HTTP/WebSocket URL
+  enabled       Boolean        @default(true)
+
+  tools         Json           // 可用工具列表
+  resources     Json           // 可用资源列表
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("mcp_servers")
+}

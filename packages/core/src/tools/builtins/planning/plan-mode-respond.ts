@@ -11,8 +11,8 @@
  * 4. 支持任务进度清单
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
-import { toolRegistry } from "../../registry.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
+import { toolRegistry } from '../../registry.js';
 
 /**
  * 工具参数
@@ -47,7 +47,7 @@ function parseOptions(options: any): string[] | undefined {
   }
 
   // 如果是字符串，尝试解析 JSON
-  if (typeof options === "string") {
+  if (typeof options === 'string') {
     try {
       const parsed = JSON.parse(options);
       if (Array.isArray(parsed)) {
@@ -65,46 +65,47 @@ function parseOptions(options: any): string[] | undefined {
  * PLAN_MODE_RESPOND 工具定义
  */
 const planModeRespondTool: ToolDefinition = {
-  name: "plan_mode_respond",
-  displayName: "计划模式响应",
+  name: 'plan_mode_respond',
+  displayName: '计划模式响应',
   description:
-    "在计划模式下向用户展示信息并收集反馈。支持展示计划、提供选项供用户选择，或者通过 needs_more_exploration 参数表明需要更多信息后再继续。注意：此工具仅在计划模式下可用。",
-  category: "planning",
+    '在计划模式下向用户展示信息并收集反馈。支持展示计划、提供选项供用户选择，或者通过 needs_more_exploration 参数表明需要更多信息后再继续。注意：此工具仅在计划模式下可用。',
+  category: 'planning',
   parameters: [
     {
-      name: "response",
-      type: "string",
-      description: "要发送给用户的响应内容。应该包含清晰的信息，如计划说明、策略描述等。",
+      name: 'response',
+      type: 'string',
+      description: '要发送给用户的响应内容。应该包含清晰的信息，如计划说明、策略描述等。',
       required: true,
     },
     {
-      name: "options",
-      type: "array",
-      description: "为用户提供的可选项按钮列表。用户可以点击这些选项快速响应，而不需要手动输入文本。例如：['批准计划', '修改计划', '添加更多细节']",
+      name: 'options',
+      type: 'array',
+      description:
+        "为用户提供的可选项按钮列表。用户可以点击这些选项快速响应，而不需要手动输入文本。例如：['批准计划', '修改计划', '添加更多细节']",
       required: false,
       items: {
-        type: "string",
+        type: 'string',
       },
     },
     {
-      name: "needs_more_exploration",
-      type: "boolean",
+      name: 'needs_more_exploration',
+      type: 'boolean',
       description:
-        "设置为 true 时表示你意识到需要更多信息（如读取文件、执行命令等）才能给出完整的计划。设置此参数后，工具会立即返回而不阻塞，允许你继续调用其他工具收集信息。",
+        '设置为 true 时表示你意识到需要更多信息（如读取文件、执行命令等）才能给出完整的计划。设置此参数后，工具会立即返回而不阻塞，允许你继续调用其他工具收集信息。',
       required: false,
       default: false,
     },
     {
-      name: "task_progress",
-      type: "array",
-      description: "任务进度清单。展示具体的任务步骤和完成状态。",
+      name: 'task_progress',
+      type: 'array',
+      description: '任务进度清单。展示具体的任务步骤和完成状态。',
       required: false,
       items: {
-        type: "object",
+        type: 'object',
         properties: {
-          title: { type: "string", description: "任务标题" },
-          completed: { type: "boolean", description: "是否已完成" },
-          info: { type: "string", description: "额外信息" },
+          title: { type: 'string', description: '任务标题' },
+          completed: { type: 'boolean', description: '是否已完成' },
+          info: { type: 'string', description: '额外信息' },
         },
       },
     },
@@ -118,7 +119,7 @@ const planModeRespondTool: ToolDefinition = {
         params as PlanModeRespondParams;
 
       // 1. 参数验证
-      if (!response || typeof response !== "string" || response.trim().length === 0) {
+      if (!response || typeof response !== 'string' || response.trim().length === 0) {
         return {
           success: false,
           error: "参数 'response' 必须是非空字符串",
@@ -144,7 +145,7 @@ const planModeRespondTool: ToolDefinition = {
           };
         }
 
-        if (parsedOptions.some((opt) => typeof opt !== "string" || opt.trim().length === 0)) {
+        if (parsedOptions.some((opt) => typeof opt !== 'string' || opt.trim().length === 0)) {
           return {
             success: false,
             error: "参数 'options' 中的所有选项必须是非空字符串",
@@ -159,7 +160,7 @@ const planModeRespondTool: ToolDefinition = {
           data: {
             needs_more_exploration: true,
             message:
-              "[You have indicated that you need more exploration. Proceed with calling tools to continue the planning process.]",
+              '[You have indicated that you need more exploration. Proceed with calling tools to continue the planning process.]',
           },
         };
       }
@@ -168,9 +169,9 @@ const planModeRespondTool: ToolDefinition = {
       if (task_progress && Array.isArray(task_progress)) {
         const validProgress = task_progress.every(
           (item) =>
-            typeof item === "object" &&
-            typeof item.title === "string" &&
-            typeof item.completed === "boolean"
+            typeof item === 'object' &&
+            typeof item.title === 'string' &&
+            typeof item.completed === 'boolean'
         );
 
         if (!validProgress) {
@@ -186,7 +187,7 @@ const planModeRespondTool: ToolDefinition = {
       const responseData: any = {
         success: true,
         response: response.trim(),
-        mode: "plan",
+        mode: 'plan',
       };
 
       // 7. 添加选项（如果有）

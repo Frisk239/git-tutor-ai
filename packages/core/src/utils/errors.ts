@@ -1,30 +1,30 @@
 // 统一错误处理系统
 // 参考 Cline 的错误处理机制,提供完整的错误分类、恢复和日志记录
 
-import { Logger } from "../logging/logger.js";
+import { Logger } from '../logging/logger.js';
 
 /**
  * 错误类别枚举
  */
 export enum ErrorCategory {
-  API = "api", // AI API 调用错误
-  FILESYSTEM = "filesystem", // 文件系统操作错误
-  GIT = "git", // Git 操作错误
-  GITHUB = "github", // GitHub API 错误
-  NETWORK = "network", // 网络连接错误
-  VALIDATION = "validation", // 参数验证错误
-  PERMISSION = "permission", // 权限错误
-  UNKNOWN = "unknown", // 未知错误
+  API = 'api', // AI API 调用错误
+  FILESYSTEM = 'filesystem', // 文件系统操作错误
+  GIT = 'git', // Git 操作错误
+  GITHUB = 'github', // GitHub API 错误
+  NETWORK = 'network', // 网络连接错误
+  VALIDATION = 'validation', // 参数验证错误
+  PERMISSION = 'permission', // 权限错误
+  UNKNOWN = 'unknown', // 未知错误
 }
 
 /**
  * 错误严重级别
  */
 export enum ErrorSeverity {
-  LOW = "low", // 低:可恢复,不影响核心功能
-  MEDIUM = "medium", // 中:部分功能受影响
-  HIGH = "high", // 高:核心功能受影响
-  CRITICAL = "critical", // 严重:系统无法运行
+  LOW = 'low', // 低:可恢复,不影响核心功能
+  MEDIUM = 'medium', // 中:部分功能受影响
+  HIGH = 'high', // 高:核心功能受影响
+  CRITICAL = 'critical', // 严重:系统无法运行
 }
 
 /**
@@ -41,7 +41,7 @@ export class AppError extends Error {
     public context?: Record<string, any>
   ) {
     super(message);
-    this.name = "AppError";
+    this.name = 'AppError';
 
     // 保持正确的堆栈跟踪
     if (Error.captureStackTrace) {
@@ -59,8 +59,8 @@ export class AppError extends Error {
     }
 
     // 提取错误信息
-    const message = error.message || "Unknown error";
-    const code = error.code || "UNKNOWN_ERROR";
+    const message = error.message || 'Unknown error';
+    const code = error.code || 'UNKNOWN_ERROR';
     const statusCode = error.status || error.statusCode;
 
     // 根据错误类型推断类别
@@ -72,33 +72,27 @@ export class AppError extends Error {
     // 判断严重级别
     const severity = AppError.inferSeverity(error);
 
-    return new AppError(
-      message,
-      inferredCategory,
-      code,
-      retryable,
-      severity,
-      error,
-      { statusCode }
-    );
+    return new AppError(message, inferredCategory, code, retryable, severity, error, {
+      statusCode,
+    });
   }
 
   /**
    * 推断错误类别
    */
   private static inferCategory(error: any): ErrorCategory {
-    const message = (error.message || "").toLowerCase();
+    const message = (error.message || '').toLowerCase();
     const code = error.code;
     const statusCode = error.status || error.statusCode;
 
     // 网络错误
     if (
-      code === "ECONNREFUSED" ||
-      code === "ETIMEDOUT" ||
-      code === "ENOTFOUND" ||
-      code === "ECONNRESET" ||
-      message.includes("network") ||
-      message.includes("connection")
+      code === 'ECONNREFUSED' ||
+      code === 'ETIMEDOUT' ||
+      code === 'ENOTFOUND' ||
+      code === 'ECONNRESET' ||
+      message.includes('network') ||
+      message.includes('connection')
     ) {
       return ErrorCategory.NETWORK;
     }
@@ -118,22 +112,22 @@ export class AppError extends Error {
     }
 
     // Git 错误
-    if (message.includes("git") || code?.startsWith("GIT_")) {
+    if (message.includes('git') || code?.startsWith('GIT_')) {
       return ErrorCategory.GIT;
     }
 
     // GitHub 错误
-    if (message.includes("github") || code?.startsWith("GITHUB_")) {
+    if (message.includes('github') || code?.startsWith('GITHUB_')) {
       return ErrorCategory.GITHUB;
     }
 
     // 文件系统错误
     if (
-      code === "ENOENT" ||
-      code === "EACCES" ||
-      code === "EPERM" ||
-      message.includes("file") ||
-      message.includes("directory")
+      code === 'ENOENT' ||
+      code === 'EACCES' ||
+      code === 'EPERM' ||
+      message.includes('file') ||
+      message.includes('directory')
     ) {
       return ErrorCategory.FILESYSTEM;
     }
@@ -147,14 +141,14 @@ export class AppError extends Error {
   private static isRetryable(error: any): boolean {
     const code = error.code;
     const statusCode = error.status || error.statusCode;
-    const message = (error.message || "").toLowerCase();
+    const message = (error.message || '').toLowerCase();
 
     // 网络错误可重试
     if (
-      code === "ECONNREFUSED" ||
-      code === "ETIMEDOUT" ||
-      code === "ENOTFOUND" ||
-      code === "ECONNRESET"
+      code === 'ECONNREFUSED' ||
+      code === 'ETIMEDOUT' ||
+      code === 'ENOTFOUND' ||
+      code === 'ECONNRESET'
     ) {
       return true;
     }
@@ -165,7 +159,7 @@ export class AppError extends Error {
     }
 
     // 429 速率限制可重试
-    if (statusCode === 429 || message.includes("rate limit")) {
+    if (statusCode === 429 || message.includes('rate limit')) {
       return true;
     }
 
@@ -190,12 +184,12 @@ export class AppError extends Error {
     }
 
     // 文件不存在 - 低严重性
-    if (code === "ENOENT") {
+    if (code === 'ENOENT') {
       return ErrorSeverity.LOW;
     }
 
     // 权限错误 - 中高严重性
-    if (code === "EACCES" || code === "EPERM") {
+    if (code === 'EACCES' || code === 'EPERM') {
       return ErrorSeverity.HIGH;
     }
 
@@ -224,18 +218,18 @@ export class AppError extends Error {
    */
   toUserMessage(): string {
     const categoryMessages = {
-      [ErrorCategory.API]: "API 调用失败",
-      [ErrorCategory.FILESYSTEM]: "文件操作失败",
-      [ErrorCategory.GIT]: "Git 操作失败",
-      [ErrorCategory.GITHUB]: "GitHub 操作失败",
-      [ErrorCategory.NETWORK]: "网络连接失败",
-      [ErrorCategory.VALIDATION]: "参数验证失败",
-      [ErrorCategory.PERMISSION]: "权限不足",
-      [ErrorCategory.UNKNOWN]: "发生未知错误",
+      [ErrorCategory.API]: 'API 调用失败',
+      [ErrorCategory.FILESYSTEM]: '文件操作失败',
+      [ErrorCategory.GIT]: 'Git 操作失败',
+      [ErrorCategory.GITHUB]: 'GitHub 操作失败',
+      [ErrorCategory.NETWORK]: '网络连接失败',
+      [ErrorCategory.VALIDATION]: '参数验证失败',
+      [ErrorCategory.PERMISSION]: '权限不足',
+      [ErrorCategory.UNKNOWN]: '发生未知错误',
     };
 
-    const categoryMsg = categoryMessages[this.category] || "发生错误";
-    const hint = this.retryable ? " (系统会自动重试)" : "";
+    const categoryMsg = categoryMessages[this.category] || '发生错误';
+    const hint = this.retryable ? ' (系统会自动重试)' : '';
 
     return `${categoryMsg}: ${this.message}${hint}`;
   }
@@ -247,10 +241,9 @@ export class AppError extends Error {
 export class ErrorHandler {
   private logger: Logger;
   private errorCounts: Map<string, number> = new Map();
-  private lastErrors: Map<string, { error: AppError; timestamp: number }> =
-    new Map();
+  private lastErrors: Map<string, { error: AppError; timestamp: number }> = new Map();
 
-  constructor(name: string = "ErrorHandler") {
+  constructor(name: string = 'ErrorHandler') {
     this.logger = new Logger(name);
   }
 
@@ -271,7 +264,7 @@ export class ErrorHandler {
 
     // 如果是不可恢复的错误,考虑终止进程
     if (appError.severity === ErrorSeverity.CRITICAL) {
-      this.logger.error("Critical error encountered", {
+      this.logger.error('Critical error encountered', {
         error: appError.toJSON(),
       });
       // process.exit(1); // 可选:根据需求决定是否终止
@@ -352,7 +345,7 @@ export class ErrorHandler {
     let totalErrors = 0;
 
     for (const [key, count] of this.errorCounts.entries()) {
-      const [category] = key.split(":");
+      const [category] = key.split(':');
       errorsByCategory[category as ErrorCategory] =
         (errorsByCategory[category as ErrorCategory] || 0) + count;
       errorsByCode[key] = count;
@@ -382,17 +375,14 @@ export class ErrorHandler {
   /**
    * 尝试错误恢复
    */
-  async attemptRecovery<T>(
-    error: Error,
-    recoveryFn: () => Promise<T>
-  ): Promise<T> {
+  async attemptRecovery<T>(error: Error, recoveryFn: () => Promise<T>): Promise<T> {
     const appError = AppError.fromError(error);
 
     if (!appError.retryable) {
       throw error; // 不可重试,直接抛出
     }
 
-    this.logger.info("Attempting error recovery", {
+    this.logger.info('Attempting error recovery', {
       category: appError.category,
       code: appError.code,
     });
@@ -400,9 +390,10 @@ export class ErrorHandler {
     try {
       return await recoveryFn();
     } catch (recoveryError) {
-      this.logger.error("Recovery failed", {
+      this.logger.error('Recovery failed', {
         originalError: appError.toJSON(),
-        recoveryError: recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
+        recoveryError:
+          recoveryError instanceof Error ? recoveryError.message : String(recoveryError),
       });
       throw recoveryError;
     }
@@ -411,10 +402,7 @@ export class ErrorHandler {
   /**
    * 创建错误恢复装饰器
    */
-  createRecoveryWrapper<T extends (...args: any[]) => any>(
-    fn: T,
-    maxAttempts: number = 3
-  ): T {
+  createRecoveryWrapper<T extends (...args: any[]) => any>(fn: T, maxAttempts: number = 3): T {
     return (async (...args: any[]) => {
       let lastError: Error | undefined;
 
@@ -429,7 +417,7 @@ export class ErrorHandler {
             throw error;
           }
 
-          this.logger.warn("Attempt failed, retrying", {
+          this.logger.warn('Attempt failed, retrying', {
             attempt,
             maxAttempts,
             category: appError.category,
@@ -469,15 +457,14 @@ export function setupGlobalErrorHandlers(): void {
   const errorHandler = getErrorHandler();
 
   // 未捕获的异常
-  process.on("uncaughtException", (error) => {
-    errorHandler.handle(error, "uncaughtException");
+  process.on('uncaughtException', (error) => {
+    errorHandler.handle(error, 'uncaughtException');
   });
 
   // 未处理的 Promise 拒绝
-  process.on("unhandledRejection", (reason, promise) => {
-    const error =
-      reason instanceof Error ? reason : new Error(String(reason));
-    errorHandler.handle(error, "unhandledRejection");
+  process.on('unhandledRejection', (reason, promise) => {
+    const error = reason instanceof Error ? reason : new Error(String(reason));
+    errorHandler.handle(error, 'unhandledRejection');
   });
 }
 
@@ -491,9 +478,6 @@ export function handleError(error: Error, context?: string): void {
 /**
  * 便捷函数:尝试恢复
  */
-export async function attemptRecovery<T>(
-  error: Error,
-  recoveryFn: () => Promise<T>
-): Promise<T> {
+export async function attemptRecovery<T>(error: Error, recoveryFn: () => Promise<T>): Promise<T> {
   return getErrorHandler().attemptRecovery(error, recoveryFn);
 }

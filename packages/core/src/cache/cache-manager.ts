@@ -217,10 +217,7 @@ export class CacheManager<T> {
    * 获取所有缓存条目
    */
   entries(): Array<[string, T]> {
-    return Array.from(this.cache.entries()).map(([key, entry]) => [
-      key,
-      entry.value,
-    ]);
+    return Array.from(this.cache.entries()).map(([key, entry]) => [key, entry.value]);
   }
 
   /**
@@ -471,11 +468,7 @@ export class MultiLevelCache {
 export function Cache(options: CacheOptions = {}) {
   const cache = new CacheManager<any>(options);
 
-  return function (
-    _target: any,
-    _propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {

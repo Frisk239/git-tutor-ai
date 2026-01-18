@@ -3,8 +3,8 @@
  * 加载 MCP 服务器开发文档
  */
 
-import { McpHub } from "../hub.js";
-import type { ToolExecutor, ToolExecutionContext } from "../../tools/index.js";
+import { McpHub } from '../hub.js';
+import type { ToolExecutor, ToolExecutionContext } from '../../tools/index.js';
 
 /**
  * MCP_DOCS 工具执行器
@@ -15,10 +15,7 @@ export class LoadMcpDocumentationExecutor implements ToolExecutor {
   /**
    * 生成 MCP 文档
    */
-  async execute(
-    params: any,
-    context: ToolExecutionContext,
-  ): Promise<string> {
+  async execute(params: any, context: ToolExecutionContext): Promise<string> {
     const servers = this.mcpHub.getServers();
 
     const documentation = `# MCP 服务器开发指南
@@ -29,16 +26,28 @@ MCP (Model Context Protocol) 是一个开放协议,允许 AI 应用与外部系�
 
 ## 当前已连接的 MCP 服务器 (${servers.length})
 
-${servers.length === 0 ? "*暂无已连接的服务器*" : servers.map(server => `
+${
+  servers.length === 0
+    ? '*暂无已连接的服务器*'
+    : servers
+        .map(
+          (server) => `
 ### ${server.name}
 - **状态**: ${server.status}
 - **工具数量**: ${server.tools?.length || 0}
 - **资源数量**: ${server.resources?.length || 0}
-${server.tools && server.tools.length > 0 ? `
+${
+  server.tools && server.tools.length > 0
+    ? `
 #### 可用工具:
-${server.tools.map(tool => `- \`${tool.name}\`: ${tool.description || "无描述"}`).join("\n")}
-` : ""}
-`).join("\n")}
+${server.tools.map((tool) => `- \`${tool.name}\`: ${tool.description || '无描述'}`).join('\n')}
+`
+    : ''
+}
+`
+        )
+        .join('\n')
+}
 
 ## 创建 MCP 服务器
 

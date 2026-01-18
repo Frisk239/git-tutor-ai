@@ -16,7 +16,7 @@
  * - 标记任务完成
  */
 
-import { ToolDefinition, ToolPermission, ToolHandler, ToolContext } from "../types.js";
+import { ToolDefinition, ToolPermission, ToolHandler, ToolContext } from '../types.js';
 
 /**
  * TODO 项
@@ -37,7 +37,7 @@ export interface TodoItem {
  */
 export interface FocusChainParams {
   /** 操作类型 */
-  action: "create" | "update" | "get" | "complete" | "clear";
+  action: 'create' | 'update' | 'get' | 'complete' | 'clear';
   /** TODO 列表（create/update 时使用） */
   todos?: TodoItem[];
   /** 任务 ID（用于标识不同的任务） */
@@ -115,7 +115,11 @@ export function createMemoryStorage(): TodoStorage {
 /**
  * 计算任务进度
  */
-function calculateProgress(todos: TodoItem[]): { total: number; completed: number; progress: number } {
+function calculateProgress(todos: TodoItem[]): {
+  total: number;
+  completed: number;
+  progress: number;
+} {
   const total = todos.length;
   const completed = todos.filter((t) => t.completed).length;
   const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -128,7 +132,7 @@ function calculateProgress(todos: TodoItem[]): { total: number; completed: numbe
  */
 function formatTodosToMarkdown(todos: TodoItem[]): string {
   if (todos.length === 0) {
-    return "暂无任务";
+    return '暂无任务';
   }
 
   const { total, completed, progress } = calculateProgress(todos);
@@ -136,7 +140,7 @@ function formatTodosToMarkdown(todos: TodoItem[]): string {
   let markdown = `## 任务进度 (${completed}/${total} - ${progress}%)\n\n`;
 
   todos.forEach((todo, index) => {
-    const checkbox = todo.completed ? "[x]" : "[ ]";
+    const checkbox = todo.completed ? '[x]' : '[ ]';
     markdown += `${index + 1}. ${checkbox} ${todo.description}\n`;
   });
 
@@ -148,13 +152,13 @@ function formatTodosToMarkdown(todos: TodoItem[]): string {
  */
 function parseTodosFromMarkdown(markdown: string): TodoItem[] {
   const todos: TodoItem[] = [];
-  const lines = markdown.split("\n");
+  const lines = markdown.split('\n');
 
   for (const line of lines) {
     // 匹配格式: "1. [x] 任务描述" 或 "1. [ ] 任务描述"
     const match = line.match(/^\d+\.\s+\[(x| )\]\s+(.+)$/);
     if (match) {
-      const completed = match[1] === "x";
+      const completed = match[1] === 'x';
       const description = match[2].trim();
       todos.push({
         description,
@@ -175,7 +179,7 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
   private storage: TodoStorage;
   private defaultTaskId: string;
 
-  constructor(storage?: TodoStorage, defaultTaskId: string = "default") {
+  constructor(storage?: TodoStorage, defaultTaskId: string = 'default') {
     this.storage = storage || createMemoryStorage();
     this.defaultTaskId = defaultTaskId;
   }
@@ -188,12 +192,12 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
       const { action, todos, taskId = this.defaultTaskId, index } = params;
 
       switch (action) {
-        case "create": {
+        case 'create': {
           // 创建新的 TODO 列表
           if (!todos || todos.length === 0) {
             return {
               success: false,
-              error: "创建 TODO 列表时必须提供任务列表",
+              error: '创建 TODO 列表时必须提供任务列表',
             };
           }
 
@@ -220,12 +224,12 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
           };
         }
 
-        case "update": {
+        case 'update': {
           // 更新现有的 TODO 列表
           if (!todos || todos.length === 0) {
             return {
               success: false,
-              error: "更新 TODO 列表时必须提供新的任务列表",
+              error: '更新 TODO 列表时必须提供新的任务列表',
             };
           }
 
@@ -243,7 +247,8 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
             return {
               ...todo,
               createdAt: existing?.createdAt || Date.now(),
-              completedAt: todo.completed && !existing?.completed ? Date.now() : existing?.completedAt,
+              completedAt:
+                todo.completed && !existing?.completed ? Date.now() : existing?.completedAt,
             };
           });
 
@@ -263,7 +268,7 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
           };
         }
 
-        case "get": {
+        case 'get': {
           // 获取当前的 TODO 列表
           const existingTodos = await this.storage.loadTodos(taskId);
 
@@ -294,12 +299,12 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
           };
         }
 
-        case "complete": {
+        case 'complete': {
           // 标记指定任务为完成
           if (index === undefined || index < 0) {
             return {
               success: false,
-              error: "必须提供有效的任务索引",
+              error: '必须提供有效的任务索引',
             };
           }
 
@@ -338,7 +343,7 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
           };
         }
 
-        case "clear": {
+        case 'clear': {
           // 清除 TODO 列表
           await this.storage.deleteTodos(taskId);
 
@@ -373,48 +378,48 @@ class FocusChainToolHandler implements ToolHandler<FocusChainParams, FocusChainR
  * FOCUS_CHAIN 工具定义
  */
 export const focusChainTool: ToolDefinition = {
-  name: "focus_chain",
-  displayName: "任务进度管理",
+  name: 'focus_chain',
+  displayName: '任务进度管理',
   description:
-    "管理和跟踪任务进度。支持创建 TODO 列表、更新任务状态、查询进度等功能。" +
-    "\n\n使用场景:" +
-    "\n- **create**: 创建新的任务清单" +
-    "\n- **update**: 更新现有任务清单（如标记任务完成、添加新任务等）" +
-    "\n- **get**: 查询当前任务进度" +
-    "\n- **complete**: 标记指定索引的任务为完成" +
-    "\n- **clear**: 清除任务清单" +
-    "\n\n最佳实践:" +
-    "\n- 在任务开始时创建 TODO 列表" +
-    "\n- 完成每个任务后更新列表" +
-    "\n- 使用 get 操作查询当前进度" +
-    "\n- 任务描述应清晰、具体、可衡量",
-  category: "task",
+    '管理和跟踪任务进度。支持创建 TODO 列表、更新任务状态、查询进度等功能。' +
+    '\n\n使用场景:' +
+    '\n- **create**: 创建新的任务清单' +
+    '\n- **update**: 更新现有任务清单（如标记任务完成、添加新任务等）' +
+    '\n- **get**: 查询当前任务进度' +
+    '\n- **complete**: 标记指定索引的任务为完成' +
+    '\n- **clear**: 清除任务清单' +
+    '\n\n最佳实践:' +
+    '\n- 在任务开始时创建 TODO 列表' +
+    '\n- 完成每个任务后更新列表' +
+    '\n- 使用 get 操作查询当前进度' +
+    '\n- 任务描述应清晰、具体、可衡量',
+  category: 'task',
   parameters: [
     {
-      name: "action",
-      type: "string",
+      name: 'action',
+      type: 'string',
       required: true,
       description:
         "操作类型。可选值: 'create' (创建), 'update' (更新), 'get' (查询), 'complete' (标记完成), 'clear' (清除)",
     },
     {
-      name: "todos",
-      type: "array",
+      name: 'todos',
+      type: 'array',
       required: false,
       description:
-        "TODO 列表（create/update 时必需）。每个任务包含 description (string) 和 completed (boolean) 字段。",
+        'TODO 列表（create/update 时必需）。每个任务包含 description (string) 和 completed (boolean) 字段。',
     },
     {
-      name: "taskId",
-      type: "string",
+      name: 'taskId',
+      type: 'string',
       required: false,
       description: "任务 ID，用于标识不同的任务（可选，默认为 'default'）",
     },
     {
-      name: "index",
-      type: "number",
+      name: 'index',
+      type: 'number',
       required: false,
-      description: "任务索引（complete 操作时使用），从 0 开始",
+      description: '任务索引（complete 操作时使用），从 0 开始',
     },
   ],
   permissions: [ToolPermission.READ, ToolPermission.WRITE],
@@ -429,7 +434,10 @@ export const focusChainTool: ToolDefinition = {
  * @param defaultTaskId 默认任务 ID
  * @returns FOCUS_CHAIN 工具定义
  */
-export function createFocusChainTool(storage?: TodoStorage, defaultTaskId?: string): ToolDefinition {
+export function createFocusChainTool(
+  storage?: TodoStorage,
+  defaultTaskId?: string
+): ToolDefinition {
   return {
     ...focusChainTool,
     handler: new FocusChainToolHandler(storage, defaultTaskId),

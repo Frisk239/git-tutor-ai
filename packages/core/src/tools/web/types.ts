@@ -4,27 +4,27 @@
  * 搜索时间范围
  */
 export enum SearchRecency {
-  ONE_DAY = "oneDay",
-  ONE_WEEK = "oneWeek",
-  ONE_MONTH = "oneMonth",
-  ONE_YEAR = "oneYear",
-  NO_LIMIT = "noLimit",
+  ONE_DAY = 'oneDay',
+  ONE_WEEK = 'oneWeek',
+  ONE_MONTH = 'oneMonth',
+  ONE_YEAR = 'oneYear',
+  NO_LIMIT = 'noLimit',
 }
 
 /**
  * 搜索区域
  */
 export enum SearchLocation {
-  CN = "cn", // 中国
-  US = "us", // 美国
+  CN = 'cn', // 中国
+  US = 'us', // 美国
 }
 
 /**
  * 搜索内容详细程度
  */
 export enum ContentSize {
-  MEDIUM = "medium", // 平衡模式,400-600 字
-  HIGH = "high",     // 最大化上下文,2500 字
+  MEDIUM = 'medium', // 平衡模式,400-600 字
+  HIGH = 'high', // 最大化上下文,2500 字
 }
 
 /**
@@ -73,7 +73,7 @@ export class SearchError extends Error {
     public statusCode?: number
   ) {
     super(message);
-    this.name = "SearchError";
+    this.name = 'SearchError';
   }
 }
 

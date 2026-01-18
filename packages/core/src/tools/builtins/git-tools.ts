@@ -1,21 +1,21 @@
 // Git 工具集
-import type { ToolDefinition, ToolHandler, ToolContext, ToolResult } from "../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../registry.js";
+import type { ToolDefinition, ToolHandler, ToolContext, ToolResult } from '../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../registry.js';
 
 /**
  * Git 状态工具
  */
 const gitStatusTool: ToolDefinition = {
-  name: "git_status",
-  displayName: "查看 Git 状态",
-  description: "查看 Git 仓库的当前状态，包括已修改、已暂存、未跟踪的文件",
-  category: "git",
+  name: 'git_status',
+  displayName: '查看 Git 状态',
+  description: '查看 Git 仓库的当前状态，包括已修改、已暂存、未跟踪的文件',
+  category: 'git',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "Git 仓库路径（可选，默认使用当前项目路径）",
+      name: 'path',
+      type: 'string',
+      description: 'Git 仓库路径（可选，默认使用当前项目路径）',
       required: false,
     },
   ],
@@ -27,7 +27,7 @@ const gitStatusTool: ToolDefinition = {
     if (!git) {
       return {
         success: false,
-        error: "Git service not available in context",
+        error: 'Git service not available in context',
       };
     }
 
@@ -35,7 +35,7 @@ const gitStatusTool: ToolDefinition = {
       const path = params.path || context.projectPath;
       if (path && path !== context.projectPath) {
         // 如果提供了不同的路径，创建新的 git 实例
-        const { createGitManager } = await import("../../git/manager");
+        const { createGitManager } = await import('../../git/manager');
         const gitManager = createGitManager(path);
         const status = await gitManager.getStatus();
         return {
@@ -62,27 +62,27 @@ const gitStatusTool: ToolDefinition = {
  * Git 提交工具
  */
 const gitCommitTool: ToolDefinition = {
-  name: "git_commit",
-  displayName: "提交代码更改",
-  description: "将更改提交到 Git 仓库",
-  category: "git",
+  name: 'git_commit',
+  displayName: '提交代码更改',
+  description: '将更改提交到 Git 仓库',
+  category: 'git',
   parameters: [
     {
-      name: "message",
-      type: "string",
-      description: "提交消息",
+      name: 'message',
+      type: 'string',
+      description: '提交消息',
       required: true,
     },
     {
-      name: "files",
-      type: "array",
-      description: "要提交的文件列表（可选，不提供则提交所有更改）",
+      name: 'files',
+      type: 'array',
+      description: '要提交的文件列表（可选，不提供则提交所有更改）',
       required: false,
     },
     {
-      name: "amend",
-      type: "boolean",
-      description: "是否修改上一次提交（可选）",
+      name: 'amend',
+      type: 'boolean',
+      description: '是否修改上一次提交（可选）',
       required: false,
     },
   ],
@@ -94,7 +94,7 @@ const gitCommitTool: ToolDefinition = {
     if (!git) {
       return {
         success: false,
-        error: "Git service not available in context",
+        error: 'Git service not available in context',
       };
     }
 
@@ -116,7 +116,7 @@ const gitCommitTool: ToolDefinition = {
         success: true,
         data: {
           commit,
-          message: "代码已成功提交",
+          message: '代码已成功提交',
         },
       };
     } catch (error: any) {
@@ -132,21 +132,21 @@ const gitCommitTool: ToolDefinition = {
  * Git 创建分支工具
  */
 const gitCreateBranchTool: ToolDefinition = {
-  name: "git_create_branch",
-  displayName: "创建并切换分支",
-  description: "创建新分支并切换到该分支",
-  category: "git",
+  name: 'git_create_branch',
+  displayName: '创建并切换分支',
+  description: '创建新分支并切换到该分支',
+  category: 'git',
   parameters: [
     {
-      name: "name",
-      type: "string",
-      description: "分支名称",
+      name: 'name',
+      type: 'string',
+      description: '分支名称',
       required: true,
     },
     {
-      name: "startPoint",
-      type: "string",
-      description: "起始点（可选，默认为当前 HEAD）",
+      name: 'startPoint',
+      type: 'string',
+      description: '起始点（可选，默认为当前 HEAD）',
       required: false,
     },
   ],
@@ -158,7 +158,7 @@ const gitCreateBranchTool: ToolDefinition = {
     if (!git) {
       return {
         success: false,
-        error: "Git service not available in context",
+        error: 'Git service not available in context',
       };
     }
 
@@ -186,32 +186,32 @@ const gitCreateBranchTool: ToolDefinition = {
  * Git 智能提交工具
  */
 const gitSmartCommitTool: ToolDefinition = {
-  name: "git_smart_commit",
-  displayName: "智能提交代码",
-  description: "使用 AI 分析代码更改并生成提交消息，然后执行提交",
-  category: "git",
+  name: 'git_smart_commit',
+  displayName: '智能提交代码',
+  description: '使用 AI 分析代码更改并生成提交消息，然后执行提交',
+  category: 'git',
   parameters: [
     {
-      name: "files",
-      type: "array",
-      description: "要提交的文件列表（可选）",
+      name: 'files',
+      type: 'array',
+      description: '要提交的文件列表（可选）',
       required: false,
     },
     {
-      name: "style",
-      type: "string",
-      description: "提交消息风格: conventional, simple, detailed",
+      name: 'style',
+      type: 'string',
+      description: '提交消息风格: conventional, simple, detailed',
       required: false,
-      enum: ["conventional", "simple", "detailed"],
-      default: "conventional",
+      enum: ['conventional', 'simple', 'detailed'],
+      default: 'conventional',
     },
     {
-      name: "language",
-      type: "string",
-      description: "提交消息语言: zh-CN, en-US",
+      name: 'language',
+      type: 'string',
+      description: '提交消息语言: zh-CN, en-US',
       required: false,
-      enum: ["zh-CN", "en-US"],
-      default: "zh-CN",
+      enum: ['zh-CN', 'en-US'],
+      default: 'zh-CN',
     },
   ],
   permissions: [ToolPermission.WRITE, ToolPermission.EXECUTE],
@@ -224,21 +224,21 @@ const gitSmartCommitTool: ToolDefinition = {
     if (!git) {
       return {
         success: false,
-        error: "Git service not available in context",
+        error: 'Git service not available in context',
       };
     }
 
     if (!ai) {
       return {
         success: false,
-        error: "AI service not available in context",
+        error: 'AI service not available in context',
       };
     }
 
     try {
       // 使用智能提交服务
-      const { createSmartCommitService } = await import("../../git/smart-commit");
-      const { AIProvider } = await import("@git-tutor/shared");
+      const { createSmartCommitService } = await import('../../git/smart-commit');
+      const { AIProvider } = await import('@git-tutor/shared');
 
       const smartCommit = createSmartCommitService(git, AIProvider.ANTHROPIC);
       const result = await smartCommit.smartCommit(params.files, {
@@ -268,22 +268,22 @@ const gitSmartCommitTool: ToolDefinition = {
  * Git 日志工具
  */
 const gitLogTool: ToolDefinition = {
-  name: "git_log",
-  displayName: "查看提交历史",
-  description: "查看 Git 仓库的提交历史",
-  category: "git",
+  name: 'git_log',
+  displayName: '查看提交历史',
+  description: '查看 Git 仓库的提交历史',
+  category: 'git',
   parameters: [
     {
-      name: "maxCount",
-      type: "number",
-      description: "返回的最大提交数量（默认 10）",
+      name: 'maxCount',
+      type: 'number',
+      description: '返回的最大提交数量（默认 10）',
       required: false,
       default: 10,
     },
     {
-      name: "file",
-      type: "string",
-      description: "特定文件的历史记录（可选）",
+      name: 'file',
+      type: 'string',
+      description: '特定文件的历史记录（可选）',
       required: false,
     },
   ],
@@ -295,7 +295,7 @@ const gitLogTool: ToolDefinition = {
     if (!git) {
       return {
         success: false,
-        error: "Git service not available in context",
+        error: 'Git service not available in context',
       };
     }
 
@@ -322,15 +322,15 @@ const gitLogTool: ToolDefinition = {
  * Git 差异工具
  */
 const gitDiffTool: ToolDefinition = {
-  name: "git_diff",
-  displayName: "查看代码差异",
-  description: "查看文件或工作区的代码差异",
-  category: "git",
+  name: 'git_diff',
+  displayName: '查看代码差异',
+  description: '查看文件或工作区的代码差异',
+  category: 'git',
   parameters: [
     {
-      name: "file",
-      type: "string",
-      description: "特定文件的差异（可选，不提供则显示所有差异）",
+      name: 'file',
+      type: 'string',
+      description: '特定文件的差异（可选，不提供则显示所有差异）',
       required: false,
     },
   ],
@@ -342,7 +342,7 @@ const gitDiffTool: ToolDefinition = {
     if (!git) {
       return {
         success: false,
-        error: "Git service not available in context",
+        error: 'Git service not available in context',
       };
     }
 

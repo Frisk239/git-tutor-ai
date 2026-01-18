@@ -1,15 +1,11 @@
 // Web 获取工具实现
 // 抓取和清理网页内容
 
-import { ToolDefinition, ToolResult, ToolContext } from "../types.js";
-import { toolRegistry } from "../registry.js";
-import { Logger } from "../../logging/logger.js";
-import { getWebFetcher } from "../web/fetcher.js";
-import {
-  WebFetchOptions,
-  WebPageContent,
-  WebFetchError,
-} from "../web/fetch-types.js";
+import { ToolDefinition, ToolResult, ToolContext } from '../types.js';
+import { toolRegistry } from '../registry.js';
+import { Logger } from '../../logging/logger.js';
+import { getWebFetcher } from '../web/fetcher.js';
+import { WebFetchOptions, WebPageContent, WebFetchError } from '../web/fetch-types.js';
 
 /**
  * Web 获取工具
@@ -24,10 +20,10 @@ export async function webFetchTool(
     extractLinks?: boolean;
     withImagesSummary?: boolean;
     withLinksSummary?: boolean;
-    returnFormat?: "markdown" | "text" | "html";
+    returnFormat?: 'markdown' | 'text' | 'html';
   }
 ): Promise<ToolResult> {
-  const logger = new Logger("web_fetch");
+  const logger = new Logger('web_fetch');
 
   try {
     const {
@@ -38,10 +34,10 @@ export async function webFetchTool(
       extractLinks = false,
       withImagesSummary = true,
       withLinksSummary = true,
-      returnFormat = "markdown",
+      returnFormat = 'markdown',
     } = params;
 
-    logger.info("Executing web fetch", {
+    logger.info('Executing web fetch', {
       url,
       returnFormat,
       maxContentLength,
@@ -66,7 +62,7 @@ export async function webFetchTool(
     // 格式化结果
     const formatted = formatWebContent(content);
 
-    logger.info("Web fetch completed", {
+    logger.info('Web fetch completed', {
       url: content.url,
       title: content.title,
       contentLength: content.content.length,
@@ -81,11 +77,11 @@ export async function webFetchTool(
       },
     };
   } catch (error: any) {
-    logger.error("Web fetch failed", { error });
+    logger.error('Web fetch failed', { error });
 
     return {
       success: false,
-      error: error.message || "Failed to fetch webpage",
+      error: error.message || 'Failed to fetch webpage',
       metadata: {
         code: error.code,
         statusCode: error.statusCode,
@@ -118,10 +114,10 @@ function formatWebContent(content: WebPageContent): string {
     stats.push(`耗时 ${content.fetchTime}ms`);
   }
   if (stats.length > 0) {
-    lines.push(`**统计**: ${stats.join(" | ")}\n`);
+    lines.push(`**统计**: ${stats.join(' | ')}\n`);
   }
 
-  lines.push("---\n");
+  lines.push('---\n');
 
   // 图片摘要
   if (content.imagesSummary) {
@@ -133,21 +129,21 @@ function formatWebContent(content: WebPageContent): string {
     lines.push(`**链接**: ${content.linksSummary}\n`);
   }
 
-  lines.push("---\n");
+  lines.push('---\n');
 
   // 主要内容
   lines.push(content.content);
 
   // 链接列表
   if (content.links && content.links.length > 0) {
-    lines.push("\n---\n");
-    lines.push("## 页面链接\n");
+    lines.push('\n---\n');
+    lines.push('## 页面链接\n');
     content.links.forEach((link, index) => {
       lines.push(`${index + 1}. ${link}`);
     });
   }
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -155,8 +151,8 @@ function formatWebContent(content: WebPageContent): string {
  */
 export function registerWebFetchTools(): void {
   const webFetchDefinition: ToolDefinition = {
-    name: "web_fetch",
-    displayName: "Web 获取",
+    name: 'web_fetch',
+    displayName: 'Web 获取',
     description: `抓取和清理网页内容
 
 功能特点:
@@ -206,60 +202,60 @@ web_fetch({
 - 移除隐藏元素
 - 保留主要内容和链接`,
 
-    category: "web",
+    category: 'web',
     parameters: [
       {
-        name: "url",
-        type: "string",
-        description: "要获取的网页 URL",
+        name: 'url',
+        type: 'string',
+        description: '要获取的网页 URL',
         required: true,
-        format: "url",
+        format: 'url',
       },
       {
-        name: "timeout",
-        type: "number",
-        description: "超时时间(毫秒,默认 30000)",
+        name: 'timeout',
+        type: 'number',
+        description: '超时时间(毫秒,默认 30000)',
         required: false,
         minimum: 1000,
         maximum: 120000,
       },
       {
-        name: "maxContentLength",
-        type: "number",
-        description: "最大内容长度(字符,默认 50000)",
+        name: 'maxContentLength',
+        type: 'number',
+        description: '最大内容长度(字符,默认 50000)',
         required: false,
         minimum: 100,
         maximum: 200000,
       },
       {
-        name: "returnFormat",
-        type: "string",
-        enum: ["markdown", "text", "html"],
-        description: "返回格式 (默认: markdown)",
+        name: 'returnFormat',
+        type: 'string',
+        enum: ['markdown', 'text', 'html'],
+        description: '返回格式 (默认: markdown)',
         required: false,
       },
       {
-        name: "extractLinks",
-        type: "boolean",
-        description: "是否提取页面链接",
+        name: 'extractLinks',
+        type: 'boolean',
+        description: '是否提取页面链接',
         required: false,
       },
       {
-        name: "retainImages",
-        type: "boolean",
-        description: "是否在内容中保留图片",
+        name: 'retainImages',
+        type: 'boolean',
+        description: '是否在内容中保留图片',
         required: false,
       },
       {
-        name: "withImagesSummary",
-        type: "boolean",
-        description: "是否包含图片摘要",
+        name: 'withImagesSummary',
+        type: 'boolean',
+        description: '是否包含图片摘要',
         required: false,
       },
       {
-        name: "withLinksSummary",
-        type: "boolean",
-        description: "是否包含链接摘要",
+        name: 'withLinksSummary',
+        type: 'boolean',
+        description: '是否包含链接摘要',
         required: false,
       },
     ],

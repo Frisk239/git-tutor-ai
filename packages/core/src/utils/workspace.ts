@@ -1,8 +1,8 @@
 // 多 Workspace 管理器
 // 参考 Cline 的多工作区支持实现
 
-import { resolve, relative, join } from "path";
-import { existsSync } from "fs";
+import { resolve, relative, join } from 'path';
+import { existsSync } from 'fs';
 
 /**
  * Workspace 信息
@@ -38,7 +38,7 @@ export class WorkspaceManager {
   private discoverPrimaryWorkspace(): void {
     const cwd = process.cwd();
     const workspaceInfo: WorkspaceInfo = {
-      id: "default",
+      id: 'default',
       path: cwd,
       name: this.getWorkspaceName(cwd),
       isPrimary: true,
@@ -54,13 +54,13 @@ export class WorkspaceManager {
    */
   private getWorkspaceName(path: string): string {
     const parts = path.split(/[/\\]/);
-    return parts[parts.length - 1] || "root";
+    return parts[parts.length - 1] || 'root';
   }
 
   /**
    * 添加 workspace
    */
-  addWorkspace(workspaceInfo: Omit<WorkspaceInfo, "id">): string {
+  addWorkspace(workspaceInfo: Omit<WorkspaceInfo, 'id'>): string {
     const id = this.generateWorkspaceId(workspaceInfo.path);
     const workspace: WorkspaceInfo = {
       ...workspaceInfo,
@@ -76,7 +76,7 @@ export class WorkspaceManager {
    */
   removeWorkspace(workspaceId: string): boolean {
     if (workspaceId === this.primaryWorkspaceId) {
-      throw new Error("Cannot remove primary workspace");
+      throw new Error('Cannot remove primary workspace');
     }
     return this.workspaces.delete(workspaceId);
   }
@@ -141,7 +141,7 @@ export class WorkspaceManager {
       const relativePath = relative(workspacePath, resolvedPath);
 
       // 如果相对路径不以 .. 开头,说明在这个 workspace 内
-      if (!relativePath.startsWith("..")) {
+      if (!relativePath.startsWith('..')) {
         return workspace;
       }
     }
@@ -158,7 +158,7 @@ export class WorkspaceManager {
     absolutePath: string;
   } {
     // 如果是绝对路径
-    if (path.startsWith("/") || path.match(/^[a-zA-Z]:/)) {
+    if (path.startsWith('/') || path.match(/^[a-zA-Z]:/)) {
       const workspace = this.findWorkspaceByPath(path);
       if (!workspace) {
         throw new Error(`Path ${path} is not in any workspace`);
@@ -174,7 +174,7 @@ export class WorkspaceManager {
     // 如果是相对路径,使用主 workspace
     const primaryWorkspace = this.getPrimaryWorkspace();
     if (!primaryWorkspace) {
-      throw new Error("No primary workspace found");
+      throw new Error('No primary workspace found');
     }
 
     return {
@@ -188,22 +188,22 @@ export class WorkspaceManager {
    * 生成 workspace ID
    */
   private generateWorkspaceId(path: string): string {
-    return Buffer.from(path).toString("base64").substring(0, 16);
+    return Buffer.from(path).toString('base64').substring(0, 16);
   }
 
   /**
    * 从 VS Code 多根工作区配置加载
    */
   async loadFromVSCodeConfig(): Promise<void> {
-    const workspaceFile = join(process.cwd(), ".code", "workspace.json");
+    const workspaceFile = join(process.cwd(), '.code', 'workspace.json');
 
     if (!existsSync(workspaceFile)) {
       return;
     }
 
     try {
-      const { readFile } = await import("fs/promises");
-      const content = await readFile(workspaceFile, "utf-8");
+      const { readFile } = await import('fs/promises');
+      const content = await readFile(workspaceFile, 'utf-8');
       const config = JSON.parse(content);
 
       if (config.folders && Array.isArray(config.folders)) {
@@ -223,7 +223,7 @@ export class WorkspaceManager {
         }
       }
     } catch (error) {
-      console.error("Failed to load VS Code workspace config:", error);
+      console.error('Failed to load VS Code workspace config:', error);
     }
   }
 

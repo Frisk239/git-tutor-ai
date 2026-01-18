@@ -1,8 +1,8 @@
 // 结构化日志系统实现
 // 基于 Cline 的日志输出,但增加了结构化和级别支持
 
-import { writeFileSync, appendFileSync, existsSync, mkdirSync } from "fs";
-import { join } from "path";
+import { writeFileSync, appendFileSync, existsSync, mkdirSync } from 'fs';
+import { join } from 'path';
 
 /**
  * 日志级别枚举
@@ -18,10 +18,10 @@ export enum LogLevel {
  * 日志级别名称
  */
 export const LogLevelNames: Record<LogLevel, string> = {
-  [LogLevel.DEBUG]: "DEBUG",
-  [LogLevel.INFO]: "INFO",
-  [LogLevel.WARN]: "WARN",
-  [LogLevel.ERROR]: "ERROR",
+  [LogLevel.DEBUG]: 'DEBUG',
+  [LogLevel.INFO]: 'INFO',
+  [LogLevel.WARN]: 'WARN',
+  [LogLevel.ERROR]: 'ERROR',
 };
 
 /**
@@ -42,7 +42,7 @@ export interface LoggerOptions {
   /** 日志级别 */
   level?: LogLevel;
   /** 日志格式 (json | text) */
-  format?: "json" | "text";
+  format?: 'json' | 'text';
   /** 是否输出到控制台 */
   console?: boolean;
   /** 是否输出到文件 */
@@ -58,10 +58,10 @@ export interface LoggerOptions {
  */
 const defaultOptions: Required<LoggerOptions> = {
   level: LogLevel.INFO,
-  format: "json",
+  format: 'json',
   console: true,
   file: false,
-  filePath: "./logs/app.log",
+  filePath: './logs/app.log',
   includeStack: true,
 };
 
@@ -88,7 +88,7 @@ export class Logger {
 
     // 确保日志目录存在
     if (this.options.file && this.options.filePath) {
-      const logDir = join(this.options.filePath, "..");
+      const logDir = join(this.options.filePath, '..');
       if (!existsSync(logDir)) {
         mkdirSync(logDir, { recursive: true });
       }
@@ -164,17 +164,17 @@ export class Logger {
    * 格式化日志条目
    */
   private format(entry: LogEntry): string {
-    if (this.options.format === "json") {
+    if (this.options.format === 'json') {
       return JSON.stringify(entry);
     } else {
       // 文本格式
       const meta = Object.entries(entry)
-        .filter(([key]) => !["timestamp", "level", "context", "message"].includes(key))
+        .filter(([key]) => !['timestamp', 'level', 'context', 'message'].includes(key))
         .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-        .join(" ");
+        .join(' ');
 
       return `[${entry.timestamp}] [${entry.level}] [${entry.context}] ${entry.message}${
-        meta ? " " + meta : ""
+        meta ? ' ' + meta : ''
       }`;
     }
   }
@@ -187,10 +187,10 @@ export class Logger {
       level === LogLevel.ERROR
         ? console.error
         : level === LogLevel.WARN
-        ? console.warn
-        : level === LogLevel.DEBUG
-        ? console.debug
-        : console.log;
+          ? console.warn
+          : level === LogLevel.DEBUG
+            ? console.debug
+            : console.log;
 
     consoleMethod(message);
   }
@@ -200,14 +200,14 @@ export class Logger {
    */
   private logToFile(message: string): void {
     try {
-      const logMessage = message + "\n";
+      const logMessage = message + '\n';
       if (existsSync(this.options.filePath)) {
-        appendFileSync(this.options.filePath, logMessage, "utf-8");
+        appendFileSync(this.options.filePath, logMessage, 'utf-8');
       } else {
-        writeFileSync(this.options.filePath, logMessage, "utf-8");
+        writeFileSync(this.options.filePath, logMessage, 'utf-8');
       }
     } catch (error) {
-      console.error("Failed to write to log file:", error);
+      console.error('Failed to write to log file:', error);
     }
   }
 
@@ -236,9 +236,9 @@ export class Logger {
 /**
  * 全局日志器实例
  */
-export const logger = new Logger("GitTutorAI", {
+export const logger = new Logger('GitTutorAI', {
   level: LogLevel.INFO,
-  format: "json",
+  format: 'json',
   console: true,
   file: false,
 });
@@ -272,16 +272,16 @@ export function loggerMiddleware(logger: Logger) {
     const start = Date.now();
 
     // 记录请求
-    logger.info("Incoming request", {
+    logger.info('Incoming request', {
       method: request.method,
       url: request.url,
       ip: request.ip,
     });
 
     // 响应后记录
-    reply.addHook("onSend", async () => {
+    reply.addHook('onSend', async () => {
       const duration = Date.now() - start;
-      logger.info("Request completed", {
+      logger.info('Request completed', {
         method: request.method,
         url: request.url,
         statusCode: reply.statusCode,
@@ -296,7 +296,7 @@ export function loggerMiddleware(logger: Logger) {
  */
 export function errorLoggerMiddleware(logger: Logger) {
   return async (error: any, request: any, reply: any) => {
-    logger.error("Request error", error, {
+    logger.error('Request error', error, {
       method: request.method,
       url: request.url,
       ip: request.ip,
@@ -320,10 +320,7 @@ export class PerformanceLogger {
   /**
    * 测量函数执行时间
    */
-  async measure<T>(
-    name: string,
-    fn: () => Promise<T> | T
-  ): Promise<T> {
+  async measure<T>(name: string, fn: () => Promise<T> | T): Promise<T> {
     const start = Date.now();
     try {
       const result = await fn();
@@ -457,14 +454,14 @@ export class LoggerWithStats extends Logger {
 export function parseLogLevel(level: string): LogLevel {
   const upper = level.toUpperCase();
   switch (upper) {
-    case "DEBUG":
+    case 'DEBUG':
       return LogLevel.DEBUG;
-    case "INFO":
+    case 'INFO':
       return LogLevel.INFO;
-    case "WARN":
-    case "WARNING":
+    case 'WARN':
+    case 'WARNING':
       return LogLevel.WARN;
-    case "ERROR":
+    case 'ERROR':
       return LogLevel.ERROR;
     default:
       return LogLevel.INFO;
@@ -476,19 +473,19 @@ export function parseLogLevel(level: string): LogLevel {
  * 格式化错误对象为可读字符串
  */
 export function formatError(error: Error): string {
-  if (!error) return "";
+  if (!error) return '';
 
   const parts = [error.message];
 
   if (error.stack) {
-    parts.push("\n" + error.stack);
+    parts.push('\n' + error.stack);
   }
 
   if ((error as any).code) {
     parts.push(`(Code: ${(error as any).code})`);
   }
 
-  return parts.join(" ");
+  return parts.join(' ');
 }
 
 /**

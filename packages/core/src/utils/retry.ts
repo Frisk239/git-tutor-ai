@@ -34,14 +34,14 @@ const defaultOptions: RequiredRetryOptions = {
   baseDelay: 1000, // 1秒
   maxDelay: 10000, // 10秒
   retryableErrors: [
-    "ECONNREFUSED", // 连接被拒绝
-    "ETIMEDOUT", // 连接超时
-    "ECONNRESET", // 连接重置
-    "ENOTFOUND", // DNS 解析失败
-    "EAI_AGAIN", // DNS 临时失败
-    "5xx", // 服务器错误
-    "ECONNABORTED", // 连接中止
-    "EPIPE", // 管道破裂
+    'ECONNREFUSED', // 连接被拒绝
+    'ETIMEDOUT', // 连接超时
+    'ECONNRESET', // 连接重置
+    'ENOTFOUND', // DNS 解析失败
+    'EAI_AGAIN', // DNS 临时失败
+    '5xx', // 服务器错误
+    'ECONNABORTED', // 连接中止
+    'EPIPE', // 管道破裂
   ],
   onRetry: () => {},
   exponentialBackoff: true,
@@ -69,11 +69,7 @@ export function withRetry<T extends (...args: any[]) => any>(
     onRetry: options.onRetry || ((_, __) => {}),
   };
 
-  return function (
-    _target: any,
-    _propertyKey: string | symbol,
-    descriptor: PropertyDescriptor
-  ) {
+  return function (_target: any, _propertyKey: string | symbol, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
     descriptor.value = async function (...args: any[]) {
@@ -127,10 +123,7 @@ export function withRetry<T extends (...args: any[]) => any>(
  * );
  * ```
  */
-export function withRetryFn<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {}
-): () => Promise<T> {
+export function withRetryFn<T>(fn: () => Promise<T>, options: RetryOptions = {}): () => Promise<T> {
   const opts: RequiredRetryOptions = {
     ...defaultOptions,
     ...options,
@@ -179,10 +172,7 @@ export function withRetryFn<T>(
  * }
  * ```
  */
-export async function retryAsync<T>(
-  fn: () => Promise<T>,
-  options: RetryOptions = {}
-): Promise<T> {
+export async function retryAsync<T>(fn: () => Promise<T>, options: RetryOptions = {}): Promise<T> {
   const wrappedFn = withRetryFn(fn, options);
   return wrappedFn();
 }
@@ -195,8 +185,8 @@ function shouldRetry(error: Error, retryableErrors: string[]): boolean {
     return true;
   }
 
-  const errorMessage = error.message || "";
-  const errorCode = (error as any).code || "";
+  const errorMessage = error.message || '';
+  const errorCode = (error as any).code || '';
 
   return retryableErrors.some((errType) => {
     return (
@@ -210,10 +200,7 @@ function shouldRetry(error: Error, retryableErrors: string[]): boolean {
 /**
  * 计算延迟时间 (指数退避)
  */
-function calculateDelay(
-  attempt: number,
-  options: RequiredRetryOptions
-): number {
+function calculateDelay(attempt: number, options: RequiredRetryOptions): number {
   if (!options.exponentialBackoff) {
     return options.baseDelay;
   }
@@ -343,9 +330,7 @@ export class RetryExecutor {
     return {
       ...this.stats,
       averageDelay:
-        this.delays.length > 0
-          ? this.delays.reduce((a, b) => a + b, 0) / this.delays.length
-          : 0,
+        this.delays.length > 0 ? this.delays.reduce((a, b) => a + b, 0) / this.delays.length : 0,
     };
   }
 
@@ -382,29 +367,24 @@ export const RetryPresets = {
   /** 网络错误预设 */
   network: {
     retryableErrors: [
-      "ECONNREFUSED",
-      "ETIMEDOUT",
-      "ECONNRESET",
-      "ENOTFOUND",
-      "EAI_AGAIN",
-      "ECONNABORTED",
-      "EPIPE",
+      'ECONNREFUSED',
+      'ETIMEDOUT',
+      'ECONNRESET',
+      'ENOTFOUND',
+      'EAI_AGAIN',
+      'ECONNABORTED',
+      'EPIPE',
     ],
   },
 
   /** HTTP 错误预设 */
   http: {
-    retryableErrors: ["5xx", "429"], // 服务器错误 + 限流
+    retryableErrors: ['5xx', '429'], // 服务器错误 + 限流
   },
 
   /** 数据库错误预设 */
   database: {
-    retryableErrors: [
-      "ECONNRESET",
-      "ETIMEDOUT",
-      "connection closed",
-      "deadlock",
-    ],
+    retryableErrors: ['ECONNRESET', 'ETIMEDOUT', 'connection closed', 'deadlock'],
   },
 
   /** 所有错误预设 */

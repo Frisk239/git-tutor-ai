@@ -5,11 +5,11 @@
  * 简化版：移除 VSCode 特定功能、后台命令跟踪、终端复用等
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../../registry.js";
-import { spawn } from "child_process";
-import { EventEmitter } from "events";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../../registry.js';
+import { spawn } from 'child_process';
+import { EventEmitter } from 'events';
 
 /**
  * 命令执行结果
@@ -51,13 +51,13 @@ interface ExecuteCommandParams {
  */
 class CommandExecutor extends EventEmitter {
   /** 完整输出缓冲区 */
-  private fullOutput: string = "";
+  private fullOutput: string = '';
 
   /** 错误输出缓冲区 */
-  private fullError: string = "";
+  private fullError: string = '';
 
   /** 不完整行的缓冲区 */
-  private buffer: string = "";
+  private buffer: string = '';
 
   /** 子进程 */
   private childProcess: ReturnType<typeof spawn> | null = null;
@@ -97,31 +97,31 @@ class CommandExecutor extends EventEmitter {
         // 准备环境变量
         const execEnv: NodeJS.ProcessEnv = {
           ...process.env,
-          TERM: "xterm-256color",
-          PAGER: "cat", // 防止 less 分页器
-          GIT_PAGER: "cat", // 防止 git 使用分页器
-          SYSTEMD_PAGER: "",
-          MANPAGER: "cat",
+          TERM: 'xterm-256color',
+          PAGER: 'cat', // 防止 less 分页器
+          GIT_PAGER: 'cat', // 防止 git 使用分页器
+          SYSTEMD_PAGER: '',
+          MANPAGER: 'cat',
           ...env,
         };
 
         // 创建 shell 选项
         const shellOptions: {
           cwd: string;
-          stdio: ["pipe", "pipe", "pipe"];
+          stdio: ['pipe', 'pipe', 'pipe'];
           env: NodeJS.ProcessEnv;
           shell?: boolean;
           detached?: boolean;
         } = {
           cwd: cwd,
-          stdio: ["pipe", "pipe", "pipe"],
+          stdio: ['pipe', 'pipe', 'pipe'],
           env: execEnv,
         };
 
         // Windows cmd.exe 特殊处理
-        if (process.platform === "win32" && shell.toLowerCase().includes("cmd")) {
+        if (process.platform === 'win32' && shell.toLowerCase().includes('cmd')) {
           shellOptions.shell = true;
-          this.childProcess = spawn("cmd.exe", shellArgs, shellOptions);
+          this.childProcess = spawn('cmd.exe', shellArgs, shellOptions);
         } else {
           // Unix-like 系统：使用 detached 创建进程组（便于终止整个进程树）
           shellOptions.detached = true;
@@ -149,21 +149,21 @@ class CommandExecutor extends EventEmitter {
         }
 
         // 处理 stdout
-        this.childProcess.stdout?.on("data", (data: Buffer) => {
+        this.childProcess.stdout?.on('data', (data: Buffer) => {
           const output = data.toString();
           this.fullOutput += output;
           this.handleOutput(output);
         });
 
         // 处理 stderr
-        this.childProcess.stderr?.on("data", (data: Buffer) => {
+        this.childProcess.stderr?.on('data', (data: Buffer) => {
           const error = data.toString();
           this.fullError += error;
           this.handleOutput(error);
         });
 
         // 处理进程完成
-        this.childProcess.on("close", (code: number | null) => {
+        this.childProcess.on('close', (code: number | null) => {
           if (timeoutHandle) {
             clearTimeout(timeoutHandle);
           }
@@ -184,7 +184,7 @@ class CommandExecutor extends EventEmitter {
         });
 
         // 处理错误
-        this.childProcess.on("error", (error: Error) => {
+        this.childProcess.on('error', (error: Error) => {
           if (timeoutHandle) {
             clearTimeout(timeoutHandle);
           }
@@ -204,9 +204,9 @@ class CommandExecutor extends EventEmitter {
     this.buffer += data;
     let lineEndIndex: number;
 
-    while ((lineEndIndex = this.buffer.indexOf("\n")) !== -1) {
+    while ((lineEndIndex = this.buffer.indexOf('\n')) !== -1) {
       const line = this.buffer.slice(0, lineEndIndex).trimEnd();
-      this.emit("line", line);
+      this.emit('line', line);
       this.buffer = this.buffer.slice(lineEndIndex + 1);
     }
   }
@@ -218,9 +218,9 @@ class CommandExecutor extends EventEmitter {
     if (this.buffer) {
       const remainingBuffer = this.removeShellPromptArtifacts(this.buffer);
       if (remainingBuffer) {
-        this.emit("line", remainingBuffer);
+        this.emit('line', remainingBuffer);
       }
-      this.buffer = "";
+      this.buffer = '';
     }
   }
 
@@ -230,13 +230,13 @@ class CommandExecutor extends EventEmitter {
    * @returns 清理后的输出
    */
   private removeShellPromptArtifacts(output: string): string {
-    const lines = output.trimEnd().split("\n");
+    const lines = output.trimEnd().split('\n');
     if (lines.length > 0) {
       const lastLine = lines[lines.length - 1];
       // 移除常见的 shell 提示符结尾：%, $, #, >
-      lines[lines.length - 1] = lastLine.replace(/[%$#>]\s*$/, "");
+      lines[lines.length - 1] = lastLine.replace(/[%$#>]\s*$/, '');
     }
-    return lines.join("\n").trimEnd();
+    return lines.join('\n').trimEnd();
   }
 
   /**
@@ -244,10 +244,10 @@ class CommandExecutor extends EventEmitter {
    * @returns shell 路径
    */
   private getDefaultShell(): string {
-    if (process.platform === "win32") {
-      return process.env.COMSPEC || "cmd.exe";
+    if (process.platform === 'win32') {
+      return process.env.COMSPEC || 'cmd.exe';
     } else {
-      return process.env.SHELL || "/bin/bash";
+      return process.env.SHELL || '/bin/bash';
     }
   }
 
@@ -258,15 +258,15 @@ class CommandExecutor extends EventEmitter {
    * @returns shell 参数数组
    */
   private getShellArgs(shell: string, command: string): string[] {
-    if (process.platform === "win32") {
-      if (shell.toLowerCase().includes("powershell") || shell.toLowerCase().includes("pwsh")) {
-        return ["-Command", command];
+    if (process.platform === 'win32') {
+      if (shell.toLowerCase().includes('powershell') || shell.toLowerCase().includes('pwsh')) {
+        return ['-Command', command];
       } else {
-        return ["/c", command];
+        return ['/c', command];
       }
     } else {
       // Unix-like 系统：使用 -l (login) 和 -c (command)
-      return ["-l", "-c", command];
+      return ['-l', '-c', command];
     }
   }
 
@@ -281,22 +281,22 @@ class CommandExecutor extends EventEmitter {
 
     const pid = this.childProcess.pid;
     if (!pid) {
-      this.childProcess.kill("SIGTERM");
+      this.childProcess.kill('SIGTERM');
       return;
     }
 
     try {
       // Windows: 直接杀进程
-      if (process.platform === "win32") {
-        this.childProcess.kill("SIGKILL");
+      if (process.platform === 'win32') {
+        this.childProcess.kill('SIGKILL');
       } else {
         // Unix: 首先尝试 SIGTERM，然后 SIGKILL
-        this.childProcess.kill("SIGTERM");
+        this.childProcess.kill('SIGTERM');
 
         // 2 秒后如果还没退出，使用 SIGKILL
         setTimeout(() => {
           if (this.childProcess && !this.isCompleted) {
-            this.childProcess.kill("SIGKILL");
+            this.childProcess.kill('SIGKILL');
           }
         }, 2000);
       }
@@ -310,34 +310,34 @@ class CommandExecutor extends EventEmitter {
  * EXECUTE_COMMAND 工具定义
  */
 const executeCommandTool: ToolDefinition = {
-  name: "execute_command",
-  displayName: "执行命令",
+  name: 'execute_command',
+  displayName: '执行命令',
   description:
-    "在终端中执行命令。支持跨平台（Windows/macOS/Linux）。适用于运行 Git 命令、安装依赖、运行测试、构建项目等场景。",
-  category: "terminal",
+    '在终端中执行命令。支持跨平台（Windows/macOS/Linux）。适用于运行 Git 命令、安装依赖、运行测试、构建项目等场景。',
+  category: 'terminal',
   parameters: [
     {
-      name: "command",
-      type: "string",
+      name: 'command',
+      type: 'string',
       description: "要执行的命令（例如：'npm install', 'git status', 'ls -la'）",
       required: true,
     },
     {
-      name: "cwd",
-      type: "string",
-      description: "工作目录（可选，默认：当前目录）",
+      name: 'cwd',
+      type: 'string',
+      description: '工作目录（可选，默认：当前目录）',
       required: false,
     },
     {
-      name: "timeout",
-      type: "number",
-      description: "超时时间，单位秒（可选，默认：120）",
+      name: 'timeout',
+      type: 'number',
+      description: '超时时间，单位秒（可选，默认：120）',
       required: false,
     },
     {
-      name: "env",
-      type: "object",
-      description: "环境变量（可选）",
+      name: 'env',
+      type: 'object',
+      description: '环境变量（可选）',
       required: false,
     },
   ],
@@ -351,7 +351,7 @@ const executeCommandTool: ToolDefinition = {
       const { command, cwd, timeout, env } = params as ExecuteCommandParams;
 
       // 参数验证
-      if (!command || typeof command !== "string") {
+      if (!command || typeof command !== 'string') {
         return {
           success: false,
           error: "参数 'command' 必须是非空字符串",
@@ -362,7 +362,7 @@ const executeCommandTool: ToolDefinition = {
       const result = await executor.execute(command, { cwd, timeout, env });
 
       // 组合输出
-      const output = [result.stdout, result.stderr].filter(Boolean).join("\n");
+      const output = [result.stdout, result.stderr].filter(Boolean).join('\n');
 
       return {
         success: true,

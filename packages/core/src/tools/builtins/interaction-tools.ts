@@ -4,9 +4,9 @@
  * 注册需要与用户交互的工具
  */
 
-import { toolRegistry } from "../registry.js";
-import { askTool } from "./interaction/ask.js";
-import { actModeRespondTool } from "./interaction/act-mode-respond.js";
+import { toolRegistry } from '../registry.js';
+import { askTool } from './interaction/ask.js';
+import { actModeRespondTool } from './interaction/act-mode-respond.js';
 
 /**
  * 注册交互工具

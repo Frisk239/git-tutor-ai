@@ -2,16 +2,16 @@
 // 使用 DuckDuckGo Instant Answer API (不需要 API key)
 // 参考: https://duckduckgo.com/api
 
-import axios, { AxiosInstance } from "axios";
-import { Logger } from "../../../logging/logger.js";
-import { load } from "cheerio";
+import axios, { AxiosInstance } from 'axios';
+import { Logger } from '../../../logging/logger.js';
+import { load } from 'cheerio';
 import {
   SearchProvider,
   SearchOptions,
   SearchResponse,
   SearchResult,
   SearchError,
-} from "../types.js";
+} from '../types.js';
 
 /**
  * DuckDuckGo 配置
@@ -26,15 +26,15 @@ export interface DuckDuckGoConfig {
  * DuckDuckGo 不提供官方 API,我们通过解析 HTML 结果
  */
 export class DuckDuckGoProvider implements SearchProvider {
-  name = "DuckDuckGo";
+  name = 'DuckDuckGo';
   private client: AxiosInstance;
   private logger: Logger;
   private config: Required<DuckDuckGoConfig>;
 
   constructor(config: DuckDuckGoConfig = {}) {
-    this.logger = new Logger("DuckDuckGoProvider");
+    this.logger = new Logger('DuckDuckGoProvider');
     this.config = {
-      endpoint: config.endpoint || "https://html.duckduckgo.com/html",
+      endpoint: config.endpoint || 'https://html.duckduckgo.com/html',
       timeout: config.timeout || 10000,
     };
 
@@ -42,8 +42,7 @@ export class DuckDuckGoProvider implements SearchProvider {
       baseURL: this.config.endpoint,
       timeout: this.config.timeout,
       headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
     });
   }
@@ -67,17 +66,17 @@ export class DuckDuckGoProvider implements SearchProvider {
 
       const params = this.buildQueryParams(options);
 
-      this.logger.debug("Executing DuckDuckGo search", { params });
+      this.logger.debug('Executing DuckDuckGo search', { params });
 
-      const response = await this.client.get("", {
+      const response = await this.client.get('', {
         params,
-        responseType: "text",
+        responseType: 'text',
       });
 
       const results = this.parseHtmlResponse(response.data);
       const searchTime = Date.now() - startTime;
 
-      this.logger.info("DuckDuckGo search completed", {
+      this.logger.info('DuckDuckGo search completed', {
         resultCount: results.length,
         searchTime,
       });
@@ -88,7 +87,7 @@ export class DuckDuckGoProvider implements SearchProvider {
         searchTime,
       };
     } catch (error: any) {
-      this.logger.error("DuckDuckGo search failed", { error });
+      this.logger.error('DuckDuckGo search failed', { error });
       throw this.handleError(error);
     }
   }
@@ -98,22 +97,19 @@ export class DuckDuckGoProvider implements SearchProvider {
    */
   private validateOptions(options: SearchOptions): void {
     if (!options.query || options.query.trim().length < 2) {
-      throw new SearchError(
-        "Search query must be at least 2 characters",
-        "INVALID_QUERY"
-      );
+      throw new SearchError('Search query must be at least 2 characters', 'INVALID_QUERY');
     }
 
     if (options.allowedDomains && options.blocked_domains) {
       throw new SearchError(
-        "Cannot specify both allowedDomains and blocked_domains",
-        "CONFLICTING_PARAMS"
+        'Cannot specify both allowedDomains and blocked_domains',
+        'CONFLICTING_PARAMS'
       );
     }
 
     // DuckDuckGo 不支持时间范围筛选
-    if (options.recency && options.recency !== "noLimit") {
-      this.logger.warn("DuckDuckGo does not support recency filtering");
+    if (options.recency && options.recency !== 'noLimit') {
+      this.logger.warn('DuckDuckGo does not support recency filtering');
     }
   }
 
@@ -127,11 +123,11 @@ export class DuckDuckGoProvider implements SearchProvider {
 
     // 域名过滤通过查询字符串实现
     if (options.allowedDomains && options.allowedDomains.length > 0) {
-      params.q = `${params.q} site:${options.allowedDomains.join(" OR site:")}`;
+      params.q = `${params.q} site:${options.allowedDomains.join(' OR site:')}`;
     }
 
     if (options.blocked_domains && options.blocked_domains.length > 0) {
-      params.q = `${params.q} -site:${options.blocked_domains.join(" -site:")}`;
+      params.q = `${params.q} -site:${options.blocked_domains.join(' -site:')}`;
     }
 
     return params;
@@ -145,15 +141,15 @@ export class DuckDuckGoProvider implements SearchProvider {
     const results: SearchResult[] = [];
 
     // DuckDuckGo 的搜索结果在 .result__a 类中
-    $(".result__body").each((_, element) => {
+    $('.result__body').each((_, element) => {
       try {
         const $el = $(element);
-        const titleEl = $el.find(".result__a");
-        const snippetEl = $el.find(".result__snippet");
-        const urlEl = $el.find(".result__url");
+        const titleEl = $el.find('.result__a');
+        const snippetEl = $el.find('.result__snippet');
+        const urlEl = $el.find('.result__url');
 
         const title = titleEl.text().trim();
-        const url = titleEl.attr("href") || urlEl.text().trim();
+        const url = titleEl.attr('href') || urlEl.text().trim();
         const snippet = snippetEl.text().trim();
 
         if (!title || !url) {
@@ -179,7 +175,7 @@ export class DuckDuckGoProvider implements SearchProvider {
 
         results.push(result);
       } catch (error) {
-        this.logger.warn("Failed to parse search result", { error });
+        this.logger.warn('Failed to parse search result', { error });
       }
     });
 
@@ -194,16 +190,16 @@ export class DuckDuckGoProvider implements SearchProvider {
     try {
       // 移除 DuckDuckGo 的跳转前缀
       // 例如: /l/?uddg=https://example.com
-      if (url.startsWith("/l/?uddg=")) {
-        const realUrl = url.substring("/l/?uddg=".length);
+      if (url.startsWith('/l/?uddg=')) {
+        const realUrl = url.substring('/l/?uddg='.length);
         // URL 编码解码
         return decodeURIComponent(realUrl);
       }
 
       // 移除其他 DuckDuckGo 跟踪参数
-      const urlObj = new URL(url, "https://duckduckgo.com");
-      urlObj.searchParams.delete("uddg");
-      urlObj.searchParams.delete("rut");
+      const urlObj = new URL(url, 'https://duckduckgo.com');
+      urlObj.searchParams.delete('uddg');
+      urlObj.searchParams.delete('rut');
 
       return urlObj.href;
     } catch {
@@ -219,18 +215,15 @@ export class DuckDuckGoProvider implements SearchProvider {
       const statusCode = error.response.status;
       return new SearchError(
         `DuckDuckGo error (${statusCode}): ${error.message}`,
-        "API_ERROR",
+        'API_ERROR',
         statusCode
       );
     }
 
-    if (error.code === "ECONNABORTED") {
-      return new SearchError("Search request timeout", "TIMEOUT");
+    if (error.code === 'ECONNABORTED') {
+      return new SearchError('Search request timeout', 'TIMEOUT');
     }
 
-    return new SearchError(
-      error.message || "Unknown search error",
-      "UNKNOWN_ERROR"
-    );
+    return new SearchError(error.message || 'Unknown search error', 'UNKNOWN_ERROR');
   }
 }

@@ -3,9 +3,9 @@
  * 参考 Cline 的 McpOAuthManager 实现
  */
 
-import crypto from "node:crypto";
-import type { OAuthClientProvider, OAuthTokens } from "@modelcontextprotocol/sdk/client/auth.js";
-import type { McpOAuthStatus } from "./types.js";
+import crypto from 'node:crypto';
+import type { OAuthClientProvider, OAuthTokens } from '@modelcontextprotocol/sdk/client/auth.js';
+import type { McpOAuthStatus } from './types.js';
 
 /**
  * OAuth 密钥存储
@@ -36,7 +36,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
   private serverName: string;
   private serverUrl: string;
   private serverHash: string;
-  private _redirectUrl: string = "";
+  private _redirectUrl: string = '';
 
   constructor(serverName: string, serverUrl: string) {
     this.serverName = serverName;
@@ -49,7 +49,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
    */
   async initialize(): Promise<void> {
     // TODO: 从配置获取回调 URL
-    this._redirectUrl = "http://localhost:3000/oauth/callback";
+    this._redirectUrl = 'http://localhost:3000/oauth/callback';
   }
 
   /**
@@ -65,13 +65,13 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
   get clientMetadata() {
     return {
       redirect_uris: [this._redirectUrl],
-      token_endpoint_auth_method: "none" as const,
-      grant_types: ["authorization_code", "refresh_token"],
-      response_types: ["code"],
-      client_name: "Git Tutor AI",
-      client_uri: "https://github.com/git-tutor-ai",
-      software_id: "git-tutor-ai",
-      logo_uri: "https://github.com/git-tutor-ai.png",
+      token_endpoint_auth_method: 'none' as const,
+      grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+      client_name: 'Git Tutor AI',
+      client_uri: 'https://github.com/git-tutor-ai',
+      software_id: 'git-tutor-ai',
+      logo_uri: 'https://github.com/git-tutor-ai.png',
     };
   }
 
@@ -79,7 +79,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
    * 生成 OAuth 状态
    */
   state(): string {
-    return crypto.randomBytes(32).toString("hex");
+    return crypto.randomBytes(32).toString('hex');
   }
 
   /**
@@ -153,7 +153,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
     }
 
     const state = this.state();
-    authorizationUrl.searchParams.set("state", state);
+    authorizationUrl.searchParams.set('state', state);
 
     const secrets = this.getSecrets();
     if (!secrets[this.serverHash]) {
@@ -173,7 +173,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
    * 获取服务器 Hash
    */
   private getServerHash(serverName: string, serverUrl: string): string {
-    return crypto.createHash("sha256").update(`${serverName}:${serverUrl}`).digest("hex");
+    return crypto.createHash('sha256').update(`${serverName}:${serverUrl}`).digest('hex');
   }
 
   /**
@@ -184,7 +184,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
     try {
       return {};
     } catch (error) {
-      console.error("[McpOAuth] Failed to parse secrets:", error);
+      console.error('[McpOAuth] Failed to parse secrets:', error);
       return {};
     }
   }
@@ -194,7 +194,7 @@ class GitTutorOAuthProvider implements OAuthClientProvider {
    */
   private saveSecrets(secrets: McpOAuthSecrets): void {
     // TODO: 保存到安全存储
-    console.log("[McpOAuth] Secrets saved");
+    console.log('[McpOAuth] Secrets saved');
   }
 }
 
@@ -241,7 +241,10 @@ export class McpOAuthManager {
    * 获取待处理的认证 URL
    */
   getPendingAuthUrl(serverName: string, serverUrl: string): string | undefined {
-    const serverHash = crypto.createHash("sha256").update(`${serverName}:${serverUrl}`).digest("hex");
+    const serverHash = crypto
+      .createHash('sha256')
+      .update(`${serverName}:${serverUrl}`)
+      .digest('hex');
     const secrets = this.getSecrets();
     return secrets[serverHash]?.pending_auth_url;
   }

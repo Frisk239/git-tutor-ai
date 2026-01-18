@@ -1,5 +1,5 @@
 // Git 操作类型定义
-import { GitOperation } from "@git-tutor/shared";
+import { GitOperation } from '@git-tutor/shared';
 
 /**
  * Git 仓库信息
@@ -96,7 +96,7 @@ export interface GitCommitOptions extends GitOptions {
  * Merge 选项
  */
 export interface GitMergeOptions extends GitOptions {
-  strategy?: "ours" | "theirs" | "recursive" | "resolve" | "octopus";
+  strategy?: 'ours' | 'theirs' | 'recursive' | 'resolve' | 'octopus';
   fastForward?: boolean;
 }
 

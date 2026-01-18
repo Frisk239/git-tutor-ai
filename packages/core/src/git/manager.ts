@@ -1,7 +1,7 @@
 // Git 管理器 - 基于 simple-git
-import simpleGit, { SimpleGit } from "simple-git";
-import path from "path";
-import fs from "fs/promises";
+import simpleGit, { SimpleGit } from 'simple-git';
+import path from 'path';
+import fs from 'fs/promises';
 import type {
   GitRepositoryInfo,
   GitCommit,
@@ -13,8 +13,8 @@ import type {
   GitCommitOptions,
   GitMergeOptions,
   GitRebaseOptions,
-} from "./types.js";
-import { GitOperation } from "@git-tutor/shared";
+} from './types.js';
+import { GitOperation } from '@git-tutor/shared';
 
 /**
  * Git 管理器
@@ -35,10 +35,10 @@ export class GitManager {
 
     const args: string[] = [];
     if (options?.branch) {
-      args.push("--branch", options.branch);
+      args.push('--branch', options.branch);
     }
     if (options?.depth) {
-      args.push("--depth", options.depth.toString());
+      args.push('--depth', options.depth.toString());
     }
 
     await git.clone(url, targetPath, args);
@@ -56,7 +56,7 @@ export class GitManager {
 
     return {
       path: cwd,
-      currentBranch: status.current || "HEAD",
+      currentBranch: status.current || 'HEAD',
       remote: status.remote,
       commitCount: status.trackingBranchCount || status.total,
       branchCount: branches.all.length,
@@ -77,7 +77,7 @@ export class GitManager {
    */
   async getCurrentBranch(): Promise<string> {
     const status = await this.git.status();
-    return status.current || "HEAD";
+    return status.current || 'HEAD';
   }
 
   /**
@@ -88,7 +88,7 @@ export class GitManager {
     return branches.all.map((name) => ({
       name,
       current: name === branches.current,
-      commit: branches.branches[name]?.commit || "",
+      commit: branches.branches[name]?.commit || '',
     }));
   }
 
@@ -96,7 +96,7 @@ export class GitManager {
    * 创建新分支
    */
   async createBranch(branchName: string, startPoint?: string): Promise<void> {
-    await this.git.branch(["-c", startPoint || "HEAD", branchName]);
+    await this.git.branch(['-c', startPoint || 'HEAD', branchName]);
   }
 
   /**
@@ -111,7 +111,7 @@ export class GitManager {
    */
   async deleteBranch(branchName: string, force?: boolean): Promise<void> {
     if (force) {
-      await this.git.branch(["-D", branchName]);
+      await this.git.branch(['-D', branchName]);
     } else {
       await this.git.deleteLocalBranch(branchName);
     }
@@ -149,7 +149,7 @@ export class GitManager {
    * 添加所有文件
    */
   async addAll(): Promise<void> {
-    await this.git.add(".");
+    await this.git.add('.');
   }
 
   /**
@@ -158,17 +158,17 @@ export class GitManager {
   async commit(options: GitCommitOptions): Promise<GitCommit> {
     const args: string[] = [];
     if (options.amend) {
-      args.push("--amend");
+      args.push('--amend');
     }
     if (options.allowEmpty) {
-      args.push("--allow-empty");
+      args.push('--allow-empty');
     }
 
     const result = await this.git.commit(options.message, args);
 
     const log = await this.git.log({ maxCount: 1 });
     if (!log.latest) {
-      throw new Error("Failed to get commit info");
+      throw new Error('Failed to get commit info');
     }
 
     return {
@@ -217,10 +217,10 @@ export class GitManager {
    * 获取文件差异
    */
   async getDiff(file?: string): Promise<GitDiff[]> {
-    const diff = await this.git.diff([file || ""]);
+    const diff = await this.git.diff([file || '']);
 
     // 解析差异统计
-    const summary = await this.git.diffSummary([file || ""]);
+    const summary = await this.git.diffSummary([file || '']);
 
     return summary.files.map((f) => ({
       file: f.file,
@@ -260,10 +260,10 @@ export class GitManager {
     const args: string[] = [branch];
 
     if (options?.strategy) {
-      args.push("--strategy", options.strategy);
+      args.push('--strategy', options.strategy);
     }
     if (options?.fastForward === false) {
-      args.push("--no-ff");
+      args.push('--no-ff');
     }
 
     await this.git.merge(args);
@@ -279,10 +279,10 @@ export class GitManager {
       args.push(options.branch);
     }
     if (options?.interactive) {
-      args.push("-i");
+      args.push('-i');
     }
     if (options?.onto) {
-      args.push("--onto", options.onto);
+      args.push('--onto', options.onto);
     }
 
     if (args.length > 0) {
@@ -297,10 +297,13 @@ export class GitManager {
    */
   async getRemotes(): Promise<Record<string, string>> {
     const remotes = await this.git.getRemotes(true);
-    return remotes.reduce((acc, remote) => {
-      acc[remote.name] = remote.refs.fetch;
-      return acc;
-    }, {} as Record<string, string>);
+    return remotes.reduce(
+      (acc, remote) => {
+        acc[remote.name] = remote.refs.fetch;
+        return acc;
+      },
+      {} as Record<string, string>
+    );
   }
 
   /**

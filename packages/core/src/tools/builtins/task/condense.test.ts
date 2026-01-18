@@ -2,83 +2,83 @@
  * CONDENSE 工具测试
  */
 
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { condenseTool, createCondenseTool, CondenseResult } from "./condense.js";
-import type { ToolContext } from "../../types.js";
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { condenseTool, createCondenseTool, CondenseResult } from './condense.js';
+import type { ToolContext } from '../../types.js';
 
-describe("condense 工具", () => {
+describe('condense 工具', () => {
   let mockContext: ToolContext;
 
   beforeEach(() => {
     mockContext = {
-      conversationId: "test-conversation",
-      userId: "test-user",
+      conversationId: 'test-conversation',
+      userId: 'test-user',
       permissions: new Set(),
       metadata: {},
     };
   });
 
-  describe("工具定义", () => {
-    it("应该有正确的工具元数据", () => {
-      expect(condenseTool.name).toBe("condense");
-      expect(condenseTool.displayName).toBe("压缩对话");
-      expect(condenseTool.category).toBe("task");
+  describe('工具定义', () => {
+    it('应该有正确的工具元数据', () => {
+      expect(condenseTool.name).toBe('condense');
+      expect(condenseTool.displayName).toBe('压缩对话');
+      expect(condenseTool.category).toBe('task');
       expect(condenseTool.enabled).toBe(true);
     });
 
-    it("应该有必要的参数定义", () => {
+    it('应该有必要的参数定义', () => {
       expect(condenseTool.parameters).toHaveLength(1);
-      expect(condenseTool.parameters[0].name).toBe("context");
-      expect(condenseTool.parameters[0].type).toBe("string");
+      expect(condenseTool.parameters[0].name).toBe('context');
+      expect(condenseTool.parameters[0].type).toBe('string');
       expect(condenseTool.parameters[0].required).toBe(true);
     });
 
-    it("应该有详细的描述", () => {
-      expect(condenseTool.description).toContain("压缩对话历史");
-      expect(condenseTool.description).toContain("上下文窗口");
-      expect(condenseTool.description).toContain("前序对话概要");
-      expect(condenseTool.description).toContain("当前工作");
+    it('应该有详细的描述', () => {
+      expect(condenseTool.description).toContain('压缩对话历史');
+      expect(condenseTool.description).toContain('上下文窗口');
+      expect(condenseTool.description).toContain('前序对话概要');
+      expect(condenseTool.description).toContain('当前工作');
     });
   });
 
-  describe("工具执行 - 基本验证", () => {
-    it("应该在缺少 context 参数时返回错误", async () => {
+  describe('工具执行 - 基本验证', () => {
+    it('应该在缺少 context 参数时返回错误', async () => {
       const result = await condenseTool.handler.execute(mockContext, {});
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("缺少必需参数: context");
+      expect(result.error).toBe('缺少必需参数: context');
     });
 
-    it("应该在 context 为空字符串时返回错误", async () => {
+    it('应该在 context 为空字符串时返回错误', async () => {
       const result = await condenseTool.handler.execute(mockContext, {
-        context: "",
+        context: '',
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("context 参数不能为空");
+      expect(result.error).toBe('context 参数不能为空');
     });
 
-    it("应该在 context 只有空格时返回错误", async () => {
+    it('应该在 context 只有空格时返回错误', async () => {
       const result = await condenseTool.handler.execute(mockContext, {
-        context: "   ",
+        context: '   ',
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("context 参数不能为空");
+      expect(result.error).toBe('context 参数不能为空');
     });
 
-    it("应该在 context 类型错误时返回错误", async () => {
+    it('应该在 context 类型错误时返回错误', async () => {
       const result = await condenseTool.handler.execute(mockContext, {
         context: 123,
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("context 参数不能为空");
+      expect(result.error).toBe('context 参数不能为空');
     });
   });
 
-  describe("工具执行 - 无回调情况", () => {
-    it("应该在无回调时自动接受压缩", async () => {
+  describe('工具执行 - 无回调情况', () => {
+    it('应该在无回调时自动接受压缩', async () => {
       const condensedContext = `# 对话摘要
 
 ## 前序对话概要
@@ -97,13 +97,13 @@ describe("condense 工具", () => {
       expect(result.success).toBe(true);
       const data = result.data as CondenseResult;
       expect(data.accepted).toBe(true);
-      expect(data.message).toBe("已接受压缩的对话摘要");
+      expect(data.message).toBe('已接受压缩的对话摘要');
       expect(data.timestamp).toBeDefined();
     });
   });
 
-  describe("工具执行 - 有回调情况", () => {
-    it("应该在用户接受时返回成功", async () => {
+  describe('工具执行 - 有回调情况', () => {
+    it('应该在用户接受时返回成功', async () => {
       const mockCallback = vi.fn().mockResolvedValue({
         accepted: true,
       });
@@ -125,12 +125,12 @@ describe("condense 工具", () => {
       expect(result.success).toBe(true);
       const data = result.data as CondenseResult;
       expect(data.accepted).toBe(true);
-      expect(data.message).toBe("用户已接受压缩的对话摘要");
+      expect(data.message).toBe('用户已接受压缩的对话摘要');
       expect(mockCallback).toHaveBeenCalledWith(condensedContext);
     });
 
-    it("应该在用户拒绝时返回反馈", async () => {
-      const feedback = "请保留更多细节";
+    it('应该在用户拒绝时返回反馈', async () => {
+      const feedback = '请保留更多细节';
       const mockCallback = vi.fn().mockResolvedValue({
         accepted: false,
         feedback,
@@ -151,11 +151,11 @@ describe("condense 工具", () => {
       const data = result.data as CondenseResult;
       expect(data.accepted).toBe(false);
       expect(data.feedback).toBe(feedback);
-      expect(data.message).toBe("用户提供了反馈,而不是接受压缩摘要");
+      expect(data.message).toBe('用户提供了反馈,而不是接受压缩摘要');
       expect(mockCallback).toHaveBeenCalledWith(condensedContext);
     });
 
-    it("应该在用户拒绝但无反馈时正常处理", async () => {
+    it('应该在用户拒绝但无反馈时正常处理', async () => {
       const mockCallback = vi.fn().mockResolvedValue({
         accepted: false,
       });
@@ -177,8 +177,8 @@ describe("condense 工具", () => {
       expect(data.feedback).toBeUndefined();
     });
 
-    it("应该处理回调异常", async () => {
-      const mockCallback = vi.fn().mockRejectedValue(new Error("用户取消操作"));
+    it('应该处理回调异常', async () => {
+      const mockCallback = vi.fn().mockRejectedValue(new Error('用户取消操作'));
 
       const toolWithCallback = createCondenseTool(mockCallback);
 
@@ -192,12 +192,12 @@ describe("condense 工具", () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe("用户取消操作");
+      expect(result.error).toBe('用户取消操作');
     });
   });
 
-  describe("工具执行 - 复杂场景", () => {
-    it("应该处理包含代码片段的上下文", async () => {
+  describe('工具执行 - 复杂场景', () => {
+    it('应该处理包含代码片段的上下文', async () => {
       const condensedContext = `# 对话摘要
 
 ## 当前工作
@@ -223,7 +223,7 @@ interface TaskProgressItem {
       expect(data.accepted).toBe(true);
     });
 
-    it("应该处理包含多个章节的详细上下文", async () => {
+    it('应该处理包含多个章节的详细上下文', async () => {
       const condensedContext = `# 对话摘要
 
 ## 1. 前序对话概要
@@ -262,7 +262,7 @@ interface TaskProgressItem {
       expect(data.accepted).toBe(true);
     });
 
-    it("应该处理包含特殊字符的上下文", async () => {
+    it('应该处理包含特殊字符的上下文', async () => {
       const condensedContext = `# 对话摘要
 
 ## 当前工作
@@ -285,12 +285,12 @@ console.log("特殊字符测试");
     });
   });
 
-  describe("时间戳验证", () => {
-    it("应该生成有效的 ISO 8601 时间戳", async () => {
+  describe('时间戳验证', () => {
+    it('应该生成有效的 ISO 8601 时间戳', async () => {
       const beforeTime = new Date().toISOString();
 
       const result = await condenseTool.handler.execute(mockContext, {
-        context: "测试上下文",
+        context: '测试上下文',
       });
 
       const afterTime = new Date().toISOString();
@@ -308,17 +308,17 @@ console.log("特殊字符测试");
     });
   });
 
-  describe("createCondenseTool 便捷函数", () => {
-    it("应该创建带有自定义回调的工具", () => {
+  describe('createCondenseTool 便捷函数', () => {
+    it('应该创建带有自定义回调的工具', () => {
       const mockCallback = vi.fn();
       const customTool = createCondenseTool(mockCallback);
 
-      expect(customTool.name).toBe("condense");
+      expect(customTool.name).toBe('condense');
       expect(customTool.handler).toBeDefined();
       expect(customTool.handler).not.toBe(condenseTool.handler);
     });
 
-    it("应该正确设置回调函数", async () => {
+    it('应该正确设置回调函数', async () => {
       const mockCallback = vi.fn().mockResolvedValue({
         accepted: true,
       });
@@ -326,10 +326,10 @@ console.log("特殊字符测试");
       const customTool = createCondenseTool(mockCallback);
 
       const result = await customTool.handler.execute(mockContext, {
-        context: "测试上下文",
+        context: '测试上下文',
       });
 
-      expect(mockCallback).toHaveBeenCalledWith("测试上下文");
+      expect(mockCallback).toHaveBeenCalledWith('测试上下文');
       expect(result.success).toBe(true);
     });
   });

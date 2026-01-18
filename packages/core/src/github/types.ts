@@ -1,5 +1,5 @@
 // GitHub API 类型定义
-import { GitOperation } from "@git-tutor/shared";
+import { GitOperation } from '@git-tutor/shared';
 
 /**
  * GitHub 仓库信息
@@ -35,7 +35,7 @@ export interface GitHubOwner {
   login: string;
   id: number;
   avatarUrl: string;
-  type: "User" | "Organization";
+  type: 'User' | 'Organization';
   siteAdmin: boolean;
 }
 
@@ -47,7 +47,7 @@ export interface GitHubIssue {
   number: number;
   title: string;
   body: string | null;
-  state: "open" | "closed" | "all";
+  state: 'open' | 'closed' | 'all';
   locked: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -109,7 +109,7 @@ export interface GitHubUser {
   id: number;
   avatarUrl: string;
   gravatarId: string | null;
-  type: "User" | "Bot";
+  type: 'User' | 'Bot';
   siteAdmin: boolean;
   name: string | null;
   email: string | null;
@@ -142,7 +142,7 @@ export interface GitHubLabel {
 export interface GitHubMilestone {
   id: number;
   number: number;
-  state: "open" | "closed" | "all";
+  state: 'open' | 'closed' | 'all';
   title: string;
   description: string | null;
   creator: GitHubUser;
@@ -202,7 +202,7 @@ export interface GitHubCommitTree {
  * GitHub 文件内容
  */
 export interface GitHubFileContent {
-  type: "file" | "dir" | "symlink" | "submodule";
+  type: 'file' | 'dir' | 'symlink' | 'submodule';
   size: number;
   name: string;
   path: string;
@@ -238,7 +238,7 @@ export interface GitHubReview {
   id: number;
   user: GitHubUser;
   body: string | null;
-  state: "APPROVED" | "CHANGES_REQUESTED" | "COMMENTED" | "PENDING" | "DISMISSED";
+  state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'PENDING' | 'DISMISSED';
   submittedAt: Date | null;
   commitId: string;
   bodyHtml: string | null;
@@ -249,8 +249,8 @@ export interface GitHubReview {
  */
 export interface GitHubRepositorySearchOptions {
   query: string;
-  sort?: "stars" | "forks" | "help-wanted-issues" | "updated";
-  order?: "asc" | "desc";
+  sort?: 'stars' | 'forks' | 'help-wanted-issues' | 'updated';
+  order?: 'asc' | 'desc';
   perPage?: number;
   page?: number;
 }
@@ -260,8 +260,19 @@ export interface GitHubRepositorySearchOptions {
  */
 export interface GitHubIssueSearchOptions {
   query: string;
-  sort?: "comments" | "reactions" | "reactions-+1" | "reactions--1" | "reactions-smile" | "reactions-thinking_face" | "reactions-heart" | "reactions-tada" | "interactions" | "created" | "updated";
-  order?: "asc" | "desc";
+  sort?:
+    | 'comments'
+    | 'reactions'
+    | 'reactions-+1'
+    | 'reactions--1'
+    | 'reactions-smile'
+    | 'reactions-thinking_face'
+    | 'reactions-heart'
+    | 'reactions-tada'
+    | 'interactions'
+    | 'created'
+    | 'updated';
+  order?: 'asc' | 'desc';
   perPage?: number;
   page?: number;
 }
@@ -295,5 +306,5 @@ export interface GitHubCreatePROptions {
 export interface GitHubMergePROptions {
   commitTitle?: string;
   commitMessage?: string;
-  method?: "merge" | "squash" | "rebase";
+  method?: 'merge' | 'squash' | 'rebase';
 }

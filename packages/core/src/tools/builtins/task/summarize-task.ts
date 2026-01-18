@@ -9,7 +9,7 @@
  * - Git Tutor AI: Web 应用,通过文件系统服务读取文件,简化版本
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
 
 // ============================================================================
 // 常量定义
@@ -64,9 +64,7 @@ class SummarizeTaskHandler {
    * 文件读取回调
    * 格式: (filePath: string) => Promise<{ content: string; error?: string }>
    */
-  private onReadFile?: (
-    filePath: string
-  ) => Promise<{ content: string; error?: string }>;
+  private onReadFile?: (filePath: string) => Promise<{ content: string; error?: string }>;
 
   /**
    * 设置文件读取回调
@@ -85,15 +83,15 @@ class SummarizeTaskHandler {
       if (taskContext === undefined || taskContext === null) {
         return {
           success: false,
-          error: "缺少必需参数: context",
+          error: '缺少必需参数: context',
         };
       }
 
       // 验证参数类型和内容
-      if (typeof taskContext !== "string" || taskContext.trim().length === 0) {
+      if (typeof taskContext !== 'string' || taskContext.trim().length === 0) {
         return {
           success: false,
-          error: "context 参数不能为空",
+          error: 'context 参数不能为空',
         };
       }
 
@@ -176,7 +174,7 @@ class SummarizeTaskHandler {
 
       // 如果会超出限制但这是第一个文件,截断它
       if (wouldExceedLimit && fileContents.length === 0) {
-        const suffix = "\n... (内容被截断)";
+        const suffix = '\n... (内容被截断)';
         const remainingChars = MAX_CHARS - totalChars - suffix.length;
         finalContent = result.content.slice(0, Math.max(0, remainingChars)) + suffix;
       }
@@ -203,13 +201,13 @@ class SummarizeTaskHandler {
    */
   private parseFilePaths(text: string): string[] {
     // 每行一个文件路径,格式: "  - file/path.ts"
-    const lines = text.split("\n");
+    const lines = text.split('\n');
     const filePaths: string[] = [];
 
     for (const line of lines) {
       const trimmed = line.trim();
-      if (trimmed.startsWith("-")) {
-        const path = trimmed.replace(/^-\s*/, "").trim();
+      if (trimmed.startsWith('-')) {
+        const path = trimmed.replace(/^-\s*/, '').trim();
         if (path) {
           filePaths.push(path);
         }
@@ -226,7 +224,7 @@ class SummarizeTaskHandler {
     filePath: string
   ): Promise<{ content: string; error?: string }> {
     if (!this.onReadFile) {
-      return { content: "", error: "未设置文件读取回调" };
+      return { content: '', error: '未设置文件读取回调' };
     }
 
     try {
@@ -246,7 +244,7 @@ class SummarizeTaskHandler {
 
     // 追加文件内容
     if (fileContents.length > 0) {
-      formatted += "\n\n## 文件内容";
+      formatted += '\n\n## 文件内容';
 
       for (const file of fileContents) {
         formatted += `\n\n<file_content path="${file.path}">`;
@@ -264,50 +262,50 @@ class SummarizeTaskHandler {
 // ============================================================================
 
 export const summarizeTaskTool: ToolDefinition = {
-  name: "summarize_task",
-  displayName: "任务总结",
+  name: 'summarize_task',
+  displayName: '任务总结',
   description:
-    "任务总结工具:当对话历史接近上下文窗口限制时,生成压缩的任务摘要以保持任务连续性。使用此工具时,你需要创建一个详细的对话摘要,捕捉关键信息以便继续任务。" +
-    "\n\n**摘要内容应包含**:" +
-    "\n1. **主要请求和意图**: 用户的具体请求和目标" +
-    "\n2. **关键技术概念**: 重要的技术概念、框架和编码约定" +
-    "\n3. **文件和代码片段**: 检查、修改或创建的特定文件和代码部分" +
-    "\n4. **问题解决**: 解决的问题和故障排除工作" +
-    "\n5. **待处理任务**: 待处理任务列表" +
-    "\n6. **任务演变**: 原始任务、任务修改、当前活动任务" +
-    "\n7. **当前工作**: 当前正在进行的详细工作" +
-    "\n8. **下一步**: 下一步行动计划" +
-    "\n9. **Required Files**: (可选) 继续工作所需的文件列表,格式为:" +
+    '任务总结工具:当对话历史接近上下文窗口限制时,生成压缩的任务摘要以保持任务连续性。使用此工具时,你需要创建一个详细的对话摘要,捕捉关键信息以便继续任务。' +
+    '\n\n**摘要内容应包含**:' +
+    '\n1. **主要请求和意图**: 用户的具体请求和目标' +
+    '\n2. **关键技术概念**: 重要的技术概念、框架和编码约定' +
+    '\n3. **文件和代码片段**: 检查、修改或创建的特定文件和代码部分' +
+    '\n4. **问题解决**: 解决的问题和故障排除工作' +
+    '\n5. **待处理任务**: 待处理任务列表' +
+    '\n6. **任务演变**: 原始任务、任务修改、当前活动任务' +
+    '\n7. **当前工作**: 当前正在进行的详细工作' +
+    '\n8. **下一步**: 下一步行动计划' +
+    '\n9. **Required Files**: (可选) 继续工作所需的文件列表,格式为:' +
     '\n   ```' +
-    "\n   9. Required Files:" +
-    "\n     - src/file1.ts" +
-    "\n     - src/file2.ts" +
+    '\n   9. Required Files:' +
+    '\n     - src/file1.ts' +
+    '\n     - src/file2.ts' +
     '\n   ```' +
-    "\n\n**工具会自动**:" +
-    "\n- 读取 Required Files 中列出的文件(最多 8 个,总字符数限制 100,000)" +
-    "\n- 将文件内容追加到摘要中" +
-    "\n- 生成格式化的摘要供后续使用" +
-    "\n\n**使用时机**:" +
-    "\n- 对话历史长度达到上下文窗口限制的 80-90%" +
-    "\n- 需要保持任务连续性但减少 token 消耗时" +
-    "\n- 长时间开发会话中的内存管理",
-  category: "task",
+    '\n\n**工具会自动**:' +
+    '\n- 读取 Required Files 中列出的文件(最多 8 个,总字符数限制 100,000)' +
+    '\n- 将文件内容追加到摘要中' +
+    '\n- 生成格式化的摘要供后续使用' +
+    '\n\n**使用时机**:' +
+    '\n- 对话历史长度达到上下文窗口限制的 80-90%' +
+    '\n- 需要保持任务连续性但减少 token 消耗时' +
+    '\n- 长时间开发会话中的内存管理',
+  category: 'task',
   parameters: [
     {
-      name: "context",
-      type: "string",
+      name: 'context',
+      type: 'string',
       required: true,
       description:
-        "压缩后的任务上下文。应包含:" +
-        "\n1. 主要请求和意图: 用户的具体请求" +
-        "\n2. 关键技术概念: 重要的技术和框架" +
-        "\n3. 文件和代码片段: 检查、修改或创建的文件" +
-        "\n4. 问题解决: 解决的问题和故障排除" +
-        "\n5. 待处理任务: 待处理任务列表" +
-        "\n6. 任务演变: 原始任务、修改、当前任务" +
-        "\n7. 当前工作: 当前正在进行的详细工作" +
-        "\n8. 下一步: 下一步行动计划" +
-        "\n9. Required Files: (可选) 所需文件列表",
+        '压缩后的任务上下文。应包含:' +
+        '\n1. 主要请求和意图: 用户的具体请求' +
+        '\n2. 关键技术概念: 重要的技术和框架' +
+        '\n3. 文件和代码片段: 检查、修改或创建的文件' +
+        '\n4. 问题解决: 解决的问题和故障排除' +
+        '\n5. 待处理任务: 待处理任务列表' +
+        '\n6. 任务演变: 原始任务、修改、当前任务' +
+        '\n7. 当前工作: 当前正在进行的详细工作' +
+        '\n8. 下一步: 下一步行动计划' +
+        '\n9. Required Files: (可选) 所需文件列表',
     },
   ],
   permissions: [], // summarize_task 不需要特殊权限(文件读取通过回调处理)

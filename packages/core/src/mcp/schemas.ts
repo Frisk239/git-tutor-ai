@@ -3,7 +3,7 @@
  * 使用 Zod 进行运行时类型检查
  */
 
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * 自动批准工具列表 Schema
@@ -23,7 +23,7 @@ export const BaseConfigSchema = z.object({
  * stdio 传输层配置 Schema
  */
 export const StdioConfigSchema = BaseConfigSchema.extend({
-  type: z.literal("stdio"),
+  type: z.literal('stdio'),
   command: z.string(),
   args: z.array(z.string()).optional(),
   cwd: z.string().optional(),
@@ -34,7 +34,7 @@ export const StdioConfigSchema = BaseConfigSchema.extend({
  * SSE 传输层配置 Schema
  */
 export const SseConfigSchema = BaseConfigSchema.extend({
-  type: z.literal("sse"),
+  type: z.literal('sse'),
   url: z.string().url(),
   headers: z.record(z.string()).optional(),
 });
@@ -43,7 +43,7 @@ export const SseConfigSchema = BaseConfigSchema.extend({
  * Streamable HTTP 传输层配置 Schema
  */
 export const HttpConfigSchema = BaseConfigSchema.extend({
-  type: z.literal("streamableHttp"),
+  type: z.literal('streamableHttp'),
   url: z.string().url(),
   headers: z.record(z.string()).optional(),
 });

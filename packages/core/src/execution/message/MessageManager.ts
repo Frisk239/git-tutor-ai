@@ -5,13 +5,8 @@
  * 负责管理 API 对话历史和 UI 消息历史
  */
 
-import { Mutex } from "async-mutex";
-import type {
-  MessageContent,
-  AssistantContent,
-  UserContent,
-  APIMessage,
-} from "../types.js";
+import { Mutex } from 'async-mutex';
+import type { MessageContent, AssistantContent, UserContent, APIMessage } from '../types.js';
 
 // ============================================================================
 // 消息历史项接口
@@ -24,7 +19,7 @@ export interface UIMessage {
   /** 时间戳 */
   timestamp: number;
   /** 消息类型 */
-  type: "ask" | "say" | "tool";
+  type: 'ask' | 'say' | 'tool';
   /** 消息内容 */
   content?: MessageContent[];
   /** 对话历史索引 */
@@ -182,10 +177,7 @@ export class MessageManager {
   /**
    * 更新 UI 消息
    */
-  async updateUIMessage(
-    index: number,
-    updates: Partial<UIMessage>
-  ): Promise<void> {
+  async updateUIMessage(index: number, updates: Partial<UIMessage>): Promise<void> {
     return this.mutex.runExclusive(async () => {
       if (index >= 0 && index < this.uiMessages.length) {
         this.uiMessages[index] = {
@@ -231,9 +223,7 @@ export class MessageManager {
   /**
    * 设置对话历史删除范围
    */
-  async setConversationHistoryDeletedRange(
-    range: [number, number] | undefined
-  ): Promise<void> {
+  async setConversationHistoryDeletedRange(range: [number, number] | undefined): Promise<void> {
     return this.mutex.runExclusive(async () => {
       this.conversationHistoryDeletedRange = range;
     });
@@ -244,34 +234,32 @@ export class MessageManager {
    * 基于 Cline 的 ContextManager.getNextTruncationRange 实现
    */
   calculateNextTruncationRange(
-    keepStrategy: "none" | "lastTwo" | "half" | "quarter" = "half"
+    keepStrategy: 'none' | 'lastTwo' | 'half' | 'quarter' = 'half'
   ): [number, number] {
     const currentDeletedRange = this.conversationHistoryDeletedRange;
     const apiMessages = this.apiConversationHistory;
 
     // 始终保留第一组用户-助手消息对
     const rangeStartIndex = 2;
-    const startOfRest = currentDeletedRange
-      ? currentDeletedRange[1] + 1
-      : rangeStartIndex;
+    const startOfRest = currentDeletedRange ? currentDeletedRange[1] + 1 : rangeStartIndex;
 
     const totalMessages = apiMessages.length;
     let endOfKeptMessages: number;
 
     switch (keepStrategy) {
-      case "none":
+      case 'none':
         // 只保留第一对和最后一对
         endOfKeptMessages = totalMessages - 2;
         break;
-      case "lastTwo":
+      case 'lastTwo':
         // 保留最后两对
         endOfKeptMessages = totalMessages - 5;
         break;
-      case "half":
+      case 'half':
         // 保留一半
         endOfKeptMessages = Math.floor(totalMessages / 2);
         break;
-      case "quarter":
+      case 'quarter':
         // 保留四分之三
         endOfKeptMessages = Math.floor((totalMessages * 3) / 4);
         break;
@@ -302,15 +290,15 @@ export class MessageManager {
     };
 
     for (const message of this.apiConversationHistory) {
-      if (message.role === "user") {
+      if (message.role === 'user') {
         stats.userMessages++;
-      } else if (message.role === "assistant") {
+      } else if (message.role === 'assistant') {
         stats.assistantMessages++;
 
         // 统计工具调用
         if (Array.isArray(message.content)) {
           for (const item of message.content) {
-            if (item.type === "tool_use") {
+            if (item.type === 'tool_use') {
               stats.toolCalls++;
             }
           }
@@ -352,7 +340,7 @@ export class MessageManager {
       uiMessagesCount: this.uiMessages.length,
       deletedRange: this.conversationHistoryDeletedRange
         ? `[${this.conversationHistoryDeletedRange[0]}, ${this.conversationHistoryDeletedRange[1]}]`
-        : "none",
+        : 'none',
       estimatedTokens: stats.estimatedTokens,
     };
   }

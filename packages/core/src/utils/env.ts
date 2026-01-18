@@ -2,14 +2,14 @@
  * 环境变量加载工具
  */
 
-import { config } from "dotenv";
-import { resolve } from "path";
+import { config } from 'dotenv';
+import { resolve } from 'path';
 
 /**
  * 加载 .env 文件
  */
 export function loadEnv(envPath?: string): void {
-  const path = envPath || resolve(process.cwd(), ".env");
+  const path = envPath || resolve(process.cwd(), '.env');
   config({ path });
 }
 
@@ -21,7 +21,7 @@ export function getEnv(key: string, defaultValue?: string): string {
   if (value === undefined && defaultValue === undefined) {
     throw new Error(`Environment variable ${key} is not set`);
   }
-  return value || defaultValue || "";
+  return value || defaultValue || '';
 }
 
 /**
@@ -30,7 +30,7 @@ export function getEnv(key: string, defaultValue?: string): string {
 export function getBooleanEnv(key: string, defaultValue: boolean = false): boolean {
   const value = process.env[key];
   if (value === undefined) return defaultValue;
-  return value.toLowerCase() === "true";
+  return value.toLowerCase() === 'true';
 }
 
 /**

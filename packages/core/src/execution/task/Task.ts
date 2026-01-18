@@ -5,16 +5,13 @@
  * 负责任务的完整生命周期管理，包括初始化、执行、流式响应处理和清理
  */
 
-import { ulid } from "ulid";
-import { v4 as uuidv4 } from "uuid";
-import type { AIService } from "../../ai/types.js";
-import type { ToolRegistry } from "../../tools.js";
-import { TaskState } from "../state/TaskState.js";
-import { StreamHandler } from "../stream/StreamHandler.js";
-import {
-  TaskStatus,
-  TaskPhase,
-} from "../types.js";
+import { ulid } from 'ulid';
+import { v4 as uuidv4 } from 'uuid';
+import type { AIService } from '../../ai/types.js';
+import type { ToolRegistry } from '../../tools.js';
+import { TaskState } from '../state/TaskState.js';
+import { StreamHandler } from '../stream/StreamHandler.js';
+import { TaskStatus, TaskPhase } from '../types.js';
 import type {
   TaskId,
   TaskConfig,
@@ -26,7 +23,7 @@ import type {
   StreamChunk,
   TaskHistoryItem,
   TaskCancelledError,
-} from "../types.js";
+} from '../types.js';
 
 // ============================================================================
 // 回调函数接口
@@ -134,13 +131,9 @@ export class Task {
   /**
    * 启动新任务
    */
-  async startTask(
-    task: string,
-    images?: string[],
-    files?: string[]
-  ): Promise<void> {
+  async startTask(task: string, images?: string[], files?: string[]): Promise<void> {
     if (this.started) {
-      throw new Error("Task has already been started");
+      throw new Error('Task has already been started');
     }
 
     this.started = true;
@@ -156,14 +149,13 @@ export class Task {
       const userContent = this.buildUserContent(task, images, files);
 
       // 4. 发送初始消息
-      await this.say("text", task, images, files);
+      await this.say('text', task, images, files);
 
       // 5. 启动任务循环
       await this.initiateTaskLoop(userContent);
 
       // 6. 标记完成
       await this.markCompleted();
-
     } catch (error) {
       await this.handleError(error as Error);
     }
@@ -174,7 +166,7 @@ export class Task {
    */
   async resumeTaskFromHistory(historyItem: TaskHistoryItem): Promise<void> {
     if (this.started) {
-      throw new Error("Task has already been started");
+      throw new Error('Task has already been started');
     }
 
     this.started = true;
@@ -191,7 +183,6 @@ export class Task {
 
       // 4. 继续任务循环
       await this.initiateTaskLoop([]);
-
     } catch (error) {
       await this.handleError(error as Error);
     }
@@ -222,9 +213,8 @@ export class Task {
 
       // 5. 清理资源
       await this.cleanup();
-
     } catch (error) {
-      console.error("Error aborting task:", error);
+      console.error('Error aborting task:', error);
     }
   }
 
@@ -259,14 +249,16 @@ export class Task {
 
         // 检查是否达到最大错误数
         if (this.taskState.hasReachedMaxMistakes()) {
-          throw new Error("Maximum consecutive mistakes reached (no tool use)");
+          throw new Error('Maximum consecutive mistakes reached (no tool use)');
         }
 
         // 强制继续
-        nextUserContent = [{
-          type: "text",
-          text: "Please continue with the next step.",
-        }];
+        nextUserContent = [
+          {
+            type: 'text',
+            text: 'Please continue with the next step.',
+          },
+        ];
       }
     }
   }
@@ -280,7 +272,7 @@ export class Task {
   ): Promise<boolean> {
     // 1. 检查中止标志
     if (this.taskState.abort) {
-      throw new TaskCancelledError("Task was aborted");
+      throw new TaskCancelledError('Task was aborted');
     }
 
     // 2. 设置流式状态
@@ -314,11 +306,10 @@ export class Task {
         // 没有工具调用，继续循环
         return false;
       }
-
     } catch (error) {
       this.taskState.isStreaming = false;
 
-      if ((error as TaskCancelledError).code === "TASK_CANCELLED") {
+      if ((error as TaskCancelledError).code === 'TASK_CANCELLED') {
         throw error;
       }
 
@@ -352,7 +343,7 @@ export class Task {
         };
       }
     } catch (error) {
-      console.error("API request failed:", error);
+      console.error('API request failed:', error);
       throw error;
     }
   }
@@ -392,9 +383,9 @@ export class Task {
     }
 
     // 返回累积的助手内容
-    return this.streamHandler.getAccumulatedContent().filter(
-      (c): c is AssistantContent => c.type === "tool_use" || c.type === "text"
-    );
+    return this.streamHandler
+      .getAccumulatedContent()
+      .filter((c): c is AssistantContent => c.type === 'tool_use' || c.type === 'text');
   }
 
   // ========================================================================
@@ -410,7 +401,7 @@ export class Task {
     input: any;
   }> {
     return response
-      .filter((c) => c.type === "tool_use" && c.toolUse)
+      .filter((c) => c.type === 'tool_use' && c.toolUse)
       .map((c) => ({
         id: c.toolUse!.id,
         name: c.toolUse!.name,
@@ -421,15 +412,17 @@ export class Task {
   /**
    * 执行工具调用
    */
-  private async executeTools(toolUses: Array<{
-    id: string;
-    name: string;
-    input: any;
-  }>): Promise<boolean> {
+  private async executeTools(
+    toolUses: Array<{
+      id: string;
+      name: string;
+      input: any;
+    }>
+  ): Promise<boolean> {
     for (const toolUse of toolUses) {
       // 检查中止
       if (this.taskState.abort) {
-        throw new TaskCancelledError("Task was aborted during tool execution");
+        throw new TaskCancelledError('Task was aborted during tool execution');
       }
 
       // 执行工具
@@ -476,7 +469,7 @@ export class Task {
         return await tool.handler.execute(
           {
             conversationId: this.taskId,
-            userId: "system",
+            userId: 'system',
             permissions: new Set(),
             metadata: {},
           },
@@ -505,7 +498,7 @@ export class Task {
       this.taskState.incrementMistakeCount();
 
       if (this.taskState.hasReachedMaxMistakes()) {
-        throw new Error("Maximum consecutive mistakes reached");
+        throw new Error('Maximum consecutive mistakes reached');
       }
     }
   }
@@ -517,16 +510,12 @@ export class Task {
   /**
    * 构建用户内容
    */
-  private buildUserContent(
-    task: string,
-    images?: string[],
-    files?: string[]
-  ): MessageContent[] {
+  private buildUserContent(task: string, images?: string[], files?: string[]): MessageContent[] {
     const content: MessageContent[] = [];
 
     // 添加任务文本
     content.push({
-      type: "text",
+      type: 'text',
       text: `<task>\n${task}\n</task>`,
     });
 
@@ -534,7 +523,7 @@ export class Task {
     if (images && images.length > 0) {
       for (const image of images) {
         content.push({
-          type: "image",
+          type: 'image',
           image,
         });
       }
@@ -544,7 +533,7 @@ export class Task {
     if (files && files.length > 0) {
       for (const file of files) {
         content.push({
-          type: "file",
+          type: 'file',
           file: { path: file },
         });
       }
@@ -571,7 +560,7 @@ export class Task {
 
     // 添加新的用户消息
     const userMessage = {
-      role: "user",
+      role: 'user',
       content: userContent,
     };
 
@@ -618,7 +607,7 @@ export class Task {
 
     while (this.taskState.isStreaming && !this.taskState.didFinishAbortingStream) {
       if (Date.now() - startTime > timeout) {
-        console.warn("Stream abort timeout");
+        console.warn('Stream abort timeout');
         break;
       }
       await new Promise((resolve) => setTimeout(resolve, 100));
@@ -644,16 +633,16 @@ export class Task {
     if (this.callbacks.onMessageUpdate) {
       const content: MessageContent[] = [];
       if (text) {
-        content.push({ type: "text", text });
+        content.push({ type: 'text', text });
       }
       if (images) {
         for (const image of images) {
-          content.push({ type: "image", image });
+          content.push({ type: 'image', image });
         }
       }
       if (files) {
         for (const file of files) {
-          content.push({ type: "file", file: { path: file } });
+          content.push({ type: 'file', file: { path: file } });
         }
       }
       await this.callbacks.onMessageUpdate(content);
@@ -672,10 +661,7 @@ export class Task {
   /**
    * 通知流式内容
    */
-  private async notifyStreamContent(
-    content: MessageContent[],
-    partial?: boolean
-  ): Promise<void> {
+  private async notifyStreamContent(content: MessageContent[], partial?: boolean): Promise<void> {
     if (this.callbacks.onStreamContent) {
       await this.callbacks.onStreamContent(content, partial);
     }
@@ -707,7 +693,7 @@ export class Task {
    * 处理错误
    */
   private async handleError(error: Error): Promise<void> {
-    console.error("Task error:", error);
+    console.error('Task error:', error);
 
     if (this.callbacks.onError) {
       await this.callbacks.onError(error);

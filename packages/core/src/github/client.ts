@@ -1,7 +1,7 @@
 // GitHub API 客户端
-import { Octokit } from "@octokit/rest";
-import { AIProvider } from "@git-tutor/shared";
-import type { aiManager } from "../ai/manager.js";
+import { Octokit } from '@octokit/rest';
+import { AIProvider } from '@git-tutor/shared';
+import type { aiManager } from '../ai/manager.js';
 import type {
   GitHubRepository,
   GitHubIssue,
@@ -16,7 +16,7 @@ import type {
   GitHubCreateIssueOptions,
   GitHubCreatePROptions,
   GitHubMergePROptions,
-} from "./types.js";
+} from './types.js';
 
 /**
  * GitHub 客户端配置
@@ -35,7 +35,7 @@ export interface AIReviewResult {
   issues: Array<{
     file: string;
     line: number;
-    severity: "error" | "warning" | "info";
+    severity: 'error' | 'warning' | 'info';
     message: string;
     suggestion?: string;
   }>;
@@ -55,7 +55,7 @@ export class GitHubClient {
     this.token = config.token;
     this.octokit = new Octokit({
       auth: config.token,
-      userAgent: config.userAgent || "Git-Tutor-AI",
+      userAgent: config.userAgent || 'Git-Tutor-AI',
       baseUrl: config.baseUrl,
     });
   }
@@ -133,7 +133,7 @@ export class GitHubClient {
   async getIssues(
     owner: string,
     repo: string,
-    state: "open" | "closed" | "all" = "open"
+    state: 'open' | 'closed' | 'all' = 'open'
   ): Promise<GitHubIssue[]> {
     const { data } = await this.octokit.rest.issues.listForRepo({
       owner,
@@ -185,7 +185,7 @@ export class GitHubClient {
     owner: string,
     repo: string,
     number: number,
-    options: Partial<GitHubCreateIssueOptions> & { state?: "open" | "closed" }
+    options: Partial<GitHubCreateIssueOptions> & { state?: 'open' | 'closed' }
   ): Promise<GitHubIssue> {
     const { data } = await this.octokit.rest.issues.update({
       owner,
@@ -227,7 +227,7 @@ export class GitHubClient {
   async getPullRequests(
     owner: string,
     repo: string,
-    state: "open" | "closed" | "all" = "open"
+    state: 'open' | 'closed' | 'all' = 'open'
   ): Promise<GitHubPullRequest[]> {
     const { data } = await this.octokit.rest.pulls.list({
       owner,
@@ -241,11 +241,7 @@ export class GitHubClient {
   /**
    * 获取单个 PR
    */
-  async getPullRequest(
-    owner: string,
-    repo: string,
-    number: number
-  ): Promise<GitHubPullRequest> {
+  async getPullRequest(owner: string, repo: string, number: number): Promise<GitHubPullRequest> {
     const { data } = await this.octokit.rest.pulls.get({
       owner,
       repo,
@@ -284,7 +280,7 @@ export class GitHubClient {
     owner: string,
     repo: string,
     number: number,
-    options: Partial<GitHubCreatePROptions> & { state?: "open" | "closed" }
+    options: Partial<GitHubCreatePROptions> & { state?: 'open' | 'closed' }
   ): Promise<GitHubPullRequest> {
     const { data } = await this.octokit.rest.pulls.update({
       owner,
@@ -325,8 +321,8 @@ export class GitHubClient {
     } catch (error: any) {
       return {
         merged: false,
-        sha: "",
-        message: error.message || "Merge failed",
+        sha: '',
+        message: error.message || 'Merge failed',
       };
     }
   }
@@ -334,11 +330,7 @@ export class GitHubClient {
   /**
    * 获取 PR 文件更改
    */
-  async getPullRequestFiles(
-    owner: string,
-    repo: string,
-    number: number
-  ): Promise<any[]> {
+  async getPullRequestFiles(owner: string, repo: string, number: number): Promise<any[]> {
     const { data } = await this.octokit.rest.pulls.listFiles({
       owner,
       repo,
@@ -351,11 +343,7 @@ export class GitHubClient {
   /**
    * 获取 PR 评论
    */
-  async getPullRequestComments(
-    owner: string,
-    repo: string,
-    number: number
-  ): Promise<any[]> {
+  async getPullRequestComments(owner: string, repo: string, number: number): Promise<any[]> {
     const { data } = await this.octokit.rest.pulls.listReviews({
       owner,
       repo,
@@ -406,7 +394,7 @@ export class GitHubClient {
     });
 
     if (Array.isArray(data)) {
-      throw new Error("Path is a directory, not a file");
+      throw new Error('Path is a directory, not a file');
     }
 
     return {
@@ -434,7 +422,7 @@ export class GitHubClient {
     message: string,
     sha?: string
   ): Promise<{ content: GitHubFileContent; commit: GitHubCommit }> {
-    const contentBase64 = Buffer.from(content).toString("base64");
+    const contentBase64 = Buffer.from(content).toString('base64');
 
     const { data } = await this.octokit.rest.repos.createOrUpdateFileContents({
       owner,

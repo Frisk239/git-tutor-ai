@@ -5,12 +5,12 @@ import type {
   ToolExecutor,
   ToolResult,
   ToolExecution,
-} from "./types.js";
-import { toolRegistry } from "./registry.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { ToolValidator, ValidationResult } from "./validation.js";
-import { ToolStatsManager } from "./stats.js";
-import { Logger } from "../logging/logger.js";
+} from './types.js';
+import { toolRegistry } from './registry.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { ToolValidator, ValidationResult } from './validation.js';
+import { ToolStatsManager } from './stats.js';
+import { Logger } from '../logging/logger.js';
 
 /**
  * 工具执行器实现
@@ -25,7 +25,7 @@ export class ToolExecutorImpl implements ToolExecutor {
   constructor() {
     this.validator = new ToolValidator();
     this.statsManager = new ToolStatsManager();
-    this.logger = new Logger("ToolExecutorImpl");
+    this.logger = new Logger('ToolExecutorImpl');
   }
 
   /**
@@ -66,7 +66,7 @@ export class ToolExecutorImpl implements ToolExecutor {
     // 4. 验证参数(使用增强的验证器)
     const validationResult = this.validator.validateParameters(tool, params);
     if (!validationResult.valid) {
-      this.logger.error("Parameter validation failed", {
+      this.logger.error('Parameter validation failed', {
         toolName,
         errors: validationResult.errors,
       });
@@ -74,18 +74,18 @@ export class ToolExecutorImpl implements ToolExecutor {
       // 记录失败的执行
       this.statsManager.recordExecution(tool, {
         success: false,
-        error: validationResult.errors.join(", "),
+        error: validationResult.errors.join(', '),
       });
 
       return {
         success: false,
-        error: `Invalid parameters: ${validationResult.errors.join(", ")}`,
+        error: `Invalid parameters: ${validationResult.errors.join(', ')}`,
       };
     }
 
     // 记录警告
     if (validationResult.warnings && validationResult.warnings.length > 0) {
-      this.logger.warn("Parameter validation warnings", {
+      this.logger.warn('Parameter validation warnings', {
         toolName,
         warnings: validationResult.warnings,
       });
@@ -94,7 +94,7 @@ export class ToolExecutorImpl implements ToolExecutor {
     // 5. 检查工具可用性
     const availability = await this.validator.validateAvailability(tool, context);
     if (!availability.available) {
-      this.logger.error("Tool not available", {
+      this.logger.error('Tool not available', {
         toolName,
         reason: availability.reason,
       });
@@ -102,12 +102,12 @@ export class ToolExecutorImpl implements ToolExecutor {
       // 记录失败的执行
       this.statsManager.recordExecution(tool, {
         success: false,
-        error: availability.reason || "Tool not available",
+        error: availability.reason || 'Tool not available',
       });
 
       return {
         success: false,
-        error: availability.reason || "Tool not available",
+        error: availability.reason || 'Tool not available',
       };
     }
 
@@ -117,7 +117,7 @@ export class ToolExecutorImpl implements ToolExecutor {
       id: executionId,
       toolName,
       params,
-      status: "running",
+      status: 'running',
       startTime: new Date(),
     };
     this.executions.set(executionId, execution);
@@ -127,7 +127,7 @@ export class ToolExecutorImpl implements ToolExecutor {
       const result = await tool.handler(context, params);
 
       // 8. 更新执行记录
-      execution.status = "completed";
+      execution.status = 'completed';
       execution.result = result;
       execution.endTime = new Date();
       execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
@@ -141,20 +141,25 @@ export class ToolExecutorImpl implements ToolExecutor {
       return result;
     } catch (error: any) {
       // 错误处理
-      execution.status = "failed";
+      execution.status = 'failed';
       execution.error = error;
       execution.endTime = new Date();
       execution.duration = execution.endTime.getTime() - execution.startTime.getTime();
 
       // 记录统计(失败)
-      this.statsManager.recordExecution(tool, {
-        success: false,
-        error: error.message,
-      }, execution.duration, params);
+      this.statsManager.recordExecution(
+        tool,
+        {
+          success: false,
+          error: error.message,
+        },
+        execution.duration,
+        params
+      );
 
       return {
         success: false,
-        error: error.message || "Tool execution failed",
+        error: error.message || 'Tool execution failed',
         metadata: {
           stack: error.stack,
         },
@@ -178,11 +183,7 @@ export class ToolExecutorImpl implements ToolExecutor {
     const results: ToolResult[] = [];
 
     for (const execution of executions) {
-      const result = await this.execute(
-        execution.toolName,
-        execution.params,
-        context
-      );
+      const result = await this.execute(execution.toolName, execution.params, context);
       results.push(result);
 
       // 如果失败，可以选择停止或继续
@@ -214,10 +215,7 @@ export class ToolExecutorImpl implements ToolExecutor {
   /**
    * 检查权限
    */
-  checkPermission(
-    toolName: string,
-    requiredPermissions: ToolPermission[]
-  ): boolean {
+  checkPermission(toolName: string, requiredPermissions: ToolPermission[]): boolean {
     // TODO: 实现权限检查逻辑
     // 目前暂时返回 true，后续可以集成用户权限系统
     return true;
@@ -260,9 +258,9 @@ export class ToolExecutorImpl implements ToolExecutor {
     toolStats: any;
   } {
     const history = this.getExecutionHistory();
-    const completed = history.filter((e) => e.status === "completed");
-    const failed = history.filter((e) => e.status === "failed");
-    const running = history.filter((e) => e.status === "running");
+    const completed = history.filter((e) => e.status === 'completed');
+    const failed = history.filter((e) => e.status === 'failed');
+    const running = history.filter((e) => e.status === 'running');
 
     const totalDuration = completed.reduce((sum, e) => sum + (e.duration || 0), 0);
     const avgDuration = completed.length > 0 ? totalDuration / completed.length : 0;
@@ -316,7 +314,7 @@ export class ToolExecutorImpl implements ToolExecutor {
         if (param.enum && !param.enum.includes(value)) {
           return {
             valid: false,
-            error: `Parameter ${param.name} must be one of: ${param.enum.join(", ")}`,
+            error: `Parameter ${param.name} must be one of: ${param.enum.join(', ')}`,
           };
         }
       }
@@ -330,16 +328,16 @@ export class ToolExecutorImpl implements ToolExecutor {
    */
   private checkType(value: any, expectedType: string): boolean {
     switch (expectedType) {
-      case "string":
-        return typeof value === "string";
-      case "number":
-        return typeof value === "number";
-      case "boolean":
-        return typeof value === "boolean";
-      case "array":
+      case 'string':
+        return typeof value === 'string';
+      case 'number':
+        return typeof value === 'number';
+      case 'boolean':
+        return typeof value === 'boolean';
+      case 'array':
         return Array.isArray(value);
-      case "object":
-        return typeof value === "object" && value !== null && !Array.isArray(value);
+      case 'object':
+        return typeof value === 'object' && value !== null && !Array.isArray(value);
       default:
         return true;
     }

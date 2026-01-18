@@ -1,16 +1,11 @@
 // Web 搜索工具实现
 // 支持多个搜索提供商: Bing, Google, DuckDuckGo
 
-import { ToolDefinition, ToolResult, ToolContext } from "../types.js";
-import { toolRegistry } from "../registry.js";
-import { Logger } from "../../logging/logger.js";
-import { getSearchManager } from "../web/manager.js";
-import {
-  SearchOptions,
-  SearchRecency,
-  SearchLocation,
-  SearchProviderType,
-} from "../web/types.js";
+import { ToolDefinition, ToolResult, ToolContext } from '../types.js';
+import { toolRegistry } from '../registry.js';
+import { Logger } from '../../logging/logger.js';
+import { getSearchManager } from '../web/manager.js';
+import { SearchOptions, SearchRecency, SearchLocation, SearchProviderType } from '../web/types.js';
 
 /**
  * Web 搜索工具
@@ -21,13 +16,13 @@ export async function webSearchTool(
     query: string;
     allowedDomains?: string[];
     blockedDomains?: string[];
-    recency?: "oneDay" | "oneWeek" | "oneMonth" | "oneYear" | "noLimit";
-    location?: "cn" | "us";
+    recency?: 'oneDay' | 'oneWeek' | 'oneMonth' | 'oneYear' | 'noLimit';
+    location?: 'cn' | 'us';
     limit?: number;
-    provider?: "bing" | "google" | "duckduckgo";
+    provider?: 'bing' | 'google' | 'duckduckgo';
   }
 ): Promise<ToolResult> {
-  const logger = new Logger("web_search");
+  const logger = new Logger('web_search');
 
   try {
     const {
@@ -40,7 +35,7 @@ export async function webSearchTool(
       provider,
     } = params;
 
-    logger.info("Executing web search", {
+    logger.info('Executing web search', {
       query,
       provider,
       limit,
@@ -58,15 +53,12 @@ export async function webSearchTool(
 
     // 执行搜索
     const searchManager = getSearchManager();
-    const response = await searchManager.search(
-      options,
-      provider as SearchProviderType
-    );
+    const response = await searchManager.search(options, provider as SearchProviderType);
 
     // 格式化结果
     const formatted = formatSearchResults(response);
 
-    logger.info("Web search completed", {
+    logger.info('Web search completed', {
       resultCount: response.results.length,
       searchTime: response.searchTime,
     });
@@ -82,11 +74,11 @@ export async function webSearchTool(
       },
     };
   } catch (error: any) {
-    logger.error("Web search failed", { error });
+    logger.error('Web search failed', { error });
 
     return {
       success: false,
-      error: error.message || "Failed to perform web search",
+      error: error.message || 'Failed to perform web search',
       metadata: {
         code: error.code,
       },
@@ -105,7 +97,7 @@ function formatSearchResults(response: {
 }): string {
   const lines: string[] = [];
 
-  lines.push("# 搜索结果\n");
+  lines.push('# 搜索结果\n');
 
   if (response.query) {
     lines.push(`**查询**: ${response.query}\n`);
@@ -113,12 +105,12 @@ function formatSearchResults(response: {
 
   lines.push(
     `**找到 ${response.results.length} 个结果` +
-      (response.totalResults ? ` (共 ${response.totalResults} 个)` : "") +
-      (response.searchTime ? ` - 耗时 ${response.searchTime}ms` : "") +
-      "\n"
+      (response.totalResults ? ` (共 ${response.totalResults} 个)` : '') +
+      (response.searchTime ? ` - 耗时 ${response.searchTime}ms` : '') +
+      '\n'
   );
 
-  lines.push("---\n");
+  lines.push('---\n');
 
   response.results.forEach((result, index) => {
     lines.push(`${index + 1}. **${result.title}**`);
@@ -132,10 +124,10 @@ function formatSearchResults(response: {
       lines.push(`   ${result.snippet}`);
     }
 
-    lines.push("");
+    lines.push('');
   });
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -143,8 +135,8 @@ function formatSearchResults(response: {
  */
 export function registerWebTools(): void {
   const webSearchDefinition: ToolDefinition = {
-    name: "web_search",
-    displayName: "Web 搜索",
+    name: 'web_search',
+    displayName: 'Web 搜索',
     description: `在互联网上搜索信息
 
 支持多个搜索提供商:
@@ -188,53 +180,53 @@ web_search({
 })
 \`\`\``,
 
-    category: "web",
+    category: 'web',
     parameters: [
       {
-        name: "query",
-        type: "string",
-        description: "搜索查询字符串 (至少 2 个字符)",
+        name: 'query',
+        type: 'string',
+        description: '搜索查询字符串 (至少 2 个字符)',
         required: true,
       },
       {
-        name: "allowedDomains",
-        type: "array",
+        name: 'allowedDomains',
+        type: 'array',
         description: "允许的域名白名单 (例如: ['github.com', 'stackoverflow.com'])",
         required: false,
       },
       {
-        name: "blocked_domains",
-        type: "array",
-        description: "阻止的域名黑名单",
+        name: 'blocked_domains',
+        type: 'array',
+        description: '阻止的域名黑名单',
         required: false,
       },
       {
-        name: "recency",
-        type: "string",
-        enum: ["oneDay", "oneWeek", "oneMonth", "oneYear", "noLimit"],
-        description: "时间范围筛选",
+        name: 'recency',
+        type: 'string',
+        enum: ['oneDay', 'oneWeek', 'oneMonth', 'oneYear', 'noLimit'],
+        description: '时间范围筛选',
         required: false,
       },
       {
-        name: "location",
-        type: "string",
-        enum: ["cn", "us"],
-        description: "搜索区域 (cn=中国, us=美国)",
+        name: 'location',
+        type: 'string',
+        enum: ['cn', 'us'],
+        description: '搜索区域 (cn=中国, us=美国)',
         required: false,
       },
       {
-        name: "limit",
-        type: "number",
-        description: "返回结果数量 (默认 10,最大 50)",
+        name: 'limit',
+        type: 'number',
+        description: '返回结果数量 (默认 10,最大 50)',
         required: false,
         minimum: 1,
         maximum: 50,
       },
       {
-        name: "provider",
-        type: "string",
-        enum: ["bing", "google", "duckduckgo"],
-        description: "搜索提供商 (不指定则使用默认提供商)",
+        name: 'provider',
+        type: 'string',
+        enum: ['bing', 'google', 'duckduckgo'],
+        description: '搜索提供商 (不指定则使用默认提供商)',
         required: false,
       },
     ],

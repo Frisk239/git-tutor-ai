@@ -1,13 +1,13 @@
 // 文件系统工具集
 // 参考 Cline 的文件系统工具实现 (ReadFileToolHandler, WriteToFileToolHandler)
-import type { ToolDefinition, ToolContext, ToolResult } from "../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../registry.js";
-import { promises as fs } from "fs";
-import { join, resolve, isAbsolute, relative } from "path";
-import { glob } from "glob";
-import { checkPathAccess } from "../../utils/clineignore.js";
-import { retryAsync, RetryPresets } from "../../utils/retry.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../registry.js';
+import { promises as fs } from 'fs';
+import { join, resolve, isAbsolute, relative } from 'path';
+import { glob } from 'glob';
+import { checkPathAccess } from '../../utils/clineignore.js';
+import { retryAsync, RetryPresets } from '../../utils/retry.js';
 
 /**
  * 检查路径是否在项目目录内
@@ -21,10 +21,8 @@ function ensurePathInProject(path: string, projectPath?: string): string {
     const relativePath = relative(resolvedProjectPath, resolvedPath);
 
     // 如果相对路径以 .. 开头,说明在项目外
-    if (relativePath.startsWith("..")) {
-      throw new Error(
-        `Access denied: path "${path}" is outside the project directory`
-      );
+    if (relativePath.startsWith('..')) {
+      throw new Error(`Access denied: path "${path}" is outside the project directory`);
     }
   }
 
@@ -47,7 +45,7 @@ function validatePathAccess(
   if (checkIgnore && projectPath) {
     const access = checkPathAccess(safePath, projectPath);
     if (!access.allowed) {
-      throw new Error(access.reason || "Access denied");
+      throw new Error(access.reason || 'Access denied');
     }
   }
 
@@ -59,36 +57,36 @@ function validatePathAccess(
  * 对应 Cline 的 read_file
  */
 const readFileTool: ToolDefinition = {
-  name: "read_file",
-  displayName: "读取文件内容",
-  description: "读取文件的内容。支持文本、代码等文件。对于大型文件,可以指定读取行数范围。",
-  category: "filesystem",
+  name: 'read_file',
+  displayName: '读取文件内容',
+  description: '读取文件的内容。支持文本、代码等文件。对于大型文件,可以指定读取行数范围。',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "文件路径,可以是相对路径或绝对路径",
+      name: 'path',
+      type: 'string',
+      description: '文件路径,可以是相对路径或绝对路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "encoding",
-      type: "string",
-      description: "文件编码格式",
+      name: 'encoding',
+      type: 'string',
+      description: '文件编码格式',
       required: false,
-      default: "utf-8",
-      enum: ["utf-8", "utf-16le", "latin1"],
+      default: 'utf-8',
+      enum: ['utf-8', 'utf-16le', 'latin1'],
     },
     {
-      name: "startLine",
-      type: "number",
-      description: "起始行号(从1开始,可选)",
+      name: 'startLine',
+      type: 'number',
+      description: '起始行号(从1开始,可选)',
       required: false,
     },
     {
-      name: "endLine",
-      type: "number",
-      description: "结束行号(可选)",
+      name: 'endLine',
+      type: 'number',
+      description: '结束行号(可选)',
       required: false,
     },
   ],
@@ -106,14 +104,14 @@ const readFileTool: ToolDefinition = {
       const safePath = validatePathAccess(filePath, context.projectPath, true);
 
       // 3. 读取文件
-      const content = await fs.readFile(safePath, params.encoding || "utf-8");
+      const content = await fs.readFile(safePath, params.encoding || 'utf-8');
 
       // 4. 处理行数范围
       let resultContent = content;
-      let lineInfo = "";
+      let lineInfo = '';
 
       if (params.startLine || params.endLine) {
-        const lines = content.split("\n");
+        const lines = content.split('\n');
         const start = params.startLine || 1;
         const end = params.endLine || lines.length;
 
@@ -124,13 +122,13 @@ const readFileTool: ToolDefinition = {
           };
         }
 
-        resultContent = lines.slice(start - 1, end).join("\n");
+        resultContent = lines.slice(start - 1, end).join('\n');
         lineInfo = ` (lines ${start}-${end} of ${lines.length})`;
       }
 
       // 5. 获取文件统计信息
       const stats = await fs.stat(safePath);
-      const lines = resultContent.split("\n").length;
+      const lines = resultContent.split('\n').length;
 
       return {
         success: true,
@@ -139,7 +137,7 @@ const readFileTool: ToolDefinition = {
           path: safePath,
           size: stats.size,
           lines: lines,
-          encoding: params.encoding || "utf-8",
+          encoding: params.encoding || 'utf-8',
           lineInfo,
         },
       };
@@ -161,36 +159,36 @@ const readFileTool: ToolDefinition = {
  * 对应 Cline 的 write_to_file
  */
 const writeFileTool: ToolDefinition = {
-  name: "write_file",
-  displayName: "写入文件",
-  description: "创建新文件或覆盖现有文件。如果文件不存在会自动创建。如果目录不存在会自动创建。",
-  category: "filesystem",
+  name: 'write_file',
+  displayName: '写入文件',
+  description: '创建新文件或覆盖现有文件。如果文件不存在会自动创建。如果目录不存在会自动创建。',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "文件路径",
+      name: 'path',
+      type: 'string',
+      description: '文件路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "content",
-      type: "string",
-      description: "要写入的文件内容",
+      name: 'content',
+      type: 'string',
+      description: '要写入的文件内容',
       required: true,
     },
     {
-      name: "encoding",
-      type: "string",
-      description: "文件编码格式",
+      name: 'encoding',
+      type: 'string',
+      description: '文件编码格式',
       required: false,
-      default: "utf-8",
-      enum: ["utf-8", "utf-16le", "latin1"],
+      default: 'utf-8',
+      enum: ['utf-8', 'utf-16le', 'latin1'],
     },
     {
-      name: "createDirs",
-      type: "boolean",
-      description: "是否自动创建目录",
+      name: 'createDirs',
+      type: 'boolean',
+      description: '是否自动创建目录',
       required: false,
       default: true,
     },
@@ -210,26 +208,26 @@ const writeFileTool: ToolDefinition = {
 
       // 3. 创建目录(如果需要)
       if (params.createDirs !== false) {
-        const dir = join(safePath, "..");
+        const dir = join(safePath, '..');
         await fs.mkdir(dir, { recursive: true });
       }
 
       // 4. 检查文件是否已存在
-      let existingContent = "";
+      let existingContent = '';
       let isOverwrite = false;
       try {
-        existingContent = await fs.readFile(safePath, "utf-8");
+        existingContent = await fs.readFile(safePath, 'utf-8');
         isOverwrite = true;
       } catch {
         // 文件不存在,这是新文件
       }
 
       // 5. 写入文件
-      await fs.writeFile(safePath, params.content, params.encoding || "utf-8");
+      await fs.writeFile(safePath, params.content, params.encoding || 'utf-8');
 
       // 6. 获取文件统计信息
       const stats = await fs.stat(safePath);
-      const lines = params.content.split("\n").length;
+      const lines = params.content.split('\n').length;
 
       return {
         success: true,
@@ -238,9 +236,7 @@ const writeFileTool: ToolDefinition = {
           size: stats.size,
           lines: lines,
           isOverwrite,
-          message: isOverwrite
-            ? "File overwritten successfully"
-            : "File created successfully",
+          message: isOverwrite ? 'File overwritten successfully' : 'File created successfully',
         },
       };
     } catch (error: any) {
@@ -261,34 +257,34 @@ const writeFileTool: ToolDefinition = {
  * 对应 Cline 的 replace_in_file
  */
 const editFileTool: ToolDefinition = {
-  name: "edit_file",
-  displayName: "编辑文件",
-  description: "通过精确匹配旧内容来替换文件中的部分内容。适用于小范围修改。",
-  category: "filesystem",
+  name: 'edit_file',
+  displayName: '编辑文件',
+  description: '通过精确匹配旧内容来替换文件中的部分内容。适用于小范围修改。',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "文件路径",
+      name: 'path',
+      type: 'string',
+      description: '文件路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "oldContent",
-      type: "string",
-      description: "要替换的旧内容(必须精确匹配)",
-      required: true,
-    },
-    {
-      name: "newContent",
-      type: "string",
-      description: "新内容",
+      name: 'oldContent',
+      type: 'string',
+      description: '要替换的旧内容(必须精确匹配)',
       required: true,
     },
     {
-      name: "replaceAll",
-      type: "boolean",
-      description: "是否替换所有匹配项(默认只替换第一个)",
+      name: 'newContent',
+      type: 'string',
+      description: '新内容',
+      required: true,
+    },
+    {
+      name: 'replaceAll',
+      type: 'boolean',
+      description: '是否替换所有匹配项(默认只替换第一个)',
       required: false,
       default: false,
     },
@@ -307,10 +303,10 @@ const editFileTool: ToolDefinition = {
       const safePath = validatePathAccess(filePath, context.projectPath, true);
 
       // 3. 读取文件
-      const content = await fs.readFile(safePath, "utf-8");
+      const content = await fs.readFile(safePath, 'utf-8');
 
       // 4. 执行替换
-      let newContent = "";
+      let newContent = '';
       let replaceCount = 0;
 
       if (params.replaceAll) {
@@ -320,7 +316,7 @@ const editFileTool: ToolDefinition = {
         if (replaceCount === 0) {
           return {
             success: false,
-            error: "Old content not found in file",
+            error: 'Old content not found in file',
             metadata: { path: safePath },
           };
         }
@@ -330,7 +326,7 @@ const editFileTool: ToolDefinition = {
         if (!content.includes(params.oldContent)) {
           return {
             success: false,
-            error: "Old content not found in file",
+            error: 'Old content not found in file',
             metadata: { path: safePath },
           };
         }
@@ -339,7 +335,7 @@ const editFileTool: ToolDefinition = {
       }
 
       // 5. 写入文件
-      await fs.writeFile(safePath, newContent, "utf-8");
+      await fs.writeFile(safePath, newContent, 'utf-8');
 
       return {
         success: true,
@@ -367,43 +363,43 @@ const editFileTool: ToolDefinition = {
  * 对应 Cline 的 list_files
  */
 const listFilesTool: ToolDefinition = {
-  name: "list_files",
-  displayName: "列出目录文件",
-  description: "列出目录中的文件和子目录。支持递归列出和模式匹配。",
-  category: "filesystem",
+  name: 'list_files',
+  displayName: '列出目录文件',
+  description: '列出目录中的文件和子目录。支持递归列出和模式匹配。',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "目录路径,默认为当前项目根目录",
+      name: 'path',
+      type: 'string',
+      description: '目录路径,默认为当前项目根目录',
       required: false,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "recursive",
-      type: "boolean",
-      description: "是否递归列出子目录",
+      name: 'recursive',
+      type: 'boolean',
+      description: '是否递归列出子目录',
       required: false,
       default: false,
     },
     {
-      name: "pattern",
-      type: "string",
-      description: "文件匹配模式(例如 *.ts, **/*.js)",
+      name: 'pattern',
+      type: 'string',
+      description: '文件匹配模式(例如 *.ts, **/*.js)',
       required: false,
-      default: "*",
+      default: '*',
     },
     {
-      name: "excludePatterns",
-      type: "array",
-      description: "排除模式列表",
+      name: 'excludePatterns',
+      type: 'array',
+      description: '排除模式列表',
       required: false,
       default: [],
     },
     {
-      name: "includeStats",
-      type: "boolean",
-      description: "是否包含文件统计信息",
+      name: 'includeStats',
+      type: 'boolean',
+      description: '是否包含文件统计信息',
       required: false,
       default: false,
     },
@@ -424,7 +420,7 @@ const listFilesTool: ToolDefinition = {
       const safePath = validatePathAccess(dirPath, context.projectPath, true);
 
       // 3. 使用 glob 匹配文件
-      const files = await glob(params.pattern || "*", {
+      const files = await glob(params.pattern || '*', {
         cwd: safePath,
         recursive: params.recursive || false,
         ignore: params.excludePatterns || [],
@@ -482,42 +478,42 @@ const listFilesTool: ToolDefinition = {
  * 对应 Cline 的 search_files
  */
 const searchFilesTool: ToolDefinition = {
-  name: "search_files",
-  displayName: "搜索文件内容",
-  description: "在文件中搜索文本模式。支持正则表达式和多个文件。",
-  category: "filesystem",
+  name: 'search_files',
+  displayName: '搜索文件内容',
+  description: '在文件中搜索文本模式。支持正则表达式和多个文件。',
+  category: 'filesystem',
   parameters: [
     {
-      name: "pattern",
-      type: "string",
-      description: "搜索模式(支持正则表达式)",
+      name: 'pattern',
+      type: 'string',
+      description: '搜索模式(支持正则表达式)',
       required: true,
     },
     {
-      name: "path",
-      type: "string",
-      description: "搜索目录,默认为项目根目录",
+      name: 'path',
+      type: 'string',
+      description: '搜索目录,默认为项目根目录',
       required: false,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "excludePatterns",
-      type: "array",
-      description: "排除的文件模式列表",
+      name: 'excludePatterns',
+      type: 'array',
+      description: '排除的文件模式列表',
       required: false,
-      default: ["node_modules/**", ".git/**", "dist/**", "build/**"],
+      default: ['node_modules/**', '.git/**', 'dist/**', 'build/**'],
     },
     {
-      name: "caseSensitive",
-      type: "boolean",
-      description: "是否区分大小写",
+      name: 'caseSensitive',
+      type: 'boolean',
+      description: '是否区分大小写',
       required: false,
       default: false,
     },
     {
-      name: "maxResults",
-      type: "number",
-      description: "最大结果数",
+      name: 'maxResults',
+      type: 'number',
+      description: '最大结果数',
       required: false,
       default: 100,
     },
@@ -527,7 +523,7 @@ const searchFilesTool: ToolDefinition = {
 
   handler: async (context: ToolContext, params: Record<string, any>): Promise<ToolResult> => {
     try {
-      const { readFile } = await import("fs/promises");
+      const { readFile } = await import('fs/promises');
 
       // 1. 解析路径
       const searchPath = params.path
@@ -540,7 +536,7 @@ const searchFilesTool: ToolDefinition = {
       const safePath = ensurePathInProject(searchPath, context.projectPath);
 
       // 3. 构建正则表达式
-      const flags = params.caseSensitive ? "g" : "gi";
+      const flags = params.caseSensitive ? 'g' : 'gi';
       let regex: RegExp;
       try {
         regex = new RegExp(params.pattern, flags);
@@ -552,14 +548,9 @@ const searchFilesTool: ToolDefinition = {
       }
 
       // 4. 使用 glob 查找所有文件
-      const files = await glob("**/*", {
+      const files = await glob('**/*', {
         cwd: safePath,
-        ignore: params.excludePatterns || [
-          "node_modules/**",
-          ".git/**",
-          "dist/**",
-          "build/**",
-        ],
+        ignore: params.excludePatterns || ['node_modules/**', '.git/**', 'dist/**', 'build/**'],
         nodir: true,
         absolute: true,
       });
@@ -583,8 +574,8 @@ const searchFilesTool: ToolDefinition = {
         if (totalMatches >= maxResults) break;
 
         try {
-          const content = await readFile(safeFile, "utf-8");
-          const lines = content.split("\n");
+          const content = await readFile(safeFile, 'utf-8');
+          const lines = content.split('\n');
           const matches: Array<{ line: number; content: string }> = [];
 
           for (let i = 0; i < lines.length; i++) {
@@ -636,22 +627,22 @@ const searchFilesTool: ToolDefinition = {
  * 删除文件工具
  */
 const deleteFileTool: ToolDefinition = {
-  name: "delete_file",
-  displayName: "删除文件",
-  description: "删除指定的文件或目录。注意:此操作不可撤销!",
-  category: "filesystem",
+  name: 'delete_file',
+  displayName: '删除文件',
+  description: '删除指定的文件或目录。注意:此操作不可撤销!',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "要删除的文件或目录路径",
+      name: 'path',
+      type: 'string',
+      description: '要删除的文件或目录路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "recursive",
-      type: "boolean",
-      description: "是否递归删除目录及其内容",
+      name: 'recursive',
+      type: 'boolean',
+      description: '是否递归删除目录及其内容',
       required: false,
       default: false,
     },
@@ -688,8 +679,8 @@ const deleteFileTool: ToolDefinition = {
         success: true,
         data: {
           path: safePath,
-          type: stats.isDirectory() ? "directory" : "file",
-          message: "Deleted successfully",
+          type: stats.isDirectory() ? 'directory' : 'file',
+          message: 'Deleted successfully',
         },
       };
     } catch (error: any) {
@@ -709,29 +700,29 @@ const deleteFileTool: ToolDefinition = {
  * 移动文件工具
  */
 const moveFileTool: ToolDefinition = {
-  name: "move_file",
-  displayName: "移动文件",
-  description: "移动或重命名文件或目录",
-  category: "filesystem",
+  name: 'move_file',
+  displayName: '移动文件',
+  description: '移动或重命名文件或目录',
+  category: 'filesystem',
   parameters: [
     {
-      name: "source",
-      type: "string",
-      description: "源文件路径",
+      name: 'source',
+      type: 'string',
+      description: '源文件路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "destination",
-      type: "string",
-      description: "目标文件路径",
+      name: 'destination',
+      type: 'string',
+      description: '目标文件路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "overwrite",
-      type: "boolean",
-      description: "是否覆盖已存在的文件",
+      name: 'overwrite',
+      type: 'boolean',
+      description: '是否覆盖已存在的文件',
       required: false,
       default: false,
     },
@@ -763,7 +754,7 @@ const moveFileTool: ToolDefinition = {
         if (!params.overwrite) {
           return {
             success: false,
-            error: "Destination file already exists. Set overwrite=true to replace it.",
+            error: 'Destination file already exists. Set overwrite=true to replace it.',
           };
         }
       } catch {
@@ -778,7 +769,7 @@ const moveFileTool: ToolDefinition = {
         data: {
           source: safeSource,
           destination: safeDest,
-          message: "Moved successfully",
+          message: 'Moved successfully',
         },
       };
     } catch (error: any) {
@@ -799,29 +790,29 @@ const moveFileTool: ToolDefinition = {
  * 复制文件工具
  */
 const copyFileTool: ToolDefinition = {
-  name: "copy_file",
-  displayName: "复制文件",
-  description: "复制文件或目录",
-  category: "filesystem",
+  name: 'copy_file',
+  displayName: '复制文件',
+  description: '复制文件或目录',
+  category: 'filesystem',
   parameters: [
     {
-      name: "source",
-      type: "string",
-      description: "源文件路径",
+      name: 'source',
+      type: 'string',
+      description: '源文件路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "destination",
-      type: "string",
-      description: "目标文件路径",
+      name: 'destination',
+      type: 'string',
+      description: '目标文件路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "overwrite",
-      type: "boolean",
-      description: "是否覆盖已存在的文件",
+      name: 'overwrite',
+      type: 'boolean',
+      description: '是否覆盖已存在的文件',
       required: false,
       default: false,
     },
@@ -853,7 +844,7 @@ const copyFileTool: ToolDefinition = {
         if (!params.overwrite) {
           return {
             success: false,
-            error: "Destination file already exists. Set overwrite=true to replace it.",
+            error: 'Destination file already exists. Set overwrite=true to replace it.',
           };
         }
       } catch {
@@ -875,8 +866,8 @@ const copyFileTool: ToolDefinition = {
         data: {
           source: safeSource,
           destination: safeDest,
-          type: stats.isDirectory() ? "directory" : "file",
-          message: "Copied successfully",
+          type: stats.isDirectory() ? 'directory' : 'file',
+          message: 'Copied successfully',
         },
       };
     } catch (error: any) {
@@ -897,22 +888,22 @@ const copyFileTool: ToolDefinition = {
  * 创建目录工具
  */
 const createDirectoryTool: ToolDefinition = {
-  name: "create_directory",
-  displayName: "创建目录",
-  description: "创建新目录,可选择递归创建父目录",
-  category: "filesystem",
+  name: 'create_directory',
+  displayName: '创建目录',
+  description: '创建新目录,可选择递归创建父目录',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "目录路径",
+      name: 'path',
+      type: 'string',
+      description: '目录路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
     {
-      name: "recursive",
-      type: "boolean",
-      description: "是否递归创建父目录",
+      name: 'recursive',
+      type: 'boolean',
+      description: '是否递归创建父目录',
       required: false,
       default: true,
     },
@@ -937,7 +928,7 @@ const createDirectoryTool: ToolDefinition = {
         success: true,
         data: {
           path: safePath,
-          message: "Directory created successfully",
+          message: 'Directory created successfully',
         },
       };
     } catch (error: any) {
@@ -957,17 +948,17 @@ const createDirectoryTool: ToolDefinition = {
  * 获取文件统计信息工具
  */
 const getFileStatsTool: ToolDefinition = {
-  name: "get_file_stats",
-  displayName: "获取文件统计信息",
-  description: "获取文件的详细统计信息,包括大小、创建时间、修改时间等",
-  category: "filesystem",
+  name: 'get_file_stats',
+  displayName: '获取文件统计信息',
+  description: '获取文件的详细统计信息,包括大小、创建时间、修改时间等',
+  category: 'filesystem',
   parameters: [
     {
-      name: "path",
-      type: "string",
-      description: "文件或目录路径",
+      name: 'path',
+      type: 'string',
+      description: '文件或目录路径',
       required: true,
-      format: "file-path",
+      format: 'file-path',
     },
   ],
   permissions: [ToolPermission.READ],
@@ -990,7 +981,7 @@ const getFileStatsTool: ToolDefinition = {
         success: true,
         data: {
           path: safePath,
-          type: stats.isDirectory() ? "directory" : "file",
+          type: stats.isDirectory() ? 'directory' : 'file',
           size: stats.size,
           created: stats.birthtime,
           modified: stats.mtime,

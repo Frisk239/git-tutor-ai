@@ -5,14 +5,8 @@
  * 使用互斥锁机制确保状态更新的线程安全
  */
 
-import { Mutex } from "async-mutex";
-import {
-  MessageContent,
-  AssistantContent,
-  UserContent,
-  TaskStatus,
-  TaskPhase,
-} from "../types.js";
+import { Mutex } from 'async-mutex';
+import { MessageContent, AssistantContent, UserContent, TaskStatus, TaskPhase } from '../types.js';
 
 // ============================================================================
 // 状态接口
@@ -83,7 +77,7 @@ export class TaskState {
   public didAlreadyUseTool = false;
 
   /** 上一个工具名称 */
-  public lastToolName: string = "";
+  public lastToolName: string = '';
 
   /** 连续错误计数 */
   public consecutiveMistakeCount = 0;
@@ -397,7 +391,7 @@ export class TaskState {
     const allowed = validTransitions[oldStatus];
     if (allowed && !allowed.includes(newStatus)) {
       throw new Error(
-        `Invalid status transition: ${oldStatus} -> ${newStatus}. Allowed transitions: ${allowed.join(", ")}`
+        `Invalid status transition: ${oldStatus} -> ${newStatus}. Allowed transitions: ${allowed.join(', ')}`
       );
     }
   }
@@ -410,10 +404,7 @@ export class TaskState {
    * 检查任务是否处于活动状态
    */
   isActive(): boolean {
-    return (
-      this._status === TaskStatus.RUNNING ||
-      this._status === TaskStatus.PAUSED
-    );
+    return this._status === TaskStatus.RUNNING || this._status === TaskStatus.PAUSED;
   }
 
   /**
@@ -431,11 +422,7 @@ export class TaskState {
    * 检查是否可以执行新操作
    */
   canExecute(): boolean {
-    return (
-      this._status === TaskStatus.RUNNING &&
-      !this.abort &&
-      !this.didCompleteReadingStream
-    );
+    return this._status === TaskStatus.RUNNING && !this.abort && !this.didCompleteReadingStream;
   }
 
   /**
@@ -452,8 +439,7 @@ export class TaskState {
     return {
       status: this._status,
       phase: this._phase,
-      messageCount:
-        this.assistantMessageContent.length + this.userMessageContent.length,
+      messageCount: this.assistantMessageContent.length + this.userMessageContent.length,
       isStreaming: this.isStreaming,
       abort: this.abort,
       consecutiveMistakes: this.consecutiveMistakeCount,

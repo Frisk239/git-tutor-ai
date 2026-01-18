@@ -4,24 +4,24 @@
  * 参考 Cline 实现：cline/src/core/task/tools/handlers/listCodeDefinitionNames.ts
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../../registry.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../../registry.js';
 
 /**
  * 代码定义类型
  */
 export enum DefinitionType {
-  FUNCTION = "function",
-  CLASS = "class",
-  METHOD = "method",
-  VARIABLE = "variable",
-  CONSTANT = "constant",
-  INTERFACE = "interface",
-  TYPE_ALIAS = "type_alias",
-  ENUM = "enum",
-  IMPORT = "import",
-  EXPORT = "export",
+  FUNCTION = 'function',
+  CLASS = 'class',
+  METHOD = 'method',
+  VARIABLE = 'variable',
+  CONSTANT = 'constant',
+  INTERFACE = 'interface',
+  TYPE_ALIAS = 'type_alias',
+  ENUM = 'enum',
+  IMPORT = 'import',
+  EXPORT = 'export',
 }
 
 /**
@@ -59,16 +59,16 @@ class RegexCodeParser {
   detectLanguage(filePath: string): string {
     const ext = filePath.split('.').pop()?.toLowerCase();
     const languageMap: Record<string, string> = {
-      'ts': 'typescript',
-      'tsx': 'typescript',
-      'js': 'javascript',
-      'jsx': 'javascript',
-      'py': 'python',
-      'json': 'json',
-      'sh': 'bash',
-      'yaml': 'yaml',
-      'yml': 'yaml',
-      'md': 'markdown',
+      ts: 'typescript',
+      tsx: 'typescript',
+      js: 'javascript',
+      jsx: 'javascript',
+      py: 'python',
+      json: 'json',
+      sh: 'bash',
+      yaml: 'yaml',
+      yml: 'yaml',
+      md: 'markdown',
     };
     return languageMap[ext || ''] || 'unknown';
   }
@@ -89,7 +89,8 @@ class RegexCodeParser {
       },
       // 箭头函数
       {
-        regex: /^(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::\s*\w+)?\s*=\s*(?:async\s+)?\([^)]*\)\s*=>/gm,
+        regex:
+          /^(?:export\s+)?(?:const|let|var)\s+(\w+)\s*(?::\s*\w+)?\s*=\s*(?:async\s+)?\([^)]*\)\s*=>/gm,
         type: DefinitionType.FUNCTION,
       },
       // 类定义
@@ -130,9 +131,9 @@ class RegexCodeParser {
     ];
 
     lines.forEach((line, index) => {
-      patterns.forEach(pattern => {
+      patterns.forEach((pattern) => {
         const matches = [...line.matchAll(pattern.regex)];
-        matches.forEach(match => {
+        matches.forEach((match) => {
           definitions.push({
             name: match[1] || match[2] || match[3] || 'unknown',
             type: pattern.type,
@@ -178,9 +179,9 @@ class RegexCodeParser {
     ];
 
     lines.forEach((line, index) => {
-      patterns.forEach(pattern => {
+      patterns.forEach((pattern) => {
         const matches = [...line.matchAll(pattern.regex)];
-        matches.forEach(match => {
+        matches.forEach((match) => {
           definitions.push({
             name: match[1],
             type: pattern.type,
@@ -217,27 +218,28 @@ class RegexCodeParser {
  * LIST_CODE_DEF 工具定义
  */
 const listCodeDefTool: ToolDefinition = {
-  name: "list_code_def",
-  displayName: "列出代码定义",
-  description: "列出文件中的代码定义，包括函数、类、变量、导入等。支持 TypeScript、JavaScript、Python 等多种语言。",
-  category: "code-analysis",
+  name: 'list_code_def',
+  displayName: '列出代码定义',
+  description:
+    '列出文件中的代码定义，包括函数、类、变量、导入等。支持 TypeScript、JavaScript、Python 等多种语言。',
+  category: 'code-analysis',
   parameters: [
     {
-      name: "file_path",
-      type: "string",
-      description: "要分析的文件路径",
+      name: 'file_path',
+      type: 'string',
+      description: '要分析的文件路径',
       required: true,
     },
     {
-      name: "limit",
-      type: "number",
-      description: "返回的最大定义数量（默认：全部）",
+      name: 'limit',
+      type: 'number',
+      description: '返回的最大定义数量（默认：全部）',
       required: false,
     },
     {
-      name: "types",
-      type: "array",
-      description: "筛选特定类型的定义",
+      name: 'types',
+      type: 'array',
+      description: '筛选特定类型的定义',
       required: false,
     },
   ],
@@ -249,8 +251,8 @@ const listCodeDefTool: ToolDefinition = {
       const { file_path, limit, types } = params as ListCodeDefParams;
 
       // 1. 读取文件内容
-      const fs = await import("node:fs/promises");
-      const content = await fs.readFile(file_path, "utf-8");
+      const fs = await import('node:fs/promises');
+      const content = await fs.readFile(file_path, 'utf-8');
 
       // 2. 解析代码定义
       const parser = new RegexCodeParser();
@@ -258,7 +260,7 @@ const listCodeDefTool: ToolDefinition = {
 
       // 3. 按类型筛选
       if (types && types.length > 0) {
-        definitions = definitions.filter(def => types.includes(def.type));
+        definitions = definitions.filter((def) => types.includes(def.type));
       }
 
       // 4. 限制数量
@@ -269,10 +271,13 @@ const listCodeDefTool: ToolDefinition = {
       // 5. 统计信息
       const stats = {
         total: definitions.length,
-        byType: definitions.reduce((acc, def) => {
-          acc[def.type] = (acc[def.type] || 0) + 1;
-          return acc;
-        }, {} as Record<string, number>),
+        byType: definitions.reduce(
+          (acc, def) => {
+            acc[def.type] = (acc[def.type] || 0) + 1;
+            return acc;
+          },
+          {} as Record<string, number>
+        ),
       };
 
       return {

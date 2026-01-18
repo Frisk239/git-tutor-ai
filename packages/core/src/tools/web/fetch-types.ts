@@ -11,7 +11,7 @@ export interface WebFetchOptions {
   extractLinks?: boolean; // 是否提取链接列表
   withImagesSummary?: boolean; // 是否包含图片摘要
   withLinksSummary?: boolean; // 是否包含链接摘要
-  returnFormat?: "markdown" | "text" | "html"; // 返回格式
+  returnFormat?: 'markdown' | 'text' | 'html'; // 返回格式
 }
 
 /**
@@ -40,7 +40,7 @@ export class WebFetchError extends Error {
     public url?: string
   ) {
     super(message);
-    this.name = "WebFetchError";
+    this.name = 'WebFetchError';
   }
 }
 

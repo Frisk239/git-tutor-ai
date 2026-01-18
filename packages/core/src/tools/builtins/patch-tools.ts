@@ -1,13 +1,13 @@
 // 补丁工具
 // 参考 Cline 的 apply_patch 工具实现
 
-import { ToolDefinition, ToolResult, ToolContext } from "../types.js";
-import { toolRegistry } from "../registry.js";
-import { parsePatch, applyPatch, PATCH_MARKERS, PatchError } from "../patch.js";
-import { Logger } from "../../logging/logger.js";
-import { readFile } from "fs/promises";
-import { resolve } from "path";
-import { existsSync } from "fs";
+import { ToolDefinition, ToolResult, ToolContext } from '../types.js';
+import { toolRegistry } from '../registry.js';
+import { parsePatch, applyPatch, PATCH_MARKERS, PatchError } from '../patch.js';
+import { Logger } from '../../logging/logger.js';
+import { readFile } from 'fs/promises';
+import { resolve } from 'path';
+import { existsSync } from 'fs';
 
 /**
  * 应用补丁工具
@@ -19,12 +19,12 @@ export async function applyPatchTool(
     workspace?: string; // 工作区路径(可选,默认使用当前工作目录)
   }
 ): Promise<ToolResult> {
-  const logger = new Logger("apply_patch");
+  const logger = new Logger('apply_patch');
 
   try {
     const { patch, workspace = process.cwd() } = params;
 
-    logger.info("Applying patch", {
+    logger.info('Applying patch', {
       workspace,
       patchLength: patch.length,
     });
@@ -47,7 +47,7 @@ export async function applyPatchTool(
     // 解析补丁
     const { patch: parsedPatch, fuzz } = parsePatch(preprocessed, existingFiles);
 
-    logger.info("Patch parsed", {
+    logger.info('Patch parsed', {
       actions: Object.keys(parsedPatch.actions).length,
       fuzz,
     });
@@ -67,11 +67,11 @@ export async function applyPatchTool(
       },
     };
   } catch (error: any) {
-    logger.error("Failed to apply patch", { error });
+    logger.error('Failed to apply patch', { error });
 
     return {
       success: false,
-      error: error.message || "Failed to apply patch",
+      error: error.message || 'Failed to apply patch',
       metadata: {
         code: error.code,
       },
@@ -83,7 +83,7 @@ export async function applyPatchTool(
  * 预处理补丁文本
  */
 function preprocessPatch(patch: string): string {
-  const lines = patch.split("\n");
+  const lines = patch.split('\n');
 
   // 移除可能的 Bash 包装器
   let startIndex = 0;
@@ -100,12 +100,10 @@ function preprocessPatch(patch: string): string {
     .filter((line) => {
       // 移除 heredoc 相关行
       return (
-        !line.includes("apply_patch <<") &&
-        !line.includes('<<"EOF"') &&
-        !line.trim() === "EOF"
+        !line.includes('apply_patch <<') && !line.includes('<<"EOF"') && !line.trim() === 'EOF'
       );
     })
-    .join("\n");
+    .join('\n');
 
   return cleaned;
 }
@@ -115,7 +113,7 @@ function preprocessPatch(patch: string): string {
  */
 function extractFilePaths(patch: string): string[] {
   const paths: string[] = [];
-  const lines = patch.split("\n");
+  const lines = patch.split('\n');
 
   for (const line of lines) {
     if (line.startsWith(PATCH_MARKERS.ADD)) {
@@ -136,13 +134,10 @@ function extractFilePaths(patch: string): string[] {
 /**
  * 生成变更摘要
  */
-function generateChangeSummary(
-  results: Record<string, any>,
-  fuzz: number
-): string {
+function generateChangeSummary(results: Record<string, any>, fuzz: number): string {
   const lines: string[] = [];
 
-  lines.push("# 补丁应用摘要\n");
+  lines.push('# 补丁应用摘要\n');
 
   if (fuzz > 0) {
     lines.push(`**注意**: 补丁使用了模糊匹配 (fuzz factor: ${fuzz})\n`);
@@ -155,12 +150,12 @@ function generateChangeSummary(
     if (result.deleted) {
       lines.push(`- 删除: ${path}`);
     } else if (result.finalContent !== undefined) {
-      const linesCount = result.finalContent.split("\n").length;
+      const linesCount = result.finalContent.split('\n').length;
       lines.push(`- 更新: ${path} (${linesCount} 行)`);
     }
   }
 
-  return lines.join("\n");
+  return lines.join('\n');
 }
 
 /**
@@ -168,8 +163,8 @@ function generateChangeSummary(
  */
 export function registerPatchTools(): void {
   const applyPatchDefinition: ToolDefinition = {
-    name: "apply_patch",
-    displayName: "应用补丁",
+    name: 'apply_patch',
+    displayName: '应用补丁',
     description: `应用统一的补丁文件来修改代码
 
 支持三种操作:
@@ -191,18 +186,18 @@ export function registerPatchTools(): void {
 - 支持文件移动
 - Unicode 和转义字符支持`,
 
-    category: "filesystem",
+    category: 'filesystem',
     parameters: [
       {
-        name: "patch",
-        type: "string",
-        description: "补丁文本,遵循 Cline 补丁格式",
+        name: 'patch',
+        type: 'string',
+        description: '补丁文本,遵循 Cline 补丁格式',
         required: true,
       },
       {
-        name: "workspace",
-        type: "string",
-        description: "工作区路径(可选,默认使用当前工作目录)",
+        name: 'workspace',
+        type: 'string',
+        description: '工作区路径(可选,默认使用当前工作目录)',
         required: false,
       },
     ],

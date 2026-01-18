@@ -1,7 +1,7 @@
 // Anthropic Claude 处理器
-import Anthropic from "@anthropic-ai/sdk";
-import { BaseAIHandler } from "./base.js";
-import type { AIRequestOptions, AIResponse } from "../providers.js";
+import Anthropic from '@anthropic-ai/sdk';
+import { BaseAIHandler } from './base.js';
+import type { AIRequestOptions, AIResponse } from '../providers.js';
 
 export class AnthropicHandler extends BaseAIHandler {
   private client: Anthropic | null = null;
@@ -26,15 +26,15 @@ export class AnthropicHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): Promise<AIResponse> {
     if (!this.client) {
-      throw new Error("Anthropic client is not initialized");
+      throw new Error('Anthropic client is not initialized');
     }
 
     // 转换消息格式
-    const systemPrompt = options.systemPrompt || "";
+    const systemPrompt = options.systemPrompt || '';
     const anthropicMessages = messages
-      .filter((m) => m.role !== "system")
+      .filter((m) => m.role !== 'system')
       .map((m) => ({
-        role: m.role as "user" | "assistant",
+        role: m.role as 'user' | 'assistant',
         content: m.content,
       }));
 
@@ -47,9 +47,9 @@ export class AnthropicHandler extends BaseAIHandler {
     });
 
     return {
-      content: response.content[0]?.type === "text" ? response.content[0].text : "",
-      role: "assistant",
-      toolCalls: response.stop_reason === "tool_use" ? response.content : undefined,
+      content: response.content[0]?.type === 'text' ? response.content[0].text : '',
+      role: 'assistant',
+      toolCalls: response.stop_reason === 'tool_use' ? response.content : undefined,
       usage: {
         promptTokens: response.usage.input_tokens,
         completionTokens: response.usage.output_tokens,
@@ -66,14 +66,14 @@ export class AnthropicHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): AsyncGenerator<string> {
     if (!this.client) {
-      throw new Error("Anthropic client is not initialized");
+      throw new Error('Anthropic client is not initialized');
     }
 
-    const systemPrompt = options.systemPrompt || "";
+    const systemPrompt = options.systemPrompt || '';
     const anthropicMessages = messages
-      .filter((m) => m.role !== "system")
+      .filter((m) => m.role !== 'system')
       .map((m) => ({
-        role: m.role as "user" | "assistant",
+        role: m.role as 'user' | 'assistant',
         content: m.content,
       }));
 
@@ -87,7 +87,7 @@ export class AnthropicHandler extends BaseAIHandler {
     });
 
     for await (const event of stream) {
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+      if (event.type === 'content_block_delta' && event.delta.type === 'text_delta') {
         yield event.delta.text;
       }
     }

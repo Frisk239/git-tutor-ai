@@ -1,9 +1,9 @@
 // .clineignore 文件解析和管理
 // 参考 Cline 的 ClineIgnoreController 实现
 
-import { readFileSync, existsSync } from "fs";
-import { join, resolve } from "path";
-import { minimatch } from "minimatch";
+import { readFileSync, existsSync } from 'fs';
+import { join, resolve } from 'path';
+import { minimatch } from 'minimatch';
 
 /**
  * .clineignore 管理器
@@ -16,7 +16,7 @@ export class ClineIgnoreManager {
 
   constructor(projectPath: string) {
     this.projectPath = resolve(projectPath);
-    this.ignoreFilePath = join(this.projectPath, ".clineignore");
+    this.ignoreFilePath = join(this.projectPath, '.clineignore');
     this.load();
   }
 
@@ -31,7 +31,7 @@ export class ClineIgnoreManager {
     }
 
     try {
-      const content = readFileSync(this.ignoreFilePath, "utf-8");
+      const content = readFileSync(this.ignoreFilePath, 'utf-8');
       this.ignorePatterns = this.parseIgnoreFile(content);
     } catch (error: any) {
       console.error(`Failed to load .clineignore: ${error.message}`);
@@ -45,11 +45,11 @@ export class ClineIgnoreManager {
   private parseIgnoreFile(content: string): string[] {
     const patterns: string[] = [];
 
-    for (const line of content.split("\n")) {
+    for (const line of content.split('\n')) {
       const trimmed = line.trim();
 
       // 跳过空行和注释
-      if (!trimmed || trimmed.startsWith("#")) {
+      if (!trimmed || trimmed.startsWith('#')) {
         continue;
       }
 
@@ -65,49 +65,49 @@ export class ClineIgnoreManager {
   private getDefaultIgnorePatterns(): string[] {
     return [
       // 敏感配置
-      ".env",
-      ".env.*",
-      "*.key",
-      "*.pem",
-      "id_rsa*",
-      ".git",
+      '.env',
+      '.env.*',
+      '*.key',
+      '*.pem',
+      'id_rsa*',
+      '.git',
 
       // 依赖和构建产物
-      "node_modules/**",
-      "dist/**",
-      "build/**",
-      ".next/**",
-      ".nuxt/**",
-      "out/**",
-      "target/**",
+      'node_modules/**',
+      'dist/**',
+      'build/**',
+      '.next/**',
+      '.nuxt/**',
+      'out/**',
+      'target/**',
 
       // IDE 配置
-      ".vscode/**",
-      ".idea/**",
-      "*.swp",
-      "*.swo",
+      '.vscode/**',
+      '.idea/**',
+      '*.swp',
+      '*.swo',
 
       // 系统文件
-      ".DS_Store",
-      "Thumbs.db",
-      ".gitignore",
-      ".clineignore",
+      '.DS_Store',
+      'Thumbs.db',
+      '.gitignore',
+      '.clineignore',
 
       // 大文件
-      "*.zip",
-      "*.tar",
-      "*.tar.gz",
-      "*.rar",
-      "*.7z",
+      '*.zip',
+      '*.tar',
+      '*.tar.gz',
+      '*.rar',
+      '*.7z',
 
       // 数据库
-      "*.db",
-      "*.sqlite",
-      "*.sqlite3",
+      '*.db',
+      '*.sqlite',
+      '*.sqlite3',
 
       // 日志
-      "*.log",
-      "logs/**",
+      '*.log',
+      'logs/**',
     ];
   }
 
@@ -119,7 +119,7 @@ export class ClineIgnoreManager {
     const relativePath = relative(this.projectPath, resolvedPath);
 
     // 标准化路径为正斜杠 (用于跨平台匹配)
-    const normalizedPath = relativePath.replace(/\\/g, "/");
+    const normalizedPath = relativePath.replace(/\\/g, '/');
 
     for (const pattern of this.ignorePatterns) {
       if (this.matchPattern(normalizedPath, pattern)) {
@@ -135,24 +135,21 @@ export class ClineIgnoreManager {
    */
   private matchPattern(path: string, pattern: string): boolean {
     // 处理以 / 开头的模式 (只匹配根目录)
-    if (pattern.startsWith("/")) {
-      const rootedPath = path.split("/")[0];
+    if (pattern.startsWith('/')) {
+      const rootedPath = path.split('/')[0];
       return minimatch(rootedPath, pattern.slice(1));
     }
 
     // 处理以 /** 结尾的模式 (匹配目录及所有内容)
-    if (pattern.endsWith("/**")) {
+    if (pattern.endsWith('/**')) {
       const dirPattern = pattern.slice(0, -3);
-      return (
-        minimatch(path, dirPattern) ||
-        path.startsWith(dirPattern + "/")
-      );
+      return minimatch(path, dirPattern) || path.startsWith(dirPattern + '/');
     }
 
     // 处理以 /** 开头的模式 (匹配所有子目录)
-    if (pattern.startsWith("/**/")) {
+    if (pattern.startsWith('/**/')) {
       const patternSuffix = pattern.slice(4);
-      const parts = path.split("/");
+      const parts = path.split('/');
       return parts.some((part) => minimatch(part, patternSuffix));
     }
 
@@ -169,7 +166,7 @@ export class ClineIgnoreManager {
 
     // 检查是否在项目目录内
     const relativePath = relative(this.projectPath, resolvedPath);
-    if (relativePath.startsWith("..")) {
+    if (relativePath.startsWith('..')) {
       return {
         allowed: false,
         reason: `Path "${path}" is outside the project directory`,
@@ -228,9 +225,9 @@ export class ClineIgnoreManager {
    * 保存 .clineignore 文件
    */
   async save(): Promise<void> {
-    const { writeFile } = await import("fs/promises");
-    const content = this.ignorePatterns.join("\n");
-    await writeFile(this.ignoreFilePath, content, "utf-8");
+    const { writeFile } = await import('fs/promises');
+    const content = this.ignorePatterns.join('\n');
+    await writeFile(this.ignoreFilePath, content, 'utf-8');
   }
 }
 

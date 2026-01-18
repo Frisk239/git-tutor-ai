@@ -1,7 +1,7 @@
 // Google Gemini 处理器
-import { GoogleGenerativeAI } from "@google/generative-ai";
-import { BaseAIHandler } from "./base.js";
-import type { AIRequestOptions, AIResponse } from "../providers.js";
+import { GoogleGenerativeAI } from '@google/generative-ai';
+import { BaseAIHandler } from './base.js';
+import type { AIRequestOptions, AIResponse } from '../providers.js';
 
 export class GeminiHandler extends BaseAIHandler {
   private client: GoogleGenerativeAI | null = null;
@@ -23,7 +23,7 @@ export class GeminiHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): Promise<AIResponse> {
     if (!this.client) {
-      throw new Error("Gemini client is not initialized");
+      throw new Error('Gemini client is not initialized');
     }
 
     const model = this.client.getGenerativeModel({
@@ -31,12 +31,10 @@ export class GeminiHandler extends BaseAIHandler {
     });
 
     // 转换消息格式 (Gemini 使用不同的格式)
-    const chatHistory = messages
-      .slice(0, -1)
-      .map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
+    const chatHistory = messages.slice(0, -1).map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
 
     const lastMessage = messages[messages.length - 1];
 
@@ -54,7 +52,7 @@ export class GeminiHandler extends BaseAIHandler {
 
     return {
       content: text,
-      role: "assistant",
+      role: 'assistant',
       usage: {
         promptTokens: response.usageMetadata?.promptTokenCount || 0,
         completionTokens: response.usageMetadata?.candidatesTokenCount || 0,
@@ -68,19 +66,17 @@ export class GeminiHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): AsyncGenerator<string> {
     if (!this.client) {
-      throw new Error("Gemini client is not initialized");
+      throw new Error('Gemini client is not initialized');
     }
 
     const model = this.client.getGenerativeModel({
       model: options.model,
     });
 
-    const chatHistory = messages
-      .slice(0, -1)
-      .map((m) => ({
-        role: m.role === "assistant" ? "model" : "user",
-        parts: [{ text: m.content }],
-      }));
+    const chatHistory = messages.slice(0, -1).map((m) => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
 
     const lastMessage = messages[messages.length - 1];
 

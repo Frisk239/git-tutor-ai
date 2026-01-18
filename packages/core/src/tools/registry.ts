@@ -1,9 +1,5 @@
 // 工具注册表实现
-import type {
-  ToolDefinition,
-  ToolRegistry,
-  ToolCategory,
-} from "./types.js";
+import type { ToolDefinition, ToolRegistry, ToolCategory } from './types.js';
 
 /**
  * 工具注册表实现

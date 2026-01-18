@@ -5,9 +5,9 @@
  * 简化版：使用标准 fetch API，不依赖 Cline 后端服务
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
-import { ToolPermission } from "@git-tutor/shared";
-import { toolRegistry } from "../../registry.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
+import { ToolPermission } from '@git-tutor/shared';
+import { toolRegistry } from '../../registry.js';
 
 /**
  * 网页获取结果
@@ -56,34 +56,34 @@ interface WebFetchParams {
  */
 function extractTextFromHtml(html: string): string {
   // 移除 script 和 style 标签及其内容
-  let text = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "");
-  text = text.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "");
+  let text = html.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+  text = text.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
 
   // 移除 HTML 注释
-  text = text.replace(/<!--[\s\S]*?-->/g, "");
+  text = text.replace(/<!--[\s\S]*?-->/g, '');
 
   // 移除所有 HTML 标签
-  text = text.replace(/<[^>]+>/g, " ");
+  text = text.replace(/<[^>]+>/g, ' ');
 
   // 解码 HTML 实体
   const htmlEntities: Record<string, string> = {
-    "&nbsp;": " ",
-    "&lt;": "<",
-    "&gt;": ">",
-    "&amp;": "&",
-    "&quot;": '"',
-    "&apos;": "'",
-    "&copy;": "©",
-    "&reg;": "®",
-    "&trade;": "™",
+    '&nbsp;': ' ',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&amp;': '&',
+    '&quot;': '"',
+    '&apos;': "'",
+    '&copy;': '©',
+    '&reg;': '®',
+    '&trade;': '™',
   };
 
   for (const [entity, char] of Object.entries(htmlEntities)) {
-    text = text.replace(new RegExp(entity, "g"), char);
+    text = text.replace(new RegExp(entity, 'g'), char);
   }
 
   // 规范化空白字符
-  text = text.replace(/\s+/g, " ");
+  text = text.replace(/\s+/g, ' ');
   text = text.trim();
 
   return text;
@@ -102,53 +102,53 @@ function truncateContent(content: string, maxLength: number): string {
 
   // 在边界处截断，避免截断单词
   const truncated = content.substring(0, maxLength);
-  const lastSpace = truncated.lastIndexOf(" ");
+  const lastSpace = truncated.lastIndexOf(' ');
 
   if (lastSpace > maxLength * 0.8) {
-    return truncated.substring(0, lastSpace) + "...";
+    return truncated.substring(0, lastSpace) + '...';
   }
 
-  return truncated + "...";
+  return truncated + '...';
 }
 
 /**
  * WEB_FETCH 工具定义
  */
 const webFetchTool: ToolDefinition = {
-  name: "web_fetch",
-  displayName: "获取网页内容",
+  name: 'web_fetch',
+  displayName: '获取网页内容',
   description:
-    "获取指定 URL 的网页内容。支持 HTML、JSON、文本等格式。自动提取文本内容，去除 HTML 标签。适用于读取网页、API 调用等场景。",
-  category: "web",
+    '获取指定 URL 的网页内容。支持 HTML、JSON、文本等格式。自动提取文本内容，去除 HTML 标签。适用于读取网页、API 调用等场景。',
+  category: 'web',
   parameters: [
     {
-      name: "url",
-      type: "string",
-      description: "要获取的 URL（例如：https://example.com）",
+      name: 'url',
+      type: 'string',
+      description: '要获取的 URL（例如：https://example.com）',
       required: true,
     },
     {
-      name: "maxContentLength",
-      type: "number",
-      description: "最大内容长度（字符数，默认：10000）",
+      name: 'maxContentLength',
+      type: 'number',
+      description: '最大内容长度（字符数，默认：10000）',
       required: false,
     },
     {
-      name: "extractText",
-      type: "boolean",
-      description: "是否提取纯文本（去除 HTML，默认：true）",
+      name: 'extractText',
+      type: 'boolean',
+      description: '是否提取纯文本（去除 HTML，默认：true）',
       required: false,
     },
     {
-      name: "timeout",
-      type: "number",
-      description: "超时时间（秒，默认：30）",
+      name: 'timeout',
+      type: 'number',
+      description: '超时时间（秒，默认：30）',
       required: false,
     },
     {
-      name: "headers",
-      type: "object",
-      description: "自定义请求头（可选）",
+      name: 'headers',
+      type: 'object',
+      description: '自定义请求头（可选）',
       required: false,
     },
   ],
@@ -159,11 +159,16 @@ const webFetchTool: ToolDefinition = {
     const startTime = Date.now();
 
     try {
-      const { url, maxContentLength = 10000, extractText = true, timeout = 30, headers = {} } =
-        params as WebFetchParams;
+      const {
+        url,
+        maxContentLength = 10000,
+        extractText = true,
+        timeout = 30,
+        headers = {},
+      } = params as WebFetchParams;
 
       // 参数验证
-      if (!url || typeof url !== "string") {
+      if (!url || typeof url !== 'string') {
         return {
           success: false,
           error: "参数 'url' 必须是非空字符串",
@@ -182,7 +187,7 @@ const webFetchTool: ToolDefinition = {
       }
 
       // 只允许 HTTP 和 HTTPS 协议
-      if (!["http:", "https:"].includes(validUrl.protocol)) {
+      if (!['http:', 'https:'].includes(validUrl.protocol)) {
         return {
           success: false,
           error: `不支持的协议: ${validUrl.protocol}。只支持 HTTP 和 HTTPS。`,
@@ -195,17 +200,17 @@ const webFetchTool: ToolDefinition = {
 
       // 准备请求头
       const requestHeaders: HeadersInit = {
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
         ...headers,
       };
 
       try {
         // 发起请求
         const response = await fetch(url, {
-          method: "GET",
+          method: 'GET',
           headers: requestHeaders,
           signal: controller.signal,
         });
@@ -213,14 +218,14 @@ const webFetchTool: ToolDefinition = {
         clearTimeout(timeoutId);
 
         // 获取内容类型
-        const contentType = response.headers.get("content-type") || "unknown";
+        const contentType = response.headers.get('content-type') || 'unknown';
 
         // 获取内容
         const content = await response.text();
 
         // 提取文本内容
         let textContent = content;
-        if (extractText && contentType.includes("html")) {
+        if (extractText && contentType.includes('html')) {
           textContent = extractTextFromHtml(content);
         }
 
@@ -248,7 +253,7 @@ const webFetchTool: ToolDefinition = {
         clearTimeout(timeoutId);
 
         // 处理超时错误
-        if (error.name === "AbortError") {
+        if (error.name === 'AbortError') {
           return {
             success: false,
             error: `请求超时（超过 ${timeout} 秒）`,

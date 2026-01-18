@@ -1,26 +1,26 @@
 // AI 管理器 - 统一管理所有 AI 提供商
-import { AIProvider } from "@git-tutor/shared";
-import type { AIRequestOptions, AIResponse } from "./providers.js";
-import { AnthropicHandler } from "./handlers/anthropic.js";
-import { OpenAIHandler } from "./handlers/openai.js";
-import { GeminiHandler } from "./handlers/gemini.js";
-import { OpenRouterHandler } from "./handlers/openrouter.js";
-import { OllamaHandler } from "./handlers/ollama.js";
-import { OpenAICompatibleHandler } from "./handlers/openai-compatible.js";
-import { retryAsync, RetryPresets } from "../utils/retry.js";
-import { Logger } from "../logging/logger.js";
+import { AIProvider } from '@git-tutor/shared';
+import type { AIRequestOptions, AIResponse } from './providers.js';
+import { AnthropicHandler } from './handlers/anthropic.js';
+import { OpenAIHandler } from './handlers/openai.js';
+import { GeminiHandler } from './handlers/gemini.js';
+import { OpenRouterHandler } from './handlers/openrouter.js';
+import { OllamaHandler } from './handlers/ollama.js';
+import { OpenAICompatibleHandler } from './handlers/openai-compatible.js';
+import { retryAsync, RetryPresets } from '../utils/retry.js';
+import { Logger } from '../logging/logger.js';
 
 /**
  * AI 错误类型枚举(参考 Cline)
  */
 export enum AIErrorType {
-  Auth = "auth",
-  Network = "network",
-  RateLimit = "rateLimit",
-  Balance = "balance",
-  Validation = "validation",
-  Provider = "provider",
-  Unknown = "unknown",
+  Auth = 'auth',
+  Network = 'network',
+  RateLimit = 'rateLimit',
+  Balance = 'balance',
+  Validation = 'validation',
+  Provider = 'provider',
+  Unknown = 'unknown',
 }
 
 /**
@@ -36,7 +36,7 @@ export class AIError extends Error {
     public originalError?: Error
   ) {
     super(message);
-    this.name = "AIError";
+    this.name = 'AIError';
   }
 
   /**
@@ -47,7 +47,7 @@ export class AIError extends Error {
       return error;
     }
 
-    const message = error.message || "Unknown error";
+    const message = error.message || 'Unknown error';
     const statusCode = error.status || error.statusCode;
     const code = error.code;
     const errorType = AIError.classifyError(error);
@@ -60,17 +60,17 @@ export class AIError extends Error {
    * 智能分类错误
    */
   private static classifyError(error: any): AIErrorType {
-    const message = (error.message || "").toLowerCase();
+    const message = (error.message || '').toLowerCase();
     const statusCode = error.status || error.statusCode;
     const code = error.code;
 
     // 1. 余额错误
     if (
-      code === "insufficient_credits" ||
-      code === "balance_insufficient" ||
-      message.includes("insufficient credits") ||
-      message.includes("balance") ||
-      message.includes("quota exceeded")
+      code === 'insufficient_credits' ||
+      code === 'balance_insufficient' ||
+      message.includes('insufficient credits') ||
+      message.includes('balance') ||
+      message.includes('quota exceeded')
     ) {
       return AIErrorType.Balance;
     }
@@ -78,12 +78,12 @@ export class AIError extends Error {
     // 2. 认证错误
     const isAuthStatus = statusCode !== undefined && statusCode >= 401 && statusCode < 429;
     if (
-      code === "ERR_BAD_REQUEST" ||
+      code === 'ERR_BAD_REQUEST' ||
       statusCode === 401 ||
       statusCode === 403 ||
-      message.includes("invalid token") ||
-      message.includes("unauthorized") ||
-      message.includes("authentication") ||
+      message.includes('invalid token') ||
+      message.includes('unauthorized') ||
+      message.includes('authentication') ||
       isAuthStatus
     ) {
       return AIErrorType.Auth;
@@ -105,13 +105,13 @@ export class AIError extends Error {
 
     // 4. 网络错误
     if (
-      code === "ECONNREFUSED" ||
-      code === "ETIMEDOUT" ||
-      code === "ENOTFOUND" ||
-      code === "ECONNRESET" ||
-      message.includes("network") ||
-      message.includes("connection") ||
-      message.includes("timeout")
+      code === 'ECONNREFUSED' ||
+      code === 'ETIMEDOUT' ||
+      code === 'ENOTFOUND' ||
+      code === 'ECONNRESET' ||
+      message.includes('network') ||
+      message.includes('connection') ||
+      message.includes('timeout')
     ) {
       return AIErrorType.Network;
     }
@@ -119,9 +119,9 @@ export class AIError extends Error {
     // 5. 验证错误
     if (
       statusCode === 400 ||
-      code === "validation_error" ||
-      message.includes("invalid") ||
-      message.includes("validation")
+      code === 'validation_error' ||
+      message.includes('invalid') ||
+      message.includes('validation')
     ) {
       return AIErrorType.Validation;
     }
@@ -192,7 +192,7 @@ export class AIManager {
   private tokenStats: Map<AIProvider, TokenStats> = new Map();
 
   constructor() {
-    this.logger = new Logger("AIManager");
+    this.logger = new Logger('AIManager');
 
     // 初始化所有处理器
     this.handlers.set(AIProvider.ANTHROPIC, new AnthropicHandler());
@@ -231,35 +231,32 @@ export class AIManager {
         `Unsupported AI provider: ${provider}`,
         AIErrorType.Provider,
         undefined,
-        "UNSUPPORTED_PROVIDER",
+        'UNSUPPORTED_PROVIDER',
         false
       );
     }
 
     try {
-      this.logger.debug("Starting chat request", {
+      this.logger.debug('Starting chat request', {
         provider,
         model: options.model,
         messageCount: messages.length,
       });
 
       // 使用重试机制调用 API
-      const response = await retryAsync(
-        async () => await handler.chat(options, messages),
-        {
-          maxRetries: 3,
-          ...RetryPresets.network,
-          onRetry: (error, attempt) => {
-            const aiError = AIError.fromError(error);
-            this.logger.warn("Chat request failed, retrying", {
-              provider,
-              attempt,
-              errorType: aiError.type,
-              retryable: aiError.retryable,
-            });
-          },
-        }
-      );
+      const response = await retryAsync(async () => await handler.chat(options, messages), {
+        maxRetries: 3,
+        ...RetryPresets.network,
+        onRetry: (error, attempt) => {
+          const aiError = AIError.fromError(error);
+          this.logger.warn('Chat request failed, retrying', {
+            provider,
+            attempt,
+            errorType: aiError.type,
+            retryable: aiError.retryable,
+          });
+        },
+      });
 
       // 记录 Token 统计
       if (response.usage) {
@@ -270,7 +267,7 @@ export class AIManager {
     } catch (error) {
       const aiError = AIError.fromError(error);
 
-      this.logger.error("Chat request failed", {
+      this.logger.error('Chat request failed', {
         provider,
         errorType: aiError.type,
         retryable: aiError.retryable,
@@ -296,7 +293,7 @@ export class AIManager {
         `Unsupported AI provider: ${provider}`,
         AIErrorType.Provider,
         undefined,
-        "UNSUPPORTED_PROVIDER",
+        'UNSUPPORTED_PROVIDER',
         false
       );
     }
@@ -306,13 +303,13 @@ export class AIManager {
         `Provider ${provider} does not support streaming`,
         AIErrorType.Provider,
         undefined,
-        "STREAMING_NOT_SUPPORTED",
+        'STREAMING_NOT_SUPPORTED',
         false
       );
     }
 
     try {
-      this.logger.debug("Starting stream chat request", {
+      this.logger.debug('Starting stream chat request', {
         provider,
         model: options.model,
         messageCount: messages.length,
@@ -322,7 +319,7 @@ export class AIManager {
     } catch (error) {
       const aiError = AIError.fromError(error);
 
-      this.logger.error("Stream chat request failed", {
+      this.logger.error('Stream chat request failed', {
         provider,
         errorType: aiError.type,
         retryable: aiError.retryable,
@@ -361,13 +358,15 @@ export class AIManager {
   getTokenStats(provider?: AIProvider): TokenStats | Map<AIProvider, TokenStats> {
     if (provider) {
       const stats = this.tokenStats.get(provider);
-      return stats || {
-        totalRequests: 0,
-        totalPromptTokens: 0,
-        totalCompletionTokens: 0,
-        totalCacheReadTokens: 0,
-        totalCacheWriteTokens: 0,
-      };
+      return (
+        stats || {
+          totalRequests: 0,
+          totalPromptTokens: 0,
+          totalCompletionTokens: 0,
+          totalCacheReadTokens: 0,
+          totalCacheWriteTokens: 0,
+        }
+      );
     }
 
     return this.tokenStats;
@@ -418,7 +417,7 @@ export class AIManager {
 
     try {
       // 发送一个简单的测试请求
-      await this.chat(provider, { model: "test" }, [{ role: "user", content: "test" }]);
+      await this.chat(provider, { model: 'test' }, [{ role: 'user', content: 'test' }]);
 
       return {
         healthy: true,

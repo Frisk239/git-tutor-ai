@@ -1,7 +1,7 @@
 // OpenAI 处理器 (支持 OpenAI 和 OpenAI Native)
-import OpenAI from "openai";
-import { BaseAIHandler } from "./base.js";
-import type { AIRequestOptions, AIResponse } from "../providers.js";
+import OpenAI from 'openai';
+import { BaseAIHandler } from './base.js';
+import type { AIRequestOptions, AIResponse } from '../providers.js';
 
 export class OpenAIHandler extends BaseAIHandler {
   private client: OpenAI | null = null;
@@ -11,7 +11,7 @@ export class OpenAIHandler extends BaseAIHandler {
     super();
     this.isNative = isNative;
     const apiKey = isNative
-      ? (process.env.OPENAI_NATIVE_API_KEY || process.env.OPENAI_API_KEY)
+      ? process.env.OPENAI_NATIVE_API_KEY || process.env.OPENAI_API_KEY
       : process.env.OPENAI_API_KEY;
 
     if (apiKey) {
@@ -19,7 +19,7 @@ export class OpenAIHandler extends BaseAIHandler {
         apiKey,
         baseURL: isNative
           ? process.env.OPENAI_BASE_URL
-          : (process.env.OPENAI_BASE_URL || "https://api.openai.com/v1"),
+          : process.env.OPENAI_BASE_URL || 'https://api.openai.com/v1',
       });
     }
   }
@@ -33,7 +33,7 @@ export class OpenAIHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): Promise<AIResponse> {
     if (!this.client) {
-      throw new Error("OpenAI client is not initialized");
+      throw new Error('OpenAI client is not initialized');
     }
 
     const response = await this.client.chat.completions.create({
@@ -45,8 +45,8 @@ export class OpenAIHandler extends BaseAIHandler {
 
     const choice = response.choices[0];
     return {
-      content: choice.message.content || "",
-      role: "assistant",
+      content: choice.message.content || '',
+      role: 'assistant',
       toolCalls: choice.message.tool_calls,
       usage: {
         promptTokens: response.usage?.prompt_tokens || 0,
@@ -61,7 +61,7 @@ export class OpenAIHandler extends BaseAIHandler {
     messages: Array<{ role: string; content: string }>
   ): AsyncGenerator<string> {
     if (!this.client) {
-      throw new Error("OpenAI client is not initialized");
+      throw new Error('OpenAI client is not initialized');
     }
 
     const stream = await this.client.chat.completions.create({

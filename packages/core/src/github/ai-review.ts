@@ -1,7 +1,7 @@
 // GitHub AI 代码审查服务
-import { GitHubClient } from "./client.js";
-import { aiManager, AIProvider } from "../ai.js";
-import type { AIReviewResult } from "./client.js";
+import { GitHubClient } from './client.js';
+import { aiManager, AIProvider } from '../ai.js';
+import type { AIReviewResult } from './client.js';
 
 /**
  * AI 代码审查选项
@@ -9,8 +9,8 @@ import type { AIReviewResult } from "./client.js";
 export interface AIReviewOptions {
   provider?: AIProvider;
   model?: string;
-  language?: "zh-CN" | "en-US";
-  focus?: "security" | "performance" | "style" | "all";
+  language?: 'zh-CN' | 'en-US';
+  focus?: 'security' | 'performance' | 'style' | 'all';
   maxIssues?: number;
 }
 
@@ -22,10 +22,7 @@ export class GitHubAIReviewService {
   private github: GitHubClient;
   private defaultProvider: AIProvider;
 
-  constructor(
-    github: GitHubClient,
-    defaultProvider: AIProvider = AIProvider.ANTHROPIC
-  ) {
+  constructor(github: GitHubClient, defaultProvider: AIProvider = AIProvider.ANTHROPIC) {
     this.github = github;
     this.defaultProvider = defaultProvider;
   }
@@ -72,12 +69,7 @@ export class GitHubAIReviewService {
 
     // 发布评论
     if (!review.approved || review.issues.length > 0) {
-      const comment = await this.github.createComment(
-        owner,
-        repo,
-        prNumber,
-        commentBody
-      );
+      const comment = await this.github.createComment(owner, repo, prNumber, commentBody);
 
       return {
         review,
@@ -108,7 +100,7 @@ export class GitHubAIReviewService {
     }
 
     // 如果有严重问题，请求更改
-    if (review.issues.some((i) => i.severity === "error")) {
+    if (review.issues.some((i) => i.severity === 'error')) {
       return {
         approved: false,
         review,
@@ -129,21 +121,21 @@ export class GitHubAIReviewService {
     const parts: string[] = [];
 
     // PR 基本信息
-    parts.push("## Pull Request 信息");
+    parts.push('## Pull Request 信息');
     parts.push(`标题: ${pr.title}`);
-    parts.push(`描述: ${pr.body || "无"}`);
+    parts.push(`描述: ${pr.body || '无'}`);
     parts.push(`分支: ${pr.head.ref} -> ${pr.base.ref}`);
     parts.push(`更改: +${pr.additions} -${pr.deletions} (${pr.changedFiles} 文件)\n`);
 
     // 文件列表
-    parts.push("## 更改的文件");
+    parts.push('## 更改的文件');
     files.forEach((file) => {
       parts.push(`- ${file.filename} (+${file.additions} -${file.deletions})`);
     });
-    parts.push("");
+    parts.push('');
 
     // 获取补丁（差异内容）
-    parts.push("## 代码差异");
+    parts.push('## 代码差异');
     // 限制文件数量，避免 token 过多
     const maxFiles = 10;
     const filesToShow = files.slice(0, maxFiles);
@@ -154,13 +146,13 @@ export class GitHubAIReviewService {
         const maxPatchLength = 2000;
         const truncatedPatch =
           file.patch.length > maxPatchLength
-            ? file.patch.substring(0, maxPatchLength) + "\n... (差异过长，已截断)"
+            ? file.patch.substring(0, maxPatchLength) + '\n... (差异过长，已截断)'
             : file.patch;
 
         parts.push(`### ${file.filename}`);
-        parts.push("```diff");
+        parts.push('```diff');
         parts.push(truncatedPatch);
-        parts.push("```\n");
+        parts.push('```\n');
       }
     }
 
@@ -168,7 +160,7 @@ export class GitHubAIReviewService {
       parts.push(`... 还有 ${files.length - maxFiles} 个文件未显示`);
     }
 
-    return parts.join("\n");
+    return parts.join('\n');
   }
 
   /**
@@ -179,9 +171,9 @@ export class GitHubAIReviewService {
     options?: AIReviewOptions
   ): Promise<AIReviewResult> {
     const provider = options?.provider || this.defaultProvider;
-    const model = options?.model || "claude-sonnet-4-5-20250929";
-    const language = options?.language || "zh-CN";
-    const focus = options?.focus || "all";
+    const model = options?.model || 'claude-sonnet-4-5-20250929';
+    const language = options?.language || 'zh-CN';
+    const focus = options?.focus || 'all';
 
     const prompt = this.buildReviewPrompt(context, language, focus);
     const systemPrompt = this.getReviewSystemPrompt(language);
@@ -194,7 +186,7 @@ export class GitHubAIReviewService {
         maxTokens: 4000,
         systemPrompt,
       },
-      [{ role: "user", content: prompt }]
+      [{ role: 'user', content: prompt }]
     );
 
     return this.parseReviewResponse(response.content);
@@ -203,20 +195,16 @@ export class GitHubAIReviewService {
   /**
    * 构建审查提示词
    */
-  private buildReviewPrompt(
-    context: string,
-    language: string,
-    focus: string
-  ): string {
+  private buildReviewPrompt(context: string, language: string, focus: string): string {
     const focusInstruction = {
-      security: "重点关注安全性问题：SQL 注入、XSS、权限检查等",
-      performance: "重点关注性能问题：算法复杂度、内存泄漏、不必要的计算等",
-      style: "重点关注代码风格：命名规范、代码结构、注释等",
-      all: "全面审查代码质量、安全性、性能、可维护性等方面",
+      security: '重点关注安全性问题：SQL 注入、XSS、权限检查等',
+      performance: '重点关注性能问题：算法复杂度、内存泄漏、不必要的计算等',
+      style: '重点关注代码风格：命名规范、代码结构、注释等',
+      all: '全面审查代码质量、安全性、性能、可维护性等方面',
     };
 
     const instruction =
-      language === "zh-CN"
+      language === 'zh-CN'
         ? `请仔细审查这个 Pull Request。
 
 ${focusInstruction[focus]}
@@ -275,7 +263,7 @@ Rating criteria:
    * 获取审查系统提示词
    */
   private getReviewSystemPrompt(language: string): string {
-    return language === "zh-CN"
+    return language === 'zh-CN'
       ? `你是一个专业的代码审查助手。你的职责是：
 1. 仔细分析代码更改
 2. 识别潜在的问题和改进建议
@@ -328,14 +316,14 @@ Output format requirements:
       if (jsonMatch) {
         const parsed = JSON.parse(jsonMatch[0]);
         return {
-          summary: parsed.summary || "",
+          summary: parsed.summary || '',
           issues: parsed.issues || [],
           rating: parsed.rating || 5,
           approved: parsed.approved || false,
         };
       }
     } catch (error) {
-      console.error("Failed to parse review response:", error);
+      console.error('Failed to parse review response:', error);
     }
 
     // 如果解析失败，返回默认结果
@@ -351,82 +339,78 @@ Output format requirements:
    * 格式化审查评论
    */
   private formatReviewComment(review: AIReviewResult): string {
-    const language = "zh-CN"; // 可以根据配置调整
+    const language = 'zh-CN'; // 可以根据配置调整
 
     const lines: string[] = [];
 
     // 标题
-    const ratingEmoji = review.rating >= 8 ? "👍" : review.rating >= 5 ? "⚠️" : "🚫";
+    const ratingEmoji = review.rating >= 8 ? '👍' : review.rating >= 5 ? '⚠️' : '🚫';
     lines.push(`# AI 代码审查 ${ratingEmoji} 评分: ${review.rating}/10\n`);
 
     // 总结
-    lines.push(`## ${language === "zh-CN" ? "总结" : "Summary"}`);
+    lines.push(`## ${language === 'zh-CN' ? '总结' : 'Summary'}`);
     lines.push(review.summary);
-    lines.push("");
+    lines.push('');
 
     // 评级
     const statusText =
       review.rating >= 8
-        ? "✅ APPROVED"
+        ? '✅ APPROVED'
         : review.rating >= 5
-        ? "⚠️ NEEDS IMPROVEMENT"
-        : "🚫 CHANGES REQUESTED";
-    lines.push(`## ${language === "zh-CN" ? "状态" : "Status"}: ${statusText}\n`);
+          ? '⚠️ NEEDS IMPROVEMENT'
+          : '🚫 CHANGES REQUESTED';
+    lines.push(`## ${language === 'zh-CN' ? '状态' : 'Status'}: ${statusText}\n`);
 
     // 问题列表
     if (review.issues.length > 0) {
-      lines.push(`## ${language === "zh-CN" ? "发现的问题" : "Issues Found"}\n`);
+      lines.push(`## ${language === 'zh-CN' ? '发现的问题' : 'Issues Found'}\n`);
 
       const grouped = {
-        error: review.issues.filter((i) => i.severity === "error"),
-        warning: review.issues.filter((i) => i.severity === "warning"),
-        info: review.issues.filter((i) => i.severity === "info"),
+        error: review.issues.filter((i) => i.severity === 'error'),
+        warning: review.issues.filter((i) => i.severity === 'warning'),
+        info: review.issues.filter((i) => i.severity === 'info'),
       };
 
       if (grouped.error.length > 0) {
-        lines.push("### 🔴 Errors");
+        lines.push('### 🔴 Errors');
         grouped.error.forEach((issue) => {
-          lines.push(
-            `**${issue.file}:${issue.line}** - ${issue.message}`
-          );
+          lines.push(`**${issue.file}:${issue.line}** - ${issue.message}`);
           if (issue.suggestion) {
             lines.push(`💡 建议: ${issue.suggestion}`);
           }
-          lines.push("");
+          lines.push('');
         });
       }
 
       if (grouped.warning.length > 0) {
-        lines.push("### ⚠️ Warnings");
+        lines.push('### ⚠️ Warnings');
         grouped.warning.forEach((issue) => {
-          lines.push(
-            `**${issue.file}:${issue.line}** - ${issue.message}`
-          );
+          lines.push(`**${issue.file}:${issue.line}** - ${issue.message}`);
           if (issue.suggestion) {
             lines.push(`💡 建议: ${issue.suggestion}`);
           }
-          lines.push("");
+          lines.push('');
         });
       }
 
       if (grouped.info.length > 0) {
-        lines.push("### ℹ️ Info");
+        lines.push('### ℹ️ Info');
         grouped.info.forEach((issue) => {
           lines.push(`**${issue.file}** - ${issue.message}`);
           if (issue.suggestion) {
             lines.push(`💡 建议: ${issue.suggestion}`);
           }
-          lines.push("");
+          lines.push('');
         });
       }
     }
 
-    lines.push("---\n");
+    lines.push('---\n');
     lines.push(
-      `*${language === "zh-CN" ? "由 Git Tutor AI 自动生成" : "Automatically generated by Git Tutor AI"}*`
+      `*${language === 'zh-CN' ? '由 Git Tutor AI 自动生成' : 'Automatically generated by Git Tutor AI'}*`
     );
 
-    return lines.join("\n");
+    return lines.join('\n');
   }
 }
 

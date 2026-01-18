@@ -1,4 +1,3 @@
-
 /**
  * BROWSER_ACTION 工具 - 完整的浏览器自动化工具
  *
@@ -10,7 +9,7 @@
  * - Git Tutor AI: Web 应用,通过回调函数与前端通信
  */
 
-import type { ToolDefinition, ToolHandler, ToolContext, ToolResult } from "../../types.js";
+import type { ToolDefinition, ToolHandler, ToolContext, ToolResult } from '../../types.js';
 
 // ============================================================================
 // 常量定义
@@ -18,13 +17,20 @@ import type { ToolDefinition, ToolHandler, ToolContext, ToolResult } from "../..
 
 // 临时定义 ToolPermission 枚举
 enum ToolPermission {
-  READ = "read",
-  WRITE = "write",
-  EXECUTE = "execute",
+  READ = 'read',
+  WRITE = 'write',
+  EXECUTE = 'execute',
 }
 
 // 支持的浏览器操作
-export const browserActions = ["launch", "click", "type", "scroll_down", "scroll_up", "close"] as const;
+export const browserActions = [
+  'launch',
+  'click',
+  'type',
+  'scroll_down',
+  'scroll_up',
+  'close',
+] as const;
 export type BrowserAction = (typeof browserActions)[number];
 
 // 默认配置
@@ -81,9 +87,9 @@ class BrowserSession {
       const puppeteer = await this.importPuppeteer();
 
       this.browser = await puppeteer.launch({
-        headless: "shell",
+        headless: 'shell',
         args: [
-          "--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+          '--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
         ],
         defaultViewport: DEFAULT_VIEWPORT,
       });
@@ -107,7 +113,7 @@ class BrowserSession {
     return this.doAction(async (page: any) => {
       await page.goto(url, {
         timeout: DEFAULT_NAVIGATION_TIMEOUT,
-        waitUntil: ["domcontentloaded", "networkidle2"],
+        waitUntil: ['domcontentloaded', 'networkidle2'],
       });
 
       // 等待页面稳定
@@ -119,7 +125,7 @@ class BrowserSession {
    * 点击指定坐标
    */
   async click(coordinate: string): Promise<BrowserActionResult> {
-    const [x, y] = coordinate.split(",").map(Number);
+    const [x, y] = coordinate.split(',').map(Number);
 
     return this.doAction(async (page: any) => {
       // 监控网络活动
@@ -127,7 +133,7 @@ class BrowserSession {
       const requestListener = () => {
         hasNetworkActivity = true;
       };
-      page.on("request", requestListener);
+      page.on('request', requestListener);
 
       // 执行点击
       await page.mouse.click(x, y);
@@ -137,14 +143,14 @@ class BrowserSession {
       if (hasNetworkActivity) {
         await page
           .waitForNavigation({
-            waitUntil: ["domcontentloaded", "networkidle2"],
+            waitUntil: ['domcontentloaded', 'networkidle2'],
             timeout: DEFAULT_ACTION_TIMEOUT,
           })
           .catch(() => {});
         await this.waitForPageStable(page);
       }
 
-      page.off("request", requestListener);
+      page.off('request', requestListener);
     });
   }
 
@@ -163,7 +169,7 @@ class BrowserSession {
   async scrollDown(): Promise<BrowserActionResult> {
     return this.doAction(async (page: any) => {
       await page.evaluate(() => {
-        window.scrollBy({ top: 600, behavior: "auto" });
+        window.scrollBy({ top: 600, behavior: 'auto' });
       });
       await this.sleep(300);
     });
@@ -175,7 +181,7 @@ class BrowserSession {
   async scrollUp(): Promise<BrowserActionResult> {
     return this.doAction(async (page: any) => {
       await page.evaluate(() => {
-        window.scrollBy({ top: -600, behavior: "auto" });
+        window.scrollBy({ top: -600, behavior: 'auto' });
       });
       await this.sleep(300);
     });
@@ -207,7 +213,7 @@ class BrowserSession {
     if (!this.isActive()) {
       return {
         success: false,
-        error: "浏览器未启动,请先使用 launch 操作",
+        error: '浏览器未启动,请先使用 launch 操作',
       };
     }
 
@@ -227,8 +233,8 @@ class BrowserSession {
       lastLogTime = Date.now();
     };
 
-    this.page.on("console", consoleListener);
-    this.page.on("pageerror", errorListener);
+    this.page.on('console', consoleListener);
+    this.page.on('pageerror', errorListener);
 
     try {
       await action(this.page);
@@ -238,28 +244,28 @@ class BrowserSession {
 
       // 截图
       const screenshot = await this.page.screenshot({
-        encoding: "base64",
-        type: "png",
+        encoding: 'base64',
+        type: 'png',
       });
 
-      this.page.off("console", consoleListener);
-      this.page.off("pageerror", errorListener);
+      this.page.off('console', consoleListener);
+      this.page.off('pageerror', errorListener);
 
       return {
         success: true,
         screenshot: `data:image/png;base64,${screenshot}`,
-        logs: logs.join("\n"),
+        logs: logs.join('\n'),
         currentUrl: this.page.url(),
         currentMousePosition: this.currentMousePosition,
       };
     } catch (error) {
-      this.page.off("console", consoleListener);
-      this.page.off("pageerror", errorListener);
+      this.page.off('console', consoleListener);
+      this.page.off('pageerror', errorListener);
 
       return {
         success: false,
         error: error instanceof Error ? error.message : String(error),
-        logs: logs.join("\n"),
+        logs: logs.join('\n'),
       };
     }
   }
@@ -320,11 +326,9 @@ class BrowserSession {
    */
   private async importPuppeteer() {
     try {
-      return await import("puppeteer-core");
+      return await import('puppeteer-core');
     } catch (error) {
-      throw new Error(
-        "puppeteer-core 未安装。请运行: npm install puppeteer-core"
-      );
+      throw new Error('puppeteer-core 未安装。请运行: npm install puppeteer-core');
     }
   }
 }
@@ -344,7 +348,7 @@ class BrowserActionToolHandler implements ToolHandler {
       if (!action || !browserActions.includes(action)) {
         return {
           success: false,
-          error: `无效的操作类型: ${action}。支持的操作: ${browserActions.join(", ")}`,
+          error: `无效的操作类型: ${action}。支持的操作: ${browserActions.join(', ')}`,
         };
       }
 
@@ -352,31 +356,31 @@ class BrowserActionToolHandler implements ToolHandler {
       let result: BrowserActionResult;
 
       switch (action) {
-        case "launch":
+        case 'launch':
           result = await this.handleLaunch(url);
           break;
 
-        case "click":
+        case 'click':
           result = await this.handleClick(coordinate);
           break;
 
-        case "type":
+        case 'type':
           result = await this.handleType(text);
           break;
 
-        case "scroll_down":
+        case 'scroll_down':
           result = await this.handleScrollDown();
           break;
 
-        case "scroll_up":
+        case 'scroll_up':
           result = await this.handleScrollUp();
           break;
 
-        case "close":
+        case 'close':
           await this.session.close();
           result = {
             success: true,
-            logs: "浏览器已关闭",
+            logs: '浏览器已关闭',
           };
           break;
 
@@ -405,7 +409,7 @@ class BrowserActionToolHandler implements ToolHandler {
     if (!url) {
       return {
         success: false,
-        error: "launch 操作需要提供 url 参数",
+        error: 'launch 操作需要提供 url 参数',
       };
     }
 
@@ -444,15 +448,10 @@ class BrowserActionToolHandler implements ToolHandler {
       };
     }
 
-    const [x, y] = coordinate.split(",").map(Number);
+    const [x, y] = coordinate.split(',').map(Number);
 
     // 验证坐标范围
-    if (
-      x < 0 ||
-      x > DEFAULT_VIEWPORT.width ||
-      y < 0 ||
-      y > DEFAULT_VIEWPORT.height
-    ) {
+    if (x < 0 || x > DEFAULT_VIEWPORT.width || y < 0 || y > DEFAULT_VIEWPORT.height) {
       return {
         success: false,
         error: `坐标超出视口范围 (${DEFAULT_VIEWPORT.width}x${DEFAULT_VIEWPORT.height})`,
@@ -466,7 +465,7 @@ class BrowserActionToolHandler implements ToolHandler {
     if (!text) {
       return {
         success: false,
-        error: "type 操作需要提供 text 参数",
+        error: 'type 操作需要提供 text 参数',
       };
     }
 
@@ -487,53 +486,53 @@ class BrowserActionToolHandler implements ToolHandler {
 // ============================================================================
 
 export const browserActionTool: ToolDefinition = {
-  name: "browser_action",
-  displayName: "浏览器自动化",
+  name: 'browser_action',
+  displayName: '浏览器自动化',
   description:
-    "完整的浏览器自动化工具,支持多种操作。" +
-    "\n\n**支持的操作**:" +
-    "\n- **launch**: 启动浏览器并导航到指定 URL (需要 url 参数)" +
+    '完整的浏览器自动化工具,支持多种操作。' +
+    '\n\n**支持的操作**:' +
+    '\n- **launch**: 启动浏览器并导航到指定 URL (需要 url 参数)' +
     "\n- **click**: 在指定坐标处点击 (需要 coordinate 参数,格式: 'x,y')" +
-    "\n- **type**: 输入文本 (需要 text 参数)" +
-    "\n- **scroll_down**: 向下滚动一页" +
-    "\n- **scroll_up**: 向上滚动一页" +
-    "\n- **close**: 关闭浏览器" +
-    "\n\n**使用流程**:" +
-    "\n1. 使用 **launch** 启动浏览器并访问网页" +
-    "\n2. 使用 **click**, **type**, **scroll** 等操作与页面交互" +
-    "\n3. 使用 **close** 关闭浏览器" +
-    "\n\n**重要约束**:" +
-    "\n- 必须以 launch 开始,以 close 结束" +
-    "\n- 点击坐标必须在视口范围内 (默认: 900x600)" +
-    "\n- 每次操作后会自动截图并捕获控制台日志" +
-    "\n\n**依赖**:" +
-    "\n需要安装 puppeteer-core: `npm install puppeteer-core`",
-  category: "browser",
+    '\n- **type**: 输入文本 (需要 text 参数)' +
+    '\n- **scroll_down**: 向下滚动一页' +
+    '\n- **scroll_up**: 向上滚动一页' +
+    '\n- **close**: 关闭浏览器' +
+    '\n\n**使用流程**:' +
+    '\n1. 使用 **launch** 启动浏览器并访问网页' +
+    '\n2. 使用 **click**, **type**, **scroll** 等操作与页面交互' +
+    '\n3. 使用 **close** 关闭浏览器' +
+    '\n\n**重要约束**:' +
+    '\n- 必须以 launch 开始,以 close 结束' +
+    '\n- 点击坐标必须在视口范围内 (默认: 900x600)' +
+    '\n- 每次操作后会自动截图并捕获控制台日志' +
+    '\n\n**依赖**:' +
+    '\n需要安装 puppeteer-core: `npm install puppeteer-core`',
+  category: 'browser',
   parameters: [
     {
-      name: "action",
-      type: "string",
+      name: 'action',
+      type: 'string',
       required: true,
-      description: "操作类型: launch, click, type, scroll_down, scroll_up, close",
+      description: '操作类型: launch, click, type, scroll_down, scroll_up, close',
       enum: browserActions,
     },
     {
-      name: "url",
-      type: "string",
+      name: 'url',
+      type: 'string',
       required: false,
-      description: "URL (launch 操作必需)",
+      description: 'URL (launch 操作必需)',
     },
     {
-      name: "coordinate",
-      type: "string",
+      name: 'coordinate',
+      type: 'string',
       required: false,
       description: "坐标 (click 操作必需,格式: 'x,y')",
     },
     {
-      name: "text",
-      type: "string",
+      name: 'text',
+      type: 'string',
       required: false,
-      description: "输入的文本 (type 操作必需)",
+      description: '输入的文本 (type 操作必需)',
     },
   ],
   permissions: [ToolPermission.READ, ToolPermission.EXECUTE],

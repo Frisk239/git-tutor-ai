@@ -1,8 +1,8 @@
 // Tavily AI Search API 提供商
 // 参考: https://docs.tavily.com/docs/tavily-api/rest/search
 
-import axios, { AxiosInstance } from "axios";
-import { Logger } from "../../../logging/logger.js";
+import axios, { AxiosInstance } from 'axios';
+import { Logger } from '../../../logging/logger.js';
 import {
   SearchProvider,
   SearchOptions,
@@ -11,7 +11,7 @@ import {
   SearchError,
   SearchRecency,
   SearchLocation,
-} from "../types.js";
+} from '../types.js';
 
 /**
  * Tavily Search API 配置
@@ -41,16 +41,16 @@ interface TavilyApiResponse {
  * Tavily Search 提供商
  */
 export class TavilySearchProvider implements SearchProvider {
-  name = "Tavily";
+  name = 'Tavily';
   private client: AxiosInstance;
   private logger: Logger;
   private config: Required<TavilySearchConfig>;
 
   constructor(config: TavilySearchConfig) {
-    this.logger = new Logger("TavilySearchProvider");
+    this.logger = new Logger('TavilySearchProvider');
     this.config = {
       apiKey: config.apiKey,
-      endpoint: config.endpoint || "https://api.tavily.com/search",
+      endpoint: config.endpoint || 'https://api.tavily.com/search',
       timeout: config.timeout || 30000, // Tavily 推荐更长超时
     };
 
@@ -58,7 +58,7 @@ export class TavilySearchProvider implements SearchProvider {
       baseURL: this.config.endpoint,
       timeout: this.config.timeout,
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
   }
@@ -83,17 +83,17 @@ export class TavilySearchProvider implements SearchProvider {
       // 构建 Tavily 查询参数
       const requestBody = this.buildQueryParams(options);
 
-      this.logger.debug("Executing Tavily search", { requestBody });
+      this.logger.debug('Executing Tavily search', { requestBody });
 
       // 调用 API (POST 请求)
-      const response = await this.client.post<TavilyApiResponse>("", requestBody);
+      const response = await this.client.post<TavilyApiResponse>('', requestBody);
 
       // 解析响应
       const results = this.parseResponse(response.data);
 
       const searchTime = Date.now() - startTime;
 
-      this.logger.info("Tavily search completed", {
+      this.logger.info('Tavily search completed', {
         resultCount: results.length,
         searchTime,
         hasAnswer: !!response.data.answer,
@@ -106,7 +106,7 @@ export class TavilySearchProvider implements SearchProvider {
         searchTime,
       };
     } catch (error: any) {
-      this.logger.error("Tavily search failed", { error });
+      this.logger.error('Tavily search failed', { error });
       throw this.handleError(error);
     }
   }
@@ -116,21 +116,18 @@ export class TavilySearchProvider implements SearchProvider {
    */
   private validateOptions(options: SearchOptions): void {
     if (!options.query || options.query.trim().length < 2) {
-      throw new SearchError(
-        "Search query must be at least 2 characters",
-        "INVALID_QUERY"
-      );
+      throw new SearchError('Search query must be at least 2 characters', 'INVALID_QUERY');
     }
 
     if (options.allowedDomains && options.blocked_domains) {
       throw new SearchError(
-        "Cannot specify both allowedDomains and blocked_domains",
-        "CONFLICTING_PARAMS"
+        'Cannot specify both allowedDomains and blocked_domains',
+        'CONFLICTING_PARAMS'
       );
     }
 
     if (!this.config.apiKey) {
-      throw new SearchError("Tavily API key is not configured", "API_KEY_MISSING");
+      throw new SearchError('Tavily API key is not configured', 'API_KEY_MISSING');
     }
   }
 
@@ -142,7 +139,7 @@ export class TavilySearchProvider implements SearchProvider {
       api_key: this.config.apiKey,
       query: options.query,
       max_results: options.limit || 10,
-      search_depth: "basic", // basic 或 advanced
+      search_depth: 'basic', // basic 或 advanced
       include_answer: true, // 包含 AI 生成的答案
       include_raw_content: false, // 不包含原始 HTML
       include_images: false, // 不包含图片
@@ -171,17 +168,17 @@ export class TavilySearchProvider implements SearchProvider {
     }
 
     // 内容详细程度 (使用 search_depth)
-    if (options.contentSize === "high") {
-      params.search_depth = "advanced";
+    if (options.contentSize === 'high') {
+      params.search_depth = 'advanced';
     }
 
     // 区域设置
     if (options.location === SearchLocation.CN) {
       // Tavily 默认支持中文,无需特殊设置
       // 可以通过 topic 参数优化搜索类型
-      params.topic = "general";
+      params.topic = 'general';
     } else if (options.location === SearchLocation.US) {
-      params.topic = "general";
+      params.topic = 'general';
     }
 
     return params;
@@ -221,53 +218,35 @@ export class TavilySearchProvider implements SearchProvider {
   private handleError(error: any): SearchError {
     if (error.response) {
       const statusCode = error.response.status;
-      const message = error.response.data?.error?.message || error.response.data?.message || error.message;
+      const message =
+        error.response.data?.error?.message || error.response.data?.message || error.message;
 
       switch (statusCode) {
         case 401:
-          return new SearchError(
-            "Invalid Tavily API key",
-            "INVALID_API_KEY",
-            statusCode
-          );
+          return new SearchError('Invalid Tavily API key', 'INVALID_API_KEY', statusCode);
         case 429:
-          return new SearchError(
-            "Tavily API rate limit exceeded",
-            "RATE_LIMITED",
-            statusCode
-          );
+          return new SearchError('Tavily API rate limit exceeded', 'RATE_LIMITED', statusCode);
         case 400:
-          return new SearchError(
-            `Invalid request: ${message}`,
-            "BAD_REQUEST",
-            statusCode
-          );
+          return new SearchError(`Invalid request: ${message}`, 'BAD_REQUEST', statusCode);
         case 402:
-          return new SearchError(
-            "Tavily API credit exhausted",
-            "CREDIT_EXHAUSTED",
-            statusCode
-          );
+          return new SearchError('Tavily API credit exhausted', 'CREDIT_EXHAUSTED', statusCode);
         default:
           return new SearchError(
             `Tavily API error (${statusCode}): ${message}`,
-            "API_ERROR",
+            'API_ERROR',
             statusCode
           );
       }
     }
 
-    if (error.code === "ECONNABORTED") {
-      return new SearchError("Search request timeout", "TIMEOUT");
+    if (error.code === 'ECONNABORTED') {
+      return new SearchError('Search request timeout', 'TIMEOUT');
     }
 
-    if (error.code === "ENOTFOUND" || error.code === "ECONNREFUSED") {
-      return new SearchError("Cannot connect to Tavily API", "CONNECTION_ERROR");
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED') {
+      return new SearchError('Cannot connect to Tavily API', 'CONNECTION_ERROR');
     }
 
-    return new SearchError(
-      error.message || "Unknown search error",
-      "UNKNOWN_ERROR"
-    );
+    return new SearchError(error.message || 'Unknown search error', 'UNKNOWN_ERROR');
   }
 }

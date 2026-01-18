@@ -1,9 +1,9 @@
 // 补丁应用器
 // 参考 Cline 的补丁应用逻辑
 
-import { Logger } from "../../logging/logger.js";
-import { readFile, writeFile } from "fs/promises";
-import { join, resolve } from "path";
+import { Logger } from '../../logging/logger.js';
+import { readFile, writeFile } from 'fs/promises';
+import { join, resolve } from 'path';
 import {
   Patch,
   PatchAction,
@@ -13,15 +13,15 @@ import {
   FileChange,
   Commit,
   PATCH_MARKERS,
-} from "./types.js";
+} from './types.js';
 import {
   findContext,
   preserveEscaping,
   normalizeNewlines,
   splitLines,
   joinLines,
-} from "./utils.js";
-import { existsSync } from "fs";
+} from './utils.js';
+import { existsSync } from 'fs';
 
 /**
  * 补丁应用器
@@ -34,7 +34,7 @@ export class PatchApplier {
   private fuzz: number = 0;
 
   constructor(workspaceRoot: string) {
-    this.logger = new Logger("PatchApplier");
+    this.logger = new Logger('PatchApplier');
     this.workspaceRoot = resolve(workspaceRoot);
   }
 
@@ -42,7 +42,7 @@ export class PatchApplier {
    * 应用补丁
    */
   async applyPatch(patch: Patch): Promise<Record<string, FileOpsResult>> {
-    this.logger.info("Applying patch", {
+    this.logger.info('Applying patch', {
       files: Object.keys(patch.actions).length,
     });
 
@@ -74,16 +74,16 @@ export class PatchApplier {
       const absolutePath = this.resolvePath(filePath);
 
       if (!existsSync(absolutePath)) {
-        throw new PatchError(`File not found: ${filePath}`, "FILE_NOT_FOUND");
+        throw new PatchError(`File not found: ${filePath}`, 'FILE_NOT_FOUND');
       }
 
       try {
-        const content = await readFile(absolutePath, "utf-8");
+        const content = await readFile(absolutePath, 'utf-8');
         const normalized = normalizeNewlines(content);
         this.originalFiles[filePath] = normalized;
       } catch (error) {
         this.logger.error(`Failed to read file: ${filePath}`, { error });
-        throw new PatchError(`Failed to read file: ${filePath}`, "READ_ERROR");
+        throw new PatchError(`Failed to read file: ${filePath}`, 'READ_ERROR');
       }
     }
   }
@@ -95,7 +95,7 @@ export class PatchApplier {
     // 防止路径遍历攻击
     const resolved = resolve(this.workspaceRoot, filePath);
     if (!resolved.startsWith(this.workspaceRoot)) {
-      throw new PatchError(`Invalid path: ${filePath}`, "INVALID_PATH");
+      throw new PatchError(`Invalid path: ${filePath}`, 'INVALID_PATH');
     }
     return resolved;
   }
@@ -118,15 +118,10 @@ export class PatchApplier {
       } else if (action.type === PatchActionType.UPDATE) {
         const originalContent = this.originalFiles[path];
         if (!originalContent) {
-          throw new PatchError(`Original file not loaded: ${path}`, "FILE_NOT_LOADED");
+          throw new PatchError(`Original file not loaded: ${path}`, 'FILE_NOT_LOADED');
         }
 
-        const newContent = this.applyChunks(
-          originalContent,
-          action.chunks,
-          path,
-          false
-        );
+        const newContent = this.applyChunks(originalContent, action.chunks, path, false);
 
         changes[path] = {
           newContent,
@@ -163,7 +158,11 @@ export class PatchApplier {
       }
 
       const contextAfter: string[] = [];
-      for (let i = origIndex + delLines.length; i < Math.min(result.length, origIndex + delLines.length + 3); i++) {
+      for (
+        let i = origIndex + delLines.length;
+        i < Math.min(result.length, origIndex + delLines.length + 3);
+        i++
+      ) {
         if (result[i + offset]) {
           contextAfter.push(result[i + offset]!);
         }
@@ -198,7 +197,7 @@ export class PatchApplier {
 
       // 插入新行
       if (tryPreserveEscaping) {
-        const originalText = delLines.join("\n");
+        const originalText = delLines.join('\n');
         const newText = joinLines(insLines);
         const preservedText = preserveEscaping(originalText, newText);
         result.splice(insertIndex, 0, ...splitLines(preservedText));
@@ -216,10 +215,7 @@ export class PatchApplier {
   /**
    * 应用单个文件变更
    */
-  private async applyFileChange(
-    path: string,
-    change: FileChange
-  ): Promise<FileOpsResult> {
+  private async applyFileChange(path: string, change: FileChange): Promise<FileOpsResult> {
     const absolutePath = this.resolvePath(path);
 
     if (change.deleted) {
@@ -231,7 +227,7 @@ export class PatchApplier {
 
     if (change.newContent !== undefined) {
       // 写入新内容
-      await writeFile(absolutePath, change.newContent, "utf-8");
+      await writeFile(absolutePath, change.newContent, 'utf-8');
       this.logger.info(`Updated file: ${path}`);
     }
 
@@ -258,12 +254,12 @@ export class PatchApplier {
    * 回滚更改
    */
   async revertChanges(): Promise<void> {
-    this.logger.warn("Reverting changes");
+    this.logger.warn('Reverting changes');
 
     for (const [path, originalContent] of Object.entries(this.originalFiles)) {
       try {
         const absolutePath = this.resolvePath(path);
-        await writeFile(absolutePath, originalContent, "utf-8");
+        await writeFile(absolutePath, originalContent, 'utf-8');
         this.logger.info(`Reverted file: ${path}`);
       } catch (error) {
         this.logger.error(`Failed to revert file: ${path}`, { error });
@@ -280,7 +276,7 @@ export async function applyPatch(
   workspaceRoot: string
 ): Promise<{ results: Record<string, FileOpsResult>; fuzz: number }> {
   // 解析补丁
-  const { parsePatch } = await import("./parser");
+  const { parsePatch } = await import('./parser');
   const { patch } = parsePatch(patchText);
 
   // 应用补丁

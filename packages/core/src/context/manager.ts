@@ -3,7 +3,7 @@
  * 管理任务执行过程中的上下文信息
  */
 
-import type { ContextUpdate, MessageContext } from "./types.js";
+import type { ContextUpdate, MessageContext } from './types.js';
 
 /**
  * 上下文管理器类
@@ -14,10 +14,7 @@ export class ContextManager {
   /**
    * 添加上下文更新
    */
-  addContextUpdate(
-    messageIndex: number,
-    update: ContextUpdate,
-  ): void {
+  addContextUpdate(messageIndex: number, update: ContextUpdate): void {
     if (!this.contextHistory.has(messageIndex)) {
       this.contextHistory.set(messageIndex, []);
     }

@@ -9,7 +9,7 @@
  * - Git Tutor AI: Web 应用,通过回调函数与前端通信,简化版本
  */
 
-import type { ToolDefinition, ToolContext, ToolResult } from "../../types.js";
+import type { ToolDefinition, ToolContext, ToolResult } from '../../types.js';
 
 // ============================================================================
 // 类型定义
@@ -65,15 +65,15 @@ class CondenseToolHandler {
       if (condensedContext === undefined || condensedContext === null) {
         return {
           success: false,
-          error: "缺少必需参数: context",
+          error: '缺少必需参数: context',
         };
       }
 
       // 验证 context 内容不为空
-      if (typeof condensedContext !== "string" || condensedContext.trim().length === 0) {
+      if (typeof condensedContext !== 'string' || condensedContext.trim().length === 0) {
         return {
           success: false,
-          error: "context 参数不能为空",
+          error: 'context 参数不能为空',
         };
       }
 
@@ -86,7 +86,7 @@ class CondenseToolHandler {
             success: true,
             data: {
               accepted: true,
-              message: "用户已接受压缩的对话摘要",
+              message: '用户已接受压缩的对话摘要',
               timestamp: new Date().toISOString(),
             } as CondenseResult,
           };
@@ -96,7 +96,7 @@ class CondenseToolHandler {
             data: {
               accepted: false,
               feedback: result.feedback,
-              message: "用户提供了反馈,而不是接受压缩摘要",
+              message: '用户提供了反馈,而不是接受压缩摘要',
               timestamp: new Date().toISOString(),
             } as CondenseResult,
           };
@@ -108,7 +108,7 @@ class CondenseToolHandler {
         success: true,
         data: {
           accepted: true,
-          message: "已接受压缩的对话摘要",
+          message: '已接受压缩的对话摘要',
           timestamp: new Date().toISOString(),
         } as CondenseResult,
       };
@@ -126,36 +126,36 @@ class CondenseToolHandler {
 // ============================================================================
 
 export const condenseTool: ToolDefinition = {
-  name: "condense",
-  displayName: "压缩对话",
+  name: 'condense',
+  displayName: '压缩对话',
   description:
-    "当对话变得过长时,压缩对话历史以管理上下文窗口。使用此工具时,你需要创建一个详细的对话摘要,捕捉关键信息以便继续任务。" +
-    "\n\n**压缩内容应包含**:" +
-    "\n1. **前序对话概要**: 高层次的对话概述,包括用户的主要目标和意图" +
-    "\n2. **当前工作**: 详细描述最近正在进行的工作,特别注意最后几轮对话" +
-    "\n3. **关键技术概念**: 列出所有重要的技术概念、技术、编码约定和讨论过的框架" +
-    "\n4. **相关文件和代码**: 如果适用,列举为任务延续而检查、修改或创建的特定文件和代码部分" +
-    "\n5. **问题解决**: 记录迄今为止解决的问题以及任何正在进行的故障排除工作" +
-    "\n6. **待处理任务和下一步**: 列出所有待处理任务和下一步计划。如果适用,包含代码片段以增加清晰度" +
-    "\n\n**使用时机**:" +
-    "\n- 对话历史接近 AI 模型的上下文窗口限制时" +
-    "\n- 需要保持对话连续性但减少 token 消耗时" +
-    "\n- 长时间开发会话中的内存管理" +
-    "\n\n**注意**: 压缩后应确保能够继续之前的任务,不丢失重要信息。",
-  category: "task",
+    '当对话变得过长时,压缩对话历史以管理上下文窗口。使用此工具时,你需要创建一个详细的对话摘要,捕捉关键信息以便继续任务。' +
+    '\n\n**压缩内容应包含**:' +
+    '\n1. **前序对话概要**: 高层次的对话概述,包括用户的主要目标和意图' +
+    '\n2. **当前工作**: 详细描述最近正在进行的工作,特别注意最后几轮对话' +
+    '\n3. **关键技术概念**: 列出所有重要的技术概念、技术、编码约定和讨论过的框架' +
+    '\n4. **相关文件和代码**: 如果适用,列举为任务延续而检查、修改或创建的特定文件和代码部分' +
+    '\n5. **问题解决**: 记录迄今为止解决的问题以及任何正在进行的故障排除工作' +
+    '\n6. **待处理任务和下一步**: 列出所有待处理任务和下一步计划。如果适用,包含代码片段以增加清晰度' +
+    '\n\n**使用时机**:' +
+    '\n- 对话历史接近 AI 模型的上下文窗口限制时' +
+    '\n- 需要保持对话连续性但减少 token 消耗时' +
+    '\n- 长时间开发会话中的内存管理' +
+    '\n\n**注意**: 压缩后应确保能够继续之前的任务,不丢失重要信息。',
+  category: 'task',
   parameters: [
     {
-      name: "context",
-      type: "string",
+      name: 'context',
+      type: 'string',
       required: true,
       description:
-        "压缩后的对话上下文。应包含:" +
-        "\n1. 前序对话概要: 高层次的对话概述" +
-        "\n2. 当前工作: 详细描述最近的工作" +
-        "\n3. 关键技术概念: 重要的技术和框架" +
-        "\n4. 相关文件和代码: 检查、修改或创建的文件" +
-        "\n5. 问题解决: 解决的问题和故障排除" +
-        "\n6. 待处理任务和下一步: 待处理任务和下一步计划",
+        '压缩后的对话上下文。应包含:' +
+        '\n1. 前序对话概要: 高层次的对话概述' +
+        '\n2. 当前工作: 详细描述最近的工作' +
+        '\n3. 关键技术概念: 重要的技术和框架' +
+        '\n4. 相关文件和代码: 检查、修改或创建的文件' +
+        '\n5. 问题解决: 解决的问题和故障排除' +
+        '\n6. 待处理任务和下一步: 待处理任务和下一步计划',
     },
   ],
   permissions: [], // condense 不需要特殊权限

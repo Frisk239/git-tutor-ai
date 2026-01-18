@@ -1,8 +1,8 @@
 // 智能 Commit 消息生成
-import { GitManager } from "./manager.js";
-import { aiManager } from "../ai/manager.js";
-import { AIProvider } from "@git-tutor/shared";
-import type { GitStatus } from "./types.js";
+import { GitManager } from './manager.js';
+import { aiManager } from '../ai/manager.js';
+import { AIProvider } from '@git-tutor/shared';
+import type { GitStatus } from './types.js';
 
 /**
  * 生成智能提交消息的选项
@@ -10,8 +10,8 @@ import type { GitStatus } from "./types.js";
 export interface SmartCommitOptions {
   provider?: AIProvider;
   model?: string;
-  language?: "zh-CN" | "en-US";
-  style?: "conventional" | "simple" | "detailed";
+  language?: 'zh-CN' | 'en-US';
+  style?: 'conventional' | 'simple' | 'detailed';
   maxLength?: number;
   preview?: boolean; // ⭐ 新增: 是否只预览不提交
   stagedOnly?: boolean; // ⭐ 新增: 是否只分析已暂存的文件
@@ -24,7 +24,7 @@ export interface SmartCommitOptions {
 export interface GeneratedCommitMessage {
   title: string;
   body?: string;
-  type: "feat" | "fix" | "docs" | "style" | "refactor" | "test" | "chore" | "build";
+  type: 'feat' | 'fix' | 'docs' | 'style' | 'refactor' | 'test' | 'chore' | 'build';
   scope?: string;
   breaking?: boolean;
 }
@@ -52,10 +52,7 @@ export class SmartCommitService {
   private git: GitManager;
   private defaultProvider: AIProvider;
 
-  constructor(
-    git: GitManager,
-    defaultProvider: AIProvider = AIProvider.ANTHROPIC
-  ) {
+  constructor(git: GitManager, defaultProvider: AIProvider = AIProvider.ANTHROPIC) {
     this.git = git;
     this.defaultProvider = defaultProvider;
   }
@@ -63,15 +60,13 @@ export class SmartCommitService {
   /**
    * 生成智能提交消息
    */
-  async generateCommitMessage(
-    options?: SmartCommitOptions
-  ): Promise<GeneratedCommitMessage> {
+  async generateCommitMessage(options?: SmartCommitOptions): Promise<GeneratedCommitMessage> {
     // 1. 获取当前状态
     const status = await this.git.getStatus();
     const diff = await this.git.getDiff();
 
     if (status.files.length === 0) {
-      throw new Error("没有需要提交的更改");
+      throw new Error('没有需要提交的更改');
     }
 
     // 2. 准备上下文信息
@@ -79,7 +74,7 @@ export class SmartCommitService {
 
     // 3. 调用 AI 生成提交消息
     const provider = options?.provider || this.defaultProvider;
-    const model = options?.model || "claude-sonnet-4-5-20250929";
+    const model = options?.model || 'claude-sonnet-4-5-20250929';
 
     const prompt = this.buildPrompt(context, options);
 
@@ -91,7 +86,7 @@ export class SmartCommitService {
         maxTokens: 500,
         systemPrompt: this.getSystemPrompt(options),
       },
-      [{ role: "user", content: prompt }]
+      [{ role: 'user', content: prompt }]
     );
 
     // 4. 解析 AI 响应
@@ -101,10 +96,7 @@ export class SmartCommitService {
   /**
    * 执行智能提交(增强版:支持预览和更改统计)
    */
-  async smartCommit(
-    files?: string[],
-    options?: SmartCommitOptions
-  ): Promise<SmartCommitResult> {
+  async smartCommit(files?: string[], options?: SmartCommitOptions): Promise<SmartCommitResult> {
     // 1. 检查是否为预览模式
     if (options?.preview) {
       return this.generatePreview(files, options);
@@ -195,10 +187,10 @@ export class SmartCommitService {
     const parts: string[] = [];
 
     // 文件状态
-    parts.push("## 更改的文件\n");
+    parts.push('## 更改的文件\n');
     status.files.forEach((file) => {
       parts.push(
-        `- ${file.path} (${file.index !== " " ? "staged" : "unstaged"}: ${
+        `- ${file.path} (${file.index !== ' ' ? 'staged' : 'unstaged'}: ${
           file.working || file.index
         })`
       );
@@ -206,55 +198,54 @@ export class SmartCommitService {
 
     // 差异摘要(带截断)
     if (diff.length > 0) {
-      parts.push("\n## 代码更改详情\n");
+      parts.push('\n## 代码更改详情\n');
 
       // 获取完整的差异内容
       const fullDiff = diff
         .map((d) => {
-          const diffText = d.text || "";
+          const diffText = d.text || '';
           return `### ${d.file}\n${diffText}`;
         })
-        .join("\n");
+        .join('\n');
 
       // 应用截断限制(参考 Cline: 5000 字符)
       const maxDiffLength = options?.maxDiffLength || 5000;
       const truncatedDiff =
         fullDiff.length > maxDiffLength
-          ? fullDiff.substring(0, maxDiffLength) +
-            "\n\n[差异已截断,因为内容过大]"
+          ? fullDiff.substring(0, maxDiffLength) + '\n\n[差异已截断,因为内容过大]'
           : fullDiff;
 
       parts.push(truncatedDiff);
     }
 
     // 获取最近的提交历史作为参考
-    parts.push("\n## 最近的提交消息(作为参考)\n");
+    parts.push('\n## 最近的提交消息(作为参考)\n');
     const recentCommits = await this.git.getLog(5);
     recentCommits.forEach((commit) => {
       parts.push(`- ${commit.message.substring(0, 80)}`);
     });
 
-    return parts.join("\n");
+    return parts.join('\n');
   }
 
   /**
    * 构建 AI 提示词
    */
   private buildPrompt(context: string, options?: SmartCommitOptions): string {
-    const style = options?.style || "conventional";
-    const language = options?.language || "zh-CN";
+    const style = options?.style || 'conventional';
+    const language = options?.language || 'zh-CN';
 
     const styleInstructions = {
       conventional:
-        "使用 Conventional Commits 格式：type(scope): description\n\ntype 可以是: feat, fix, docs, style, refactor, test, chore, build",
-      simple: "使用简单直接的描述，一行说明即可",
-      detailed: "提供详细的标题和正文，包括：\n- 标题：简短描述\n- 正文：详细说明更改的原因和内容",
+        '使用 Conventional Commits 格式：type(scope): description\n\ntype 可以是: feat, fix, docs, style, refactor, test, chore, build',
+      simple: '使用简单直接的描述，一行说明即可',
+      detailed: '提供详细的标题和正文，包括：\n- 标题：简短描述\n- 正文：详细说明更改的原因和内容',
     };
 
     const languageInstruction =
-      language === "zh-CN"
-        ? "请使用中文编写提交消息"
-        : "Please write the commit message in English";
+      language === 'zh-CN'
+        ? '请使用中文编写提交消息'
+        : 'Please write the commit message in English';
 
     return `
 ${languageInstruction}
@@ -268,7 +259,7 @@ ${styleInstructions[style]}
 请基于这些更改生成一个合适的提交消息。
 
 ${
-  style === "conventional"
+  style === 'conventional'
     ? `
 请以 JSON 格式返回：
 {
@@ -279,7 +270,7 @@ ${
   "breaking": true/false
 }
 `
-    : ""
+    : ''
 }
 `;
   }
@@ -288,9 +279,9 @@ ${
    * 获取系统提示词
    */
   private getSystemPrompt(options?: SmartCommitOptions): string {
-    const language = options?.language || "zh-CN";
+    const language = options?.language || 'zh-CN';
 
-    return language === "zh-CN"
+    return language === 'zh-CN'
       ? `你是一个专业的代码提交消息生成助手。你的职责是：
 1. 分析代码更改的内容和目的
 2. 生成清晰、准确、规范的提交消息
@@ -323,15 +314,15 @@ Good commit messages:
     options?: SmartCommitOptions
   ): GeneratedCommitMessage {
     // 尝试解析 JSON
-    if (content.includes("{") && content.includes("}")) {
+    if (content.includes('{') && content.includes('}')) {
       try {
         const jsonMatch = content.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
           return {
-            type: parsed.type || "chore",
+            type: parsed.type || 'chore',
             scope: parsed.scope,
-            title: parsed.title || parsed.description || "Update",
+            title: parsed.title || parsed.description || 'Update',
             body: parsed.body,
             breaking: parsed.breaking || false,
           };
@@ -342,9 +333,9 @@ Good commit messages:
     }
 
     // 文本解析
-    const lines = content.split("\n").filter((l) => l.trim());
-    const title = lines[0] || "Update";
-    const body = lines.slice(1).join("\n").trim() || undefined;
+    const lines = content.split('\n').filter((l) => l.trim());
+    const title = lines[0] || 'Update';
+    const body = lines.slice(1).join('\n').trim() || undefined;
 
     // 尝试识别 conventional commit 格式
     const conventionalMatch = title.match(/^(\w+)(?:\(([^)]+)\))?: (.+)/);
@@ -358,7 +349,7 @@ Good commit messages:
     }
 
     return {
-      type: "chore",
+      type: 'chore',
       title,
       body,
     };
@@ -369,17 +360,8 @@ Good commit messages:
    */
   private normalizeCommitType(
     type: string
-  ): "feat" | "fix" | "docs" | "style" | "refactor" | "test" | "chore" | "build" {
-    const validTypes = [
-      "feat",
-      "fix",
-      "docs",
-      "style",
-      "refactor",
-      "test",
-      "chore",
-      "build",
-    ];
+  ): 'feat' | 'fix' | 'docs' | 'style' | 'refactor' | 'test' | 'chore' | 'build' {
+    const validTypes = ['feat', 'fix', 'docs', 'style', 'refactor', 'test', 'chore', 'build'];
 
     if (validTypes.includes(type)) {
       return type as any;
@@ -387,23 +369,23 @@ Good commit messages:
 
     // 简单的映射
     const mappings: Record<string, any> = {
-      feature: "feat",
-      bugfix: "fix",
-      "bug fix": "fix",
-      documentation: "docs",
-      format: "style",
-      tests: "test",
-      ci: "build",
+      feature: 'feat',
+      bugfix: 'fix',
+      'bug fix': 'fix',
+      documentation: 'docs',
+      format: 'style',
+      tests: 'test',
+      ci: 'build',
     };
 
-    return mappings[type.toLowerCase()] || "chore";
+    return mappings[type.toLowerCase()] || 'chore';
   }
 
   /**
    * 格式化提交消息
    */
   private formatCommitMessage(message: GeneratedCommitMessage): string {
-    let result = "";
+    let result = '';
 
     // type(scope): title
     if (message.scope) {
@@ -414,12 +396,12 @@ Good commit messages:
 
     // BREAKING CHANGE 标记
     if (message.breaking) {
-      result += "\n\nBREAKING CHANGE: " + (message.body || message.title);
+      result += '\n\nBREAKING CHANGE: ' + (message.body || message.title);
     }
 
     // 正文
     if (message.body && !message.breaking) {
-      result += "\n\n" + message.body;
+      result += '\n\n' + message.body;
     }
 
     return result;
