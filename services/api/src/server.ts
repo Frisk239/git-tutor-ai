@@ -5,6 +5,7 @@ import websocket from '@fastify/websocket';
 import { config } from './config.js';
 import { errorHandler } from './middleware/error.js';
 import { chatRoutes } from './routes/chat.js';
+import { toolRoutes } from './routes/tools.js';
 import { wsHandler } from './websocket/handler.js';
 import { prisma } from '@git-tutor/db';
 
@@ -45,6 +46,7 @@ export async function buildServer() {
 
   // 注册路由
   await server.register(chatRoutes, { prefix: '/api/chat' });
+  await server.register(toolRoutes, { prefix: '/api/tools' });
 
   // WebSocket 路由
   server.register(async function (fastify) {

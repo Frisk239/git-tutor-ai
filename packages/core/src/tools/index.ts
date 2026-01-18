@@ -3,6 +3,10 @@ export * from './types.js';
 export * from './registry.js';
 export * from './executor.js';
 
+// 导出单例实例
+export { toolRegistry } from './registry.js';
+export { toolExecutor } from './executor.js';
+
 // 导出增强组件
 export * from './validation.js';
 export * from './lifecycle.js';
