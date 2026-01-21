@@ -1,0 +1,50 @@
+import { useState } from "react";
+import { ChatPanel } from "./components/ChatPanel";
+import { SessionList } from "./components/SessionList";
+import { CodeReaderPanel } from "./components/CodeReaderPanel";
+
+function App() {
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [chatPanelKey, setChatPanelKey] = useState(0);
+
+  const handleNewSession = () => {
+    setCurrentSessionId(null);
+    setChatPanelKey((prev) => prev + 1); // 重置 ChatPanel
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold text-gray-900 mb-4">
+          Git Tutor AI
+        </h1>
+        <p className="text-lg text-gray-600 mb-8">
+          Phase 3: Code Reader Panel with Monaco Editor
+        </p>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg shadow overflow-hidden flex" style={{ height: "600px" }}>
+            <SessionList
+              currentSessionId={currentSessionId}
+              onSelectSession={setCurrentSessionId}
+              onNewSession={handleNewSession}
+            />
+            <div className="flex-1">
+              <ChatPanel key={chatPanelKey} initialSessionId={currentSessionId} />
+            </div>
+          </div>
+          <div className="bg-white rounded-lg shadow overflow-hidden flex flex-col" style={{ height: "600px" }}>
+            <div className="p-4 border-b">
+              <h2 className="text-xl font-semibold">Code Reader Panel</h2>
+              <p className="text-sm text-gray-500">View and read code files</p>
+            </div>
+            <div className="flex-1">
+              <CodeReaderPanel />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default App;
