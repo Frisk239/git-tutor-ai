@@ -5,7 +5,7 @@ const toolExecutor = toolsAPI.executor
 
 export class ToolService {
   /**
-   * 执行单个工具
+   * 执行单个工具（增强错误处理）
    */
   async executeTool(input: ExecuteToolInput): Promise<ToolExecutionResponse> {
     try {
@@ -18,11 +18,53 @@ export class ToolService {
         result: result.data,
         error: result.error,
       }
-    } catch (error) {
+    } catch (error: any) {
+      // 详细的错误处理
+      if (error instanceof Error) {
+        // 检查常见错误类型
+        if (error.message.includes('ENOENT') || error.message.includes('no such file')) {
+          return {
+            success: false,
+            result: undefined,
+            error: `文件或目录不存在: ${input.args.filePath || input.args.directoryPath || '未指定路径'}`,
+          }
+        }
+
+        if (error.message.includes('EACCES') || error.message.includes('permission denied')) {
+          return {
+            success: false,
+            result: undefined,
+            error: '权限不足，无法访问该文件或目录',
+          }
+        }
+
+        if (error.message.includes('git') && error.message.includes('not a git repository')) {
+          return {
+            success: false,
+            result: undefined,
+            error: '当前目录不是 Git 仓库',
+          }
+        }
+
+        if (error.message.includes('tool') && error.message.includes('not found')) {
+          return {
+            success: false,
+            result: undefined,
+            error: `工具 "${input.tool}" 不存在或未注册`,
+          }
+        }
+
+        return {
+          success: false,
+          result: undefined,
+          error: error.message,
+        }
+      }
+
       return {
         success: false,
         result: undefined,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: '未知错误',
       }
     }
   }

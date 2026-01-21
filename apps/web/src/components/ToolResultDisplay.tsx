@@ -9,8 +9,33 @@ export function ToolResultDisplay({ tool, result }: ToolResultDisplayProps) {
     if (result && !result.success && result.error) {
       return (
         <div className="text-red-700">
-          <div className="font-semibold">错误:</div>
-          <div className="text-sm">{result.error}</div>
+          <div className="font-semibold mb-2">❌ 执行失败</div>
+          <div className="text-sm bg-red-100 p-3 rounded mb-3">{result.error}</div>
+
+          {/* 添加解决建议 */}
+          {result.error.includes('不存在') && (
+            <div className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+              💡 建议：检查文件路径是否正确
+            </div>
+          )}
+
+          {result.error.includes('权限') && (
+            <div className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+              💡 建议：检查文件权限，确保有读写权限
+            </div>
+          )}
+
+          {result.error.includes('Git 仓库') && (
+            <div className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+              💡 建议：先初始化 Git 仓库 (git init)
+            </div>
+          )}
+
+          {result.error.includes('工具') && result.error.includes('不存在') && (
+            <div className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+              💡 建议：该工具可能未注册或名称错误
+            </div>
+          )}
         </div>
       )
     }
