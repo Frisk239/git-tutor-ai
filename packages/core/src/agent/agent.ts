@@ -5,7 +5,7 @@
  * 实现一个能够使用工具、管理对话上下文的 AI Agent
  */
 
-import { AIProvider } from '@git-tutor/shared';
+import { type AIProvider } from '@git-tutor/shared';
 import type { AIRequestOptions, AIResponse } from '../ai/providers.js';
 import { aiManager } from '../ai/manager.js';
 import { toolRegistry } from '../tools/registry.js';
@@ -206,47 +206,6 @@ export class AIAgent {
   }
 
   /**
-   * 生成工具定义(用于 AI 模型)
-   */
-  private generateToolsDefinition(): any[] {
-    const allTools = toolRegistry.getAll();
-    const definitions: any[] = [];
-
-    for (const tool of allTools) {
-      if (!tool.enabled) continue;
-
-      const extraTools = this.config.extraTools || [];
-      if (extraTools.length > 0 && !extraTools.includes(tool.name)) {
-        continue;
-      }
-
-      definitions.push({
-        type: 'function',
-        function: {
-          name: tool.name,
-          description: tool.description,
-          parameters: {
-            type: 'object',
-            properties: tool.parameters.reduce(
-              (acc, param) => {
-                acc[param.name] = {
-                  type: param.type,
-                  description: param.description,
-                };
-                return acc;
-              },
-              {} as Record<string, any>
-            ),
-            required: tool.parameters.filter((p) => p.required).map((p) => p.name),
-          },
-        },
-      });
-    }
-
-    return definitions;
-  }
-
-  /**
    * 执行工具调用
    */
   private async executeToolCall(toolCall: ToolCall): Promise<ToolCallResult> {
@@ -340,11 +299,13 @@ export class AIAgent {
 
         let match;
         while ((match = toolCallPattern.exec(fullContent)) !== null) {
-          const tool = match[1];
-          const args = JSON.parse(match[2]);
+          const tool = match[1]; // 这个可能为 undefined，但正则保证不会
+          const args = JSON.parse(match[2] || '{}'); // 这个可能为 undefined，提供默认值
           const id = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-          toolCalls.push({ id, tool, args });
+          if (tool) {
+            toolCalls.push({ id, tool, args });
+          }
         }
 
         if (toolCalls.length > 0) {
@@ -357,8 +318,8 @@ export class AIAgent {
               toolCall.tool,
               toolCall.args,
               {
-                workingDirectory: this.config.workingDirectory || process.cwd(),
-                sessionId: this.config.sessionId,
+                workspacePath: this.config.workingDirectory || process.cwd(),
+                conversationId: this.config.sessionId,
                 userId: this.config.userId,
               }
             );
