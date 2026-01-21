@@ -10,19 +10,37 @@ import { checkPathAccess } from '../../utils/clineignore.js';
 import { retryAsync, RetryPresets } from '../../utils/retry.js';
 
 /**
- * 检查路径是否在项目目录内
- * 安全检查,防止访问项目外的文件
+ * 检查路径是否在项目目录内（增强版，防止路径遍历攻击）
+ * 安全检查，防止访问项目外的文件
  */
 function ensurePathInProject(path: string, projectPath?: string): string {
-  const resolvedPath = resolve(path);
+  // 1. 规范化路径，解析 . 和 ..
+  const normalizedPath = normalize(path);
+
+  // 2. 解析为绝对路径
+  const resolvedPath = resolve(normalizedPath);
 
   if (projectPath) {
+    // 3. 规范化项目路径
     const resolvedProjectPath = resolve(projectPath);
+
+    // 4. 计算相对路径
     const relativePath = relative(resolvedProjectPath, resolvedPath);
 
-    // 如果相对路径以 .. 开头,说明在项目外
-    if (relativePath.startsWith('..')) {
-      throw new Error(`Access denied: path "${path}" is outside the project directory`);
+    // 5. 检查是否在项目目录外（包括各种路径遍历攻击）
+    // 相对路径以 .. 开头表示在项目目录外
+    if (relativePath.startsWith('..') || path.includes('..')) {
+      throw new Error(
+        `Access denied: path "${path}" is outside the project directory (path traversal attempt detected)`
+      );
+    }
+
+    // 6. 额外检查：确保解析后的路径确实以项目路径为前缀
+    // 这可以防止某些边缘情况下的绕过
+    if (!resolvedPath.startsWith(resolvedProjectPath)) {
+      throw new Error(
+        `Access denied: path "${path}" resolved outside the project directory`
+      );
     }
   }
 
@@ -532,8 +550,8 @@ const searchFilesTool: ToolDefinition = {
           : join(context.projectPath || process.cwd(), params.path)
         : context.projectPath || process.cwd();
 
-      // 2. 安全检查
-      const safePath = ensurePathInProject(searchPath, context.projectPath);
+      // 2. 综合安全检查（包括 .clineignore）
+      const safePath = validatePathAccess(searchPath, context.projectPath, true);
 
       // 3. 构建正则表达式
       const flags = params.caseSensitive ? 'g' : 'gi';
