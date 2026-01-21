@@ -5,7 +5,7 @@
  * 实现一个能够使用工具、管理对话上下文的 AI Agent
  */
 
-import { type AIProvider } from '@git-tutor/shared';
+import { AIProvider, type AIProvider as AIProviderType } from '@git-tutor/shared';
 import type { AIRequestOptions, AIResponse } from '../ai/providers.js';
 import { aiManager } from '../ai/manager.js';
 import { toolRegistry } from '../tools/registry.js';
@@ -61,7 +61,7 @@ export interface ToolCall {
  */
 export interface AgentConfig {
   /** AI 提供商 */
-  provider: AIProvider;
+  provider: AIProviderType;
   /** 模型名称 */
   model: string;
   /** 最大轮次 */
@@ -321,6 +321,7 @@ export class AIAgent {
                 workspacePath: this.config.workingDirectory || process.cwd(),
                 conversationId: this.config.sessionId,
                 userId: this.config.userId,
+                services: {}, // ToolContext 要求的必需字段
               }
             );
 
