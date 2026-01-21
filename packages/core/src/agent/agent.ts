@@ -5,13 +5,13 @@
  * 实现一个能够使用工具、管理对话上下文的 AI Agent
  */
 
-import { AIProvider, type AIProvider as AIProviderType } from '@git-tutor/shared';
 import type { AIRequestOptions, AIResponse } from '../ai/providers.js';
 import { aiManager } from '../ai/manager.js';
 import { toolRegistry } from '../tools/registry.js';
 import { toolExecutor } from '../tools/executor.js';
 import type { ToolContext, ToolResult } from '../tools/types.js';
 import { Logger } from '../logging/logger.js';
+import type { AIProvider } from '@git-tutor/shared';
 
 /**
  * 消息角色
@@ -61,7 +61,7 @@ export interface ToolCall {
  */
 export interface AgentConfig {
   /** AI 提供商 */
-  provider: AIProviderType;
+  provider: AIProvider;
   /** 模型名称 */
   model: string;
   /** 最大轮次 */
