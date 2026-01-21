@@ -241,7 +241,7 @@ export class AIAgent {
     };
 
     // 执行工具
-    const result = await toolExecutor.execute(toolName, context, args);
+    const result = await toolExecutor.execute(toolName, args, context);
 
     return {
       toolCallId: id,
