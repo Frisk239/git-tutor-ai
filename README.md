@@ -22,12 +22,15 @@ cd apps/web && pnpm dev
 ```
 Visit http://localhost:5173
 
-### Phase 2: Tools System (Next)
-- [ ] File operation tools
-- [ ] Git tools
-- [ ] Tool execution display
+### Phase 2: Tools System ✅
+- [x] Tool execution API
+- [x] Agent tool integration
+- [x] Tool call display UI
+- [x] File operations
+- [x] Git operations
+- [x] Error handling
 
-📖 查看 [Phase 1 完成报告](./docs/phase1-completion-report.md)
+📖 查看 [Phase 2 完成报告](./docs/phase2-completion-report.md) | [工具指南](./docs/tools-guide.md)
 
 ## 🚀 快速开始
 

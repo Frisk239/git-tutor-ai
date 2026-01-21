@@ -5,13 +5,13 @@
  * 实现一个能够使用工具、管理对话上下文的 AI Agent
  */
 
-import { AIProvider } from '@git-tutor/shared';
 import type { AIRequestOptions, AIResponse } from '../ai/providers.js';
 import { aiManager } from '../ai/manager.js';
 import { toolRegistry } from '../tools/registry.js';
 import { toolExecutor } from '../tools/executor.js';
 import type { ToolContext, ToolResult } from '../tools/types.js';
 import { Logger } from '../logging/logger.js';
+import type { AIProvider } from '@git-tutor/shared';
 
 /**
  * 消息角色
@@ -206,47 +206,6 @@ export class AIAgent {
   }
 
   /**
-   * 生成工具定义(用于 AI 模型)
-   */
-  private generateToolsDefinition(): any[] {
-    const allTools = toolRegistry.getAll();
-    const definitions: any[] = [];
-
-    for (const tool of allTools) {
-      if (!tool.enabled) continue;
-
-      const extraTools = this.config.extraTools || [];
-      if (extraTools.length > 0 && !extraTools.includes(tool.name)) {
-        continue;
-      }
-
-      definitions.push({
-        type: 'function',
-        function: {
-          name: tool.name,
-          description: tool.description,
-          parameters: {
-            type: 'object',
-            properties: tool.parameters.reduce(
-              (acc, param) => {
-                acc[param.name] = {
-                  type: param.type,
-                  description: param.description,
-                };
-                return acc;
-              },
-              {} as Record<string, any>
-            ),
-            required: tool.parameters.filter((p) => p.required).map((p) => p.name),
-          },
-        },
-      });
-    }
-
-    return definitions;
-  }
-
-  /**
    * 执行工具调用
    */
   private async executeToolCall(toolCall: ToolCall): Promise<ToolCallResult> {
@@ -271,6 +230,122 @@ export class AIAgent {
       toolName,
       result,
     };
+  }
+
+  /**
+   * 流式运行 Agent（支持工具调用）
+   */
+  async *stream(
+    userMessage: string,
+    history: Array<{ role: string; content: string }> = []
+  ): AsyncGenerator<
+    | { type: 'delta'; content: string }
+    | { type: 'tool_call'; tool: string; args: any }
+    | { type: 'tool_result'; tool: string; result: any }
+  > {
+    // 清空当前消息（保留系统消息）
+    this.messages = this.messages.filter((m) => m.role === MessageRole.System);
+
+    // 加载历史消息
+    for (const msg of history) {
+      this.messages.push({
+        role: msg.role as any,
+        content: msg.content,
+      });
+    }
+
+    // 添加用户消息
+    this.addUserMessage(userMessage);
+
+    // 添加工具提示词到系统消息
+    if (this.config.systemPrompt) {
+      const toolsPrompt = this.generateToolsPrompt();
+      const updatedSystemPrompt = this.config.systemPrompt + toolsPrompt;
+
+      // 更新第一条系统消息
+      if (this.messages[0]?.role === MessageRole.System) {
+        this.messages[0]!.content = updatedSystemPrompt;
+      }
+    }
+
+    const maxTurns = this.config.maxTurns || 10;
+    let turns = 0;
+
+    this.logger.info(`开始流式运行 Agent，最大轮次: ${maxTurns}`);
+
+    while (turns < maxTurns) {
+      turns++;
+      this.logger.info(`第 ${turns} 轮`);
+
+      // 调用 AI（流式）
+      const { options, messages } = this.buildRequestOptions();
+
+      try {
+        let fullContent = '';
+        for await (const chunk of aiManager.chatStream(this.config.provider, options, messages)) {
+          fullContent += chunk;
+          yield { type: 'delta', content: chunk };
+        }
+
+        // 将完整响应添加到消息历史
+        this.messages.push({
+          role: MessageRole.Assistant,
+          content: fullContent,
+        });
+
+        // 检查响应中是否包含工具调用（简化版本：正则匹配）
+        const toolCallPattern = /<tool_call>\s*{\s*"tool":\s*"([^"]+)"\s*,\s*"args":\s*({[^}]+})\s*}\s*<\/tool_call>/g;
+        const toolCalls: Array<{ id: string; tool: string; args: any }> = [];
+
+        let match;
+        while ((match = toolCallPattern.exec(fullContent)) !== null) {
+          const tool = match[1]; // 这个可能为 undefined，但正则保证不会
+          const args = JSON.parse(match[2] || '{}'); // 这个可能为 undefined，提供默认值
+          const id = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+          if (tool) {
+            toolCalls.push({ id, tool, args });
+          }
+        }
+
+        if (toolCalls.length > 0) {
+          // 执行工具调用
+          for (const toolCall of toolCalls) {
+            yield { type: 'tool_call', tool: toolCall.tool, args: toolCall.args };
+
+            // 执行工具
+            const result = await toolExecutor.execute(
+              toolCall.tool,
+              toolCall.args,
+              {
+                workspacePath: this.config.workingDirectory || process.cwd(),
+                conversationId: this.config.sessionId,
+                userId: this.config.userId,
+                services: {}, // ToolContext 要求的必需字段
+              }
+            );
+
+            yield { type: 'tool_result', tool: toolCall.tool, result };
+
+            // 添加工具结果到历史
+            this.addToolResult(toolCall.id, toolCall.tool, result);
+          }
+        } else {
+          // 没有工具调用，结束对话
+          this.logger.info('没有工具调用，结束对话');
+          break;
+        }
+      } catch (error) {
+        this.logger.error(`AI 调用失败: ${error}`);
+        const errorMsg = `错误: ${error instanceof Error ? error.message : String(error)}`;
+        yield { type: 'delta', content: errorMsg };
+        break;
+      }
+    }
+
+    if (turns >= maxTurns) {
+      this.logger.warn('达到最大轮次');
+    }
   }
 
   /**
