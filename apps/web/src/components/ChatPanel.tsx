@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useWebSocket } from '../hooks/useWebSocket';
 import { MessageContent } from './MessageContent';
+import { ToolCallDisplay } from './ToolCallDisplay';
+import { ToolResultDisplay } from './ToolResultDisplay';
 import type { Message, ServerMessage } from '../types/chat';
 
 interface ChatPanelProps {
@@ -12,6 +14,12 @@ export function ChatPanel({ initialSessionId }: ChatPanelProps) {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(initialSessionId || null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [streamingContent, setStreamingContent] = useState('');
+  const [toolCalls, setToolCalls] = useState<Array<{
+    tool: string
+    args: any
+    status: 'calling' | 'success' | 'error'
+    result?: any
+  }>>([]);
 
   // ✅ 添加：跟踪已处理消息数量
   const processedCount = useRef(0);
@@ -28,6 +36,22 @@ export function ChatPanel({ initialSessionId }: ChatPanelProps) {
     for (const msg of newMessages) {
       if (msg.type === 'chat.delta') {
         setStreamingContent((prev) => prev + msg.content);
+      } else if (msg.type === 'chat.tool_call') {
+        // 添加工具调用
+        setToolCalls((prev) => [...prev, {
+          tool: msg.tool,
+          args: msg.args,
+          status: 'calling',
+        }]);
+      } else if (msg.type === 'chat.tool_result') {
+        // 更新工具调用状态
+        setToolCalls((prev) =>
+          prev.map((tc) =>
+            tc.tool === msg.tool && tc.status === 'calling'
+              ? { ...tc, status: 'success', result: msg.result }
+              : tc
+          )
+        );
       } else if (msg.type === 'chat.complete') {
         setMessages((prev) => [...prev, {
           id: msg.message.id || Date.now().toString(),
@@ -36,7 +60,16 @@ export function ChatPanel({ initialSessionId }: ChatPanelProps) {
           createdAt: msg.message.createdAt,
         }]);
         setStreamingContent('');
+        setToolCalls([]); // 清空工具调用
       } else if (msg.type === 'chat.error') {
+        // 更新所有执行中的工具为错误状态
+        setToolCalls((prev) =>
+          prev.map((tc) =>
+            tc.status === 'calling'
+              ? { ...tc, status: 'error' }
+              : tc
+          )
+        );
         alert('Error: ' + msg.error);
       }
     }
@@ -137,6 +170,30 @@ export function ChatPanel({ initialSessionId }: ChatPanelProps) {
             </div>
           </div>
         )}
+
+        {/* 工具调用显示 */}
+        {toolCalls.map((tc, i) => (
+          <div key={i}>
+            {tc.status === 'calling' ? (
+              <ToolCallDisplay
+                tool={tc.tool}
+                args={tc.args}
+                status="calling"
+              />
+            ) : tc.status === 'success' ? (
+              <ToolResultDisplay
+                tool={tc.tool}
+                result={tc.result}
+              />
+            ) : (
+              <ToolCallDisplay
+                tool={tc.tool}
+                args={tc.args}
+                status="error"
+              />
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Input */}
