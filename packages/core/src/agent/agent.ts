@@ -165,7 +165,7 @@ export class AIAgent {
         continue;
       }
 
-      prompt += `### ${tool.name}\n`;
+      prompt += `## ${tool.name}\n`;
       prompt += `${tool.displayName}\n`;
       prompt += `${tool.description}\n\n`;
 
@@ -178,6 +178,24 @@ export class AIAgent {
         prompt += '\n';
       }
     }
+
+    // 添加工具调用格式说明
+    prompt += '\n# 工具调用格式\n\n';
+    prompt += '当需要使用工具时，请严格按照以下格式输出（不要使用代码块）：\n\n';
+    prompt += '###TOOL_CALL###\n';
+    prompt += '{\n';
+    prompt += '  "tool": "工具名称",\n';
+    prompt += '  "args": {\n';
+    prompt += '    "参数名1": "参数值1",\n';
+    prompt += '    "参数名2": "参数值2"\n';
+    prompt += '  }\n';
+    prompt += '}\n';
+    prompt += '###END_TOOL_CALL###\n\n';
+    prompt += '**重要：**\n';
+    prompt += '- 工具调用必须使用上述格式，不要使用其他格式或代码块\n';
+    prompt += '- args 必须是合法的 JSON 对象\n';
+    prompt += '- 一次只能调用一个工具\n';
+    prompt += '- 工具调用前后可以添加普通文本说明\n';
 
     return prompt;
   }
@@ -293,18 +311,28 @@ export class AIAgent {
           content: fullContent,
         });
 
-        // 检查响应中是否包含工具调用（简化版本：正则匹配）
-        const toolCallPattern = /<tool_call>\s*{\s*"tool":\s*"([^"]+)"\s*,\s*"args":\s*({[^}]+})\s*}\s*<\/tool_call>/g;
+        // 检查响应中是否包含工具调用（使用健壮的 JSON 解析）
+        // AI 应该输出格式：###TOOL_CALL###\n{"tool":"name","args":{...}}\n###END_TOOL_CALL###
+        const toolCallPattern = /###TOOL_CALL###\s*\n([\s\S]*?)\n###END_TOOL_CALL###/g;
         const toolCalls: Array<{ id: string; tool: string; args: any }> = [];
 
         let match;
         while ((match = toolCallPattern.exec(fullContent)) !== null) {
-          const tool = match[1]; // 这个可能为 undefined，但正则保证不会
-          const args = JSON.parse(match[2] || '{}'); // 这个可能为 undefined，提供默认值
-          const id = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+          try {
+            // match[1] 保证存在，因为正则有捕获组
+            const toolCallJson = JSON.parse((match[1] || '').trim());
+            const id = `tool_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-          if (tool) {
-            toolCalls.push({ id, tool, args });
+            if (toolCallJson.tool) {
+              toolCalls.push({
+                id,
+                tool: toolCallJson.tool,
+                args: toolCallJson.args || {},
+              });
+            }
+          } catch (parseError) {
+            this.logger.warn(`Failed to parse tool call JSON: ${parseError}`);
+            // 跳过无法解析的工具调用，继续处理其他调用
           }
         }
 
@@ -318,10 +346,10 @@ export class AIAgent {
               toolCall.tool,
               toolCall.args,
               {
-                workspacePath: this.config.workingDirectory || process.cwd(),
-                conversationId: this.config.sessionId,
-                userId: this.config.userId,
-                services: {}, // ToolContext 要求的必需字段
+                projectPath: this.config.workingDirectory || process.cwd(),
+                conversationId: this.config.sessionId || 'default',
+                services: {},
+                ...(this.config.userId && { userId: this.config.userId }),
               }
             );
 
