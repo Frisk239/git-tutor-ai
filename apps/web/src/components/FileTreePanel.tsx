@@ -13,7 +13,7 @@ export const FileTreePanel: React.FC<FileTreePanelProps> = ({
   selectedFile,
   refreshInterval = 30000,
 }) => {
-  const { files, loading, error, refresh } = useFileTree(rootPath, refreshInterval)
+  const { files, loading, error, refresh } = useFileTree(rootPath, { refreshInterval })
 
   if (loading) {
     return (

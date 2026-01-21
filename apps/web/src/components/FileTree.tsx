@@ -94,7 +94,7 @@ export interface FileTreeProps {
   files: FileNode[]
 }
 
-export const FileTree: React.FC<FileTreeProps> = ({ _rootPath, onFileSelect, selectedFile, files }) => {
+export const FileTree: React.FC<FileTreeProps> = ({ rootPath, onFileSelect, selectedFile, files }) => {
   const handleNodeSelect = (node: FileNode) => {
     onFileSelect(node.path)
   }
