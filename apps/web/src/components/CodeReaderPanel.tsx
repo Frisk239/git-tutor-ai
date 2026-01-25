@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { forwardRef, useImperativeHandle, useState, useCallback } from 'react'
 import { X, File } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -8,6 +8,10 @@ import MonacoEditor from './MonacoEditor'
 interface CodeReaderPanelProps {
   className?: string
   maxTabs?: number
+}
+
+export interface CodeReaderPanelRef {
+  openFile: (file: FileTab) => void
 }
 
 // Language detection mapping
@@ -58,10 +62,10 @@ const getLanguageFromExtension = (extension: string): string => {
   return extensionMap[extension.toLowerCase()] || 'plaintext'
 }
 
-const CodeReaderPanel: React.FC<CodeReaderPanelProps> = ({
+const CodeReaderPanel = forwardRef<CodeReaderPanelRef, CodeReaderPanelProps>(({
   className,
   maxTabs = 10,
-}) => {
+}, ref) => {
   const [activeTab, setActiveTab] = useState<string | null>(null)
   const [tabs, setTabs] = useState<FileTab[]>([])
   const [loadingFiles, setLoadingFiles] = useState<Record<string, boolean>>({})
@@ -213,6 +217,11 @@ This is a demonstration of the code reader panel functionality.
     return lastDot > 0 ? fileName.slice(lastDot + 1) : ''
   }
 
+  // Expose to parent
+  useImperativeHandle(ref, () => ({
+    openFile: openFileInternal
+  }))
+
   return (
     <div className={cn('flex flex-col h-full bg-gray-900 text-gray-100', className)}>
       {/* Tabs Header */}
@@ -307,15 +316,15 @@ This is a demonstration of the code reader panel functionality.
           </div>
         )}
       </div>
-
-      {/* External API Integration (for parent components) */}
     </div>
   )
-}
+})
 
 // Add static method for external use
 Object.assign(CodeReaderPanel, {
-  openFile: openFileInternal
+  openFile: (file: FileTab) => {
+    // This is kept for compatibility but the ref-based method is preferred
+  }
 })
 
 // Example usage - open a sample file when component mounts
