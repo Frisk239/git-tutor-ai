@@ -20,16 +20,6 @@ function App() {
       language: filePath.split('.').pop() || ''
     });
   };
-  const handleFileMentioned = (filePath: string) => {
-    console.log("File mentioned in chat:", filePath);
-    // Open file in code reader
-    codeReaderRef.current?.openFile({
-      id: filePath,
-      path: filePath,
-      name: filePath.split("/").pop() || filePath,
-      language: filePath.split(".").pop() || ""
-    });
-  };
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -43,7 +33,7 @@ function App() {
         {/* Left: File Tree (256px) */}
         <div className="w-64 border-r bg-white flex flex-col">
           <div className="p-3 border-b">
-            <h2 className="text-sm font-semibold text-gray-700">文件�?/h2>
+            <h2 className="text-sm font-semibold text-gray-700">文件树</h2>
           </div>
           <div className="flex-1 overflow-auto">
             <FileTreePanel
@@ -61,7 +51,7 @@ function App() {
 
         {/* Right: Chat Panel (384px) */}
         <div className="w-96 border-l">
-          <ChatPanel onFileMentioned={handleFileMentioned} />
+          <ChatPanel />
         </div>
       </div>
     </div>
