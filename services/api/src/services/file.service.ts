@@ -15,7 +15,7 @@ export class FileService {
    */
   private validateFileName(filePath: string): void {
     // 阻止包含非法字符的路径
-    const invalidChars = /[<>:"|?*]/
+    const invalidChars = /[<>:"|?]/
     if (invalidChars.test(filePath)) {
       throw new Error(`Invalid file path: contains invalid characters`)
     }
@@ -27,7 +27,7 @@ export class FileService {
 
     // 阻止包含可疑的目录名（如 ... 用于混淆）
     // 支持跨平台路径分隔符
-    const pathSegments = filePath.split(/[\/\\]/).filter(Boolean)
+    const pathSegments = filePath.split(/[\\/]/).filter(Boolean)
     if (pathSegments.some(segment => segment === '...')) {
       throw new Error(`Invalid file path: contains suspicious directory name`)
     }
@@ -131,6 +131,21 @@ export class FileService {
     const validatedPath = this.validatePath(filePath)
 
     const result = await toolExecutor.execute('get_file_stats', {
+      filePath: validatedPath,
+    }, {
+      workingDirectory: this.workingDirectory,
+    })
+
+    return result
+  }
+
+  /**
+   * 生成文件差异
+   */
+  async generateDiff(filePath: string) {
+    const validatedPath = this.validatePath(filePath)
+
+    const result = await toolExecutor.execute('diff_file', {
       filePath: validatedPath,
     }, {
       workingDirectory: this.workingDirectory,

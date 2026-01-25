@@ -1,273 +1,119 @@
-import React, { useState } from 'react';
-import { SideBySide, Diff } from 'react-diff-viewer-continued';
-import './DiffViewer.css';
+import { useState } from 'react'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import { oneLight, oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
 
 interface DiffViewerProps {
-  oldValue: string;
-  newValue: string;
-  language: string;
-  fileName?: string;
+  oldValue: string
+  newValue: string
+  language: string
+  fileName: string
 }
 
-export const DiffViewer: React.FC<DiffViewerProps> = ({
-  oldValue,
-  newValue,
-  language,
-  fileName,
-}) => {
-  const [isSplitView, setIsSplitView] = useState<boolean>(true);
+export function DiffViewer({ oldValue, newValue, language, fileName }: DiffViewerProps) {
+  const [showOld, setShowOld] = useState(false)
 
-  const diffData: Diff[] = [
-    {
-      value: newValue,
-      lines: newValue.split('\n').map((line, lineNumber) => ({
-        type: 'default',
-        content: line,
-        lineNumber: lineNumber + 1,
-        oldLineNumber: lineNumber + 1,
-      })),
-      language,
-    },
-  ];
+  const darkMode = false // 可以根据主题设置来调整
 
-  const originalData: Diff[] = [
-    {
-      value: oldValue,
-      lines: oldValue.split('\n').map((line, lineNumber) => ({
-        type: 'default',
-        content: line,
-        lineNumber: lineNumber + 1,
-      })),
-      language,
-    },
-  ];
+  // 简单的差异检测
+  const diffLines: { line: number; type: 'added' | 'removed' | 'unchanged'; content: string }[] = []
+  const oldLines = oldValue.split('\n')
+  const newLines = newValue.split('\n')
 
-  const renderToolbar = () => (
-    <div className="diff-viewer-toolbar">
-      {fileName && (
-        <div className="diff-file-name">
-          <strong>{fileName}</strong>
-        </div>
-      )}
-      <div className="diff-view-mode-toggle">
-        <button
-          className={`mode-toggle-button ${!isSplitView ? 'active' : ''}`}
-          onClick={() => setIsSplitView(false)}
-        >
-          统一视图
-        </button>
-        <button
-          className={`mode-toggle-button ${isSplitView ? 'active' : ''}`}
-          onClick={() => setIsSplitView(true)}
-        >
-          分栏视图
-        </button>
-      </div>
-    </div>
-  );
+  let oldLineIndex = 0
+  let newLineIndex = 0
+
+  while (oldLineIndex < oldLines.length || newLineIndex < newLines.length) {
+    const oldLine = oldLines[oldLineIndex] || ''
+    const newLine = newLines[newLineIndex] || ''
+
+    if (oldLine === newLine) {
+      // 相同的行
+      diffLines.push({
+        line: oldLineIndex + 1,
+        type: 'unchanged',
+        content: oldLine
+      })
+      oldLineIndex++
+      newLineIndex++
+    } else if (oldLines.length > newLines.length || oldLineIndex < oldLines.length && oldLine < newLine) {
+      // 旧的行被删除
+      diffLines.push({
+        line: oldLineIndex + 1,
+        type: 'removed',
+        content: oldLine
+      })
+      oldLineIndex++
+    } else {
+      // 新的行被添加
+      diffLines.push({
+        line: newLineIndex + 1,
+        type: 'added',
+        content: newLine
+      })
+      newLineIndex++
+    }
+  }
+
+  const highlightedCode = diffLines.map(line => {
+    let styledLine = line.content
+    switch (line.type) {
+      case 'added':
+        styledLine = `+${styledLine}`
+        break
+      case 'removed':
+        styledLine = `-${styledLine}`
+        break
+    }
+    return styledLine
+  }).join('\n')
 
   return (
-    <div className="diff-viewer-container">
-      {renderToolbar()}
-      <div className="diff-viewer-content">
-        {isSplitView ? (
-          <SideBySide
-            leftTitle="原始文件"
-            rightTitle="修改后文件"
-            oldValue={originalData}
-            newValue={diffData}
-            splitView={true}
-            useDarkTheme={true}
-            hideFilters={false}
-            hideLineNumbers={false}
-            showDiffOnly={false}
-            styles={{
-              diffContainer: {
-                backgroundColor: '#1e1e1e',
-                borderRadius: '8px',
-                overflow: 'hidden',
-              },
-              diffGutter: {
-                backgroundColor: '#2d2d2d',
-              },
-              content: {
-                backgroundColor: '#1e1e1e',
-                color: '#d4d4d4',
-                fontFamily: '"Consolas", "Monaco", "Courier New", monospace',
-                fontSize: '14px',
-                lineHeight: '1.5',
-              },
-              toolbar: {
-                backgroundColor: '#2d2d2d',
-                borderBottom: '1px solid #404040',
-                padding: '8px 16px',
-              },
-              lineContent: {
-                minHeight: '20px',
-              },
-              emptyGutter: {
-                minWidth: '50px',
-              },
-              emptyContent: {
-                paddingLeft: '50px',
-              },
-              additions: {
-                backgroundColor: '#1e3a2e',
-              },
-              deletions: {
-                backgroundColor: '#3d1f1f',
-              },
-              gutter: {
-                minWidth: '50px',
-                color: '#808080',
-                textAlign: 'right',
-                fontSize: '12px',
-                padding: '0 8px',
-                borderRight: '1px solid #404040',
-              },
-              line: {
-                '&:hover': {
-                  backgroundColor: '#2d2d2d',
-                },
-              },
-              added: {
-                backgroundColor: '#1e3a2e',
-                '&:hover': {
-                  backgroundColor: '#274737',
-                },
-              },
-              removed: {
-                backgroundColor: '#3d1f1f',
-                '&:hover': {
-                  backgroundColor: '#4a2828',
-                },
-              },
-              connector: {
-                backgroundColor: '#404040',
-              },
-              toolbarButton: {
-                color: '#d4d4d4',
-                backgroundColor: 'transparent',
-                border: '1px solid #404040',
-                borderRadius: '4px',
-                padding: '4px 12px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  backgroundColor: '#404040',
-                },
-              },
-              toolbarActiveButton: {
-                backgroundColor: '#007acc',
-                borderColor: '#007acc',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#005a9e',
-                },
-              },
-            }}
-          />
-        ) : (
-          <SideBySide
-            leftTitle="修改内容"
-            rightTitle=""
-            oldValue={diffData}
-            newValue={[]}
-            splitView={false}
-            useDarkTheme={true}
-            hideFilters={false}
-            hideLineNumbers={false}
-            showDiffOnly={true}
-            styles={{
-              diffContainer: {
-                backgroundColor: '#1e1e1e',
-                borderRadius: '8px',
-                overflow: 'hidden',
-              },
-              diffGutter: {
-                backgroundColor: '#2d2d2d',
-              },
-              content: {
-                backgroundColor: '#1e1e1e',
-                color: '#d4d4d4',
-                fontFamily: '"Consolas", "Monaco", "Courier New", monospace',
-                fontSize: '14px',
-                lineHeight: '1.5',
-              },
-              toolbar: {
-                backgroundColor: '#2d2d2d',
-                borderBottom: '1px solid #404040',
-                padding: '8px 16px',
-              },
-              lineContent: {
-                minHeight: '20px',
-              },
-              emptyGutter: {
-                minWidth: '50px',
-              },
-              emptyContent: {
-                paddingLeft: '50px',
-              },
-              additions: {
-                backgroundColor: '#1e3a2e',
-              },
-              deletions: {
-                backgroundColor: '#3d1f1f',
-              },
-              gutter: {
-                minWidth: '50px',
-                color: '#808080',
-                textAlign: 'right',
-                fontSize: '12px',
-                padding: '0 8px',
-                borderRight: '1px solid #404040',
-              },
-              line: {
-                '&:hover': {
-                  backgroundColor: '#2d2d2d',
-                },
-              },
-              added: {
-                backgroundColor: '#1e3a2e',
-                '&:hover': {
-                  backgroundColor: '#274737',
-                },
-              },
-              removed: {
-                backgroundColor: '#3d1f1f',
-                '&:hover': {
-                  backgroundColor: '#4a2828',
-                },
-              },
-              connector: {
-                backgroundColor: '#404040',
-              },
-              toolbarButton: {
-                color: '#d4d4d4',
-                backgroundColor: 'transparent',
-                border: '1px solid #404040',
-                borderRadius: '4px',
-                padding: '4px 12px',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                '&:hover': {
-                  backgroundColor: '#404040',
-                },
-              },
-              toolbarActiveButton: {
-                backgroundColor: '#007acc',
-                borderColor: '#007acc',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: '#005a9e',
-                },
-              },
-            }}
-          />
-        )}
+    <div className="h-full flex flex-col">
+      {/* Toggle buttons */}
+      <div className="flex items-center justify-between px-4 py-2 border-b dark:border-gray-700">
+        <div className="text-sm text-gray-500">
+          {fileName} • {oldLines.length} 行 → {newLines.length} 行
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowOld(!showOld)}
+            className={`text-xs px-2 py-1 rounded ${
+              showOld
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600'
+            }`}
+          >
+            查看原文件
+          </button>
+        </div>
+      </div>
+
+      {/* Diff content */}
+      <div className="flex-1 overflow-auto p-4">
+        <SyntaxHighlighter
+          language={language || 'text'}
+          style={darkMode ? oneDark : oneLight}
+          customStyle={{
+            margin: 0,
+            borderRadius: '4px',
+            fontSize: '14px'
+          }}
+        >
+          {highlightedCode}
+        </SyntaxHighlighter>
+      </div>
+
+      {/* Legend */}
+      <div className="px-4 py-2 border-t dark:border-gray-700 flex gap-4 text-xs">
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 bg-red-100 dark:bg-red-900 rounded inline-block"></span>
+          <span className="text-gray-600 dark:text-gray-400">已删除</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 bg-green-100 dark:bg-green-900 rounded inline-block"></span>
+          <span className="text-gray-600 dark:text-gray-400">已添加</span>
+        </div>
       </div>
     </div>
-  );
-};
-
-export default DiffViewer;
+  )
+}
