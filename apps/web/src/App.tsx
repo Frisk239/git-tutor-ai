@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { FileTreePanel } from './components/FileTreePanel';
-import { CodeReaderPanel, type CodeReaderPanelRef } from './components/CodeReaderPanel';
+import CodeReaderPanel, { type CodeReaderPanelRef } from './components/CodeReaderPanel';
 import { ChatPanel } from './components/ChatPanel';
 
 function App() {
@@ -43,7 +43,7 @@ function App() {
         {/* Left: File Tree (256px) */}
         <div className="w-64 border-r bg-white flex flex-col">
           <div className="p-3 border-b">
-            <h2 className="text-sm font-semibold text-gray-700">文件�?/h2>
+            <h2 className="text-sm font-semibold text-gray-700">文件列表</h2>
           </div>
           <div className="flex-1 overflow-auto">
             <FileTreePanel

@@ -320,21 +320,4 @@ This is a demonstration of the code reader panel functionality.
   )
 })
 
-// Add static method for external use
-Object.assign(CodeReaderPanel, {
-  openFile: (file: FileTab) => {
-    // This is kept for compatibility but the ref-based method is preferred
-  }
-})
-
-// Example usage - open a sample file when component mounts
-if (typeof window !== 'undefined') {
-  CodeReaderPanel.openFile({
-    id: 'sample',
-    path: 'README.md',
-    name: 'README.md',
-    language: 'markdown'
-  })
-}
-
 export default CodeReaderPanel

@@ -48,10 +48,9 @@ export const FileTreePanel: React.FC<FileTreePanelProps> = ({
   return (
     <div className="w-full h-full overflow-auto">
       <FileTree
-        rootPath={rootPath}
+        files={files}
         onFileSelect={onFileSelect}
         selectedFile={selectedFile}
-        files={files}
       />
     </div>
   )
